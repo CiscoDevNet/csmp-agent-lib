@@ -6,9 +6,7 @@ These instructions describe the build/run process for a C implementation of a sa
 
 These instructions have been verified to work on Ubuntu 20.10 Desktop 64bit (RPi4 build and target platform).
 
-It is assumed a snapshot of the CSMP agent's source repository has been acquired and placed on the build platform ... either via  
-a. a ZIP archive downloaded/unzipped from Cisco DevNet https://community.cisco.com/t5/ti-chipset-cge-documents/csmp-agent-lib-0-1-1/ta-p/4287729 or ...  
-b. a git clone operation direct from the Cisco Git repository.
+It is assumed a snapshot of the CSMP agent's source repository has been acquired and placed on the build platform via Github repository https://github.com/CiscoDevNet/csmp-agent-lib.
 
 Change your default directory to the root of the CSMP Agent directory structure.
 
