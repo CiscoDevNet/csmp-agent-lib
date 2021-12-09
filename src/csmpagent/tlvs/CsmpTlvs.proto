@@ -1,0 +1,641 @@
+/*
+ * Cisco CSMP Reference Implementation Source Code License Agreement v1.0
+ *
+ * These terms govern your use of Cisco Systems, Inc.’s CSMP Reference
+ * Implementation Source Code and associated documentation (“Licensed
+ * Materials”). By accessing, downloading, copying, distributing, calling, or
+ * otherwise making any use of the Licensed Materials, you accept and agree to
+ * be bound by the following terms and conditions (the “License”). If you are
+ * accepting the License on behalf of an entity, you represent that you have the
+ * authority to do so (either you or the entity, “you”). All use of the Licensed
+ * Materials must be in accordance with this License and all rights not
+ * expressly granted herein are reserved.
+
+ * 1.	LICENSE GRANT.
+ * Subject to Your compliance with the terms of this License, Cisco grants you
+ * a limited, non-exclusive, perpetual, revocable, non-sublicensable,
+ * royalty-free, worldwide, and non-transferable license to: (a) use the
+ * Licensed Materials for the purpose of internal development, testing,
+ * maintenance and support of your products to interoperate with Cisco 802.15.4
+ * border routers -- including without limitation the  Cisco 1000 Series
+ * Connected Grid Routers – and Cisco IoT Field Network Director and any
+ * successor products (collectively the “Cisco Products”), and for no other
+ * purpose; (b) use and reproduce a reasonable number of copies of the Licensed
+ * Materials solely for the internal development, testing, back-up, maintenance
+ * and support of your products as permitted under this License; (c) make
+ * corrections and bug fixes to the Licensed Materials only if such corrections
+ * and bug fixes do not interfere with or inhibit the interoperability of your
+ * products with the Cisco Products; and (d) distribute the CSMP Reference
+ * Implementation Source Code solely in compiled, binary format with your
+ * products to your customers solely to enable your products to interoperate
+ * with the Cisco Products.
+
+ * 2.	CONDITIONS.
+ * You shall not use the Licensed Materials to: (a) substantially replicate and
+ * compete with the Cisco Products; (b) collect, store, or transmit confidential
+ * , sensitive, or protected data or information without authorization; (c)
+ * disable, disrupt, circumvent, interfere with, or otherwise violate the
+ * security of any Cisco product, service, or user;  (d) access any application,
+ * system, service, computer, data, account, or network without authorization;
+ * (e) develop features or functions in stand-alone applications that do not
+ * interoperate with the Cisco Products;  or (f) sell or offer to sell the
+ * Licensed Products on a standalone basis. The Cisco Products are licensed
+ * under their own separate terms and you shall not use the Licensed Materials
+ * in any way that violates or is inconsistent with those terms (for more
+ * information, please visit: www.cisco.com/go/terms). Failure to comply with
+ * any part of this section or section 2 constitutes a material breach of this
+ * License, terminates the license granted in Section 1 above, and may result in
+ * further repercussions and actions against you, at Cisco’s sole discretion.
+
+ * 3.	OWNERSHIP.
+ * The Licensed Materials, in whole or in part, in all forms, and any
+ * corrections or bug fixes thereto that you make are the sole and exclusive
+ * property of Cisco.   You irrevocably transfer, convey, and assign to Cisco
+ * all of your right, title, and interest in any corrections or bug fixes you
+ * make to the Licensed Materials.  You shall send the corrections or bug fixes
+ * to ask-crmesh-dev@cisco.com.  This License does not grant you permission to
+ * use any trade names, trademarks, service marks, or product names of Cisco.
+ * If you provide any feedback to Cisco regarding the Licensed Materials, you
+ * agree that Cisco, its suppliers, and its customers shall be free to use and
+ * incorporate such feedback into the Licensed Materials and Cisco products and
+ * services without restriction, payment, or additional consideration of any
+ * kind. If you initiate or participate in any litigation against Cisco, its
+ * partners, or its customers (including cross-claims and counter-claims)
+ * alleging that the Licensed Materials or its use infringe any patent,
+ * copyright, or other intellectual property right, then all rights granted to
+ * you under this License shall terminate immediately.
+
+ * 4.	CONFIDENTIAL INFORMATION.
+ * The Licensed Materials, whether in whole or in part, contain confidential
+ * information and proprietary property of Cisco.  Licensee acknowledges that
+ * the Licensed Materials contain trade secrets and other confidential
+ * information which are the property of Cisco.  You shall keep the Licensed
+ * Materials in strict confidence and take all reasonable steps to prevent: (a)
+ * unauthorized persons from having access to the Licensed Materials; (b)
+ * disclosure of the Licensed Materials to any third party; and (c) unauthorized
+ * copying of the Licensed Materials.
+
+ * 5.	PROPRIETARY NOTICES.
+ * You agree to maintain and reproduce all copyright, trademarks and other
+ * proprietary notices on all copies of the Licensed Materials, in any form, in
+ * the same form and manner that such copyright, trademarks, and other
+ * proprietary notices are included on the Licensed Materials.
+
+ * 6.	NO SUPPORT.
+ * Nothing in this License shall require Cisco to provide any support, services,
+ * updates, upgrades, bug fixes or any other modifications to the Licensed
+ * Materials.  You shall be solely responsible for providing support to your
+ * customers for any problems or issues that they encounter by using the CSMP
+ * Reference Implementation Source Code in binary form that you distributed.
+ * Cisco may, at its own sole discretion, update, extend, enhance, or otherwise
+ * modify the Licensed Materials without notice.  If Cisco provides updates to
+ * you and no separate agreement accompanies such updates, then such updates are
+ * subject to this License.
+
+ * 7.	LIMITATION OF LIABILITY.
+ * CISCO SHALL HAVE NO LIABILITY IN CONNECTION WITH OR RELATING TO THIS LICENSE
+ * OR USE OF THE LICENSED MATERIALS, FOR DAMAGES OF ANY KIND, INCLUDING BUT NOT
+ * LIMITED TO DIRECT, INCIDENTAL, AND CONSEQUENTIAL DAMAGES, OR FOR ANY LOSS OF
+ * USE, DATA, INFORMATION, PROFITS, BUSINESS, OR GOODWILL, HOWEVER CAUSED, EVEN
+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+ * 8.	DISCLAIMER OF WARRANTY.
+ * CISCO PROVIDES THE LICENSED MATERIALS “AS IS” WITH ALL FAULTS, WITHOUT
+ * WARRANTY OF ANY KIND. TO THE MAXIMUM EXTENT PERMITTED BY LAW, ALL EXPRESS AND
+ * IMPLIED CONDITIONS, REPRESENTATIONS, AND WARRANTIES INCLUDING, WITHOUT
+ * LIMITATION, ANY IMPLIED WARRANTY OR CONDITION OF MERCHANTABILITY, FITNESS FOR
+ * A PARTICULAR PURPOSE, NON-INFRINGEMENT, SATISFACTORY QUALITY,
+ * NON-INTERFERENCE, AND ACCURACY, ARE HEREBY EXCLUDED AND EXPRESSLY DISCLAIMED
+ * BY CISCO. CISCO DOES NOT WARRANT THAT THE LICENSED MATERIALS ARE SUITABLE FOR
+ * YOUR USE, WILL OPERATE PROPERLY WITH YOUR APPLICATION, ARE ACCURATE OR
+ * COMPLETE, OR ARE WITHOUT ERROR OR DEFECT.
+
+ * 9.	GENERAL.
+ * This License shall be governed by and interpreted in accordance with the laws
+ * of the State of California, excluding its conflict of law’s provisions. You
+ * agree to comply with all applicable United States export laws, rules, and
+ * regulations. If any provision of this License is judged illegal, invalid, or
+ * otherwise unenforceable, that provision shall be severed, and the rest of the
+ * License shall remain in full force and effect. No failure by Cisco to enforce
+ * any of its rights related to the Licensed Materials or to a breach of this
+ * License in a particular situation will act as a waiver of such rights. In the
+ * event of any inconsistencies with any other terms that may apply to the
+ * Licensed Materials, this License shall take precedence.
+ */
+
+syntax = "proto3";
+
+// TLV 1
+message TlvIndex {
+  repeated string tlvid = 1;
+}
+
+// TLV 2
+message DeviceID {
+  oneof type_present {
+  uint32 type = 1;
+  }
+  oneof id_present {
+  string id = 2;
+  }
+}
+
+// TLV 7
+message SessionID {
+  oneof id_present {
+    string id = 1;
+  }
+}
+
+// TLV 8
+message DescriptionRequest {
+  repeated string tlvid = 1;
+}
+
+// TLV 13
+message ReportSubscribe {
+  oneof interval_present {
+  uint32 interval = 1;
+  }
+  repeated string tlvid = 2;
+}
+
+// TLV 42
+message CGMSSettings {
+  oneof regIntervalMin_present {
+  uint32 regIntervalMin = 1;
+  }
+  oneof regIntervalMax_present {
+  uint32 regIntervalMax = 2;
+  }
+}
+
+// TLV 43
+message CGMSStatus {
+  oneof registered_present {
+  bool registered = 1;
+  }
+  oneof NMSAddr_present {
+  bytes NMSAddr = 2;
+  }
+  oneof NMSAddrOrigin_present {
+  uint32 NMSAddrOrigin = 3;
+  }
+  oneof lastReg_present {
+  uint32 lastReg = 4;
+  }
+  oneof lastRegReason_present {
+  uint32 lastRegReason = 5;
+  }
+  oneof nextReg_present {
+  uint32 nextReg = 6;
+  }
+  oneof NMSCertValid_present {
+  bool NMSCertValid = 7;
+  }
+}
+
+// TLV 45
+message CGMSStats {
+  oneof sigOk_present {
+  uint32 sigOk = 1;
+  }
+  oneof sigBadAuth_present {
+  uint32 sigBadAuth = 2;
+  }
+  oneof sigBadValidity_present {
+  uint32 sigBadValidity = 3;
+  }
+  oneof sigNoSync_present {
+  uint32 sigNoSync = 4;
+  }
+  oneof regSucceed_present {
+  uint32 regSucceed = 5;
+  }
+  oneof regAttempts_present {
+  uint32 regAttempts = 6;
+  }
+  oneof regHolds_present {
+  uint32 regHolds = 7;
+  }
+  oneof regFails_present {
+  uint32 regFails = 8;
+  }
+  oneof nmsErrors_present {
+  uint32 nmsErrors = 9;
+  }
+}
+
+// TLV 55
+message GroupAssign {
+  oneof type_present {
+  uint32 type = 1;
+  }
+  oneof id_present {
+  uint32 id = 2;
+  }
+}
+
+// TLV 57
+message GroupMatch {
+  oneof type_present {
+  uint32 type = 1;
+  }
+  oneof id_present {
+  uint32 id = 2;
+  }
+}
+
+// TLV 58
+message GroupInfo {
+  oneof type_present {
+  uint32 type = 1;
+  }
+  oneof id_present {
+  uint32 id = 2;
+  }
+}
+
+// TLV 76
+message SignatureValidity {
+  oneof notBefore_present {
+  uint32 notBefore = 1;
+  }
+  oneof notAfter_present {
+  uint32 notAfter = 2;
+  }
+}
+
+// TLV 77
+message Signature {
+  oneof value_present {
+  bytes value = 1;
+  }
+}
+
+
+// TLV 11
+message HardwareDesc {
+  oneof entPhysicalIndex_present {
+  int32 entPhysicalIndex = 1;
+  }
+  oneof entPhysicalDescr_present {
+  string entPhysicalDescr = 2;
+  }
+  oneof entPhysicalVendorType_present {
+  bytes entPhysicalVendorType = 3;
+  }
+  oneof entPhysicalContainedIn_present {
+  int32 entPhysicalContainedIn = 4;
+  }
+  oneof entPhysicalClass_present {
+  int32 entPhysicalClass = 5;
+  }
+  oneof entPhysicalParentRelPos_present {
+  int32 entPhysicalParentRelPos = 6;
+  }
+  oneof entPhysicalName_present {
+  string entPhysicalName = 7;
+  }
+  oneof entPhysicalHardwareRev_present {
+  string entPhysicalHardwareRev = 8;
+  }
+  oneof entPhysicalFirmwareRev_present {
+  string entPhysicalFirmwareRev = 9;
+  }
+  oneof entPhysicalSoftwareRev_present {
+  string entPhysicalSoftwareRev = 10;
+  }
+  oneof entPhysicalSerialNum_present {
+  string entPhysicalSerialNum = 11;
+  }
+  oneof entPhysicalMfgName_present {
+  string entPhysicalMfgName = 12;
+  }
+  oneof entPhysicalModelName_present {
+  string entPhysicalModelName = 13;
+  }
+  oneof entPhysicalAssetID_present {
+  string entPhysicalAssetID = 14;
+  }
+  oneof entPhysicalMfgDate_present {
+  uint32 entPhysicalMfgDate = 15;
+  }
+  oneof entPhysicalURIs_present {
+  string entPhysicalURIs = 16;
+  }
+  oneof entPhysicalFunction_present {
+  uint32 entPhysicalFunction = 17;
+  }
+  oneof entPhysicalOUI_present {
+    string entPhysicalOUI = 18;
+  }
+}
+
+// TLV 12
+message InterfaceDesc {
+  oneof ifIndex_present {
+  int32 ifIndex = 1;
+  }
+  oneof ifName_present {
+  string ifName = 2;
+  }
+  oneof ifDescr_present {
+  string ifDescr = 3;
+  }
+  oneof ifType_present {
+  int32 ifType = 4;
+  }
+  oneof ifMtu_present {
+  int32 ifMtu = 5;
+  }
+  oneof ifPhysAddress_present {
+  bytes ifPhysAddress = 6;
+  }
+}
+
+// TLV 16
+message IPAddress {
+  oneof ipAddressIndex_present {
+  int32 ipAddressIndex = 1;
+  }
+  oneof ipAddressAddrType_present {
+  uint32 ipAddressAddrType = 2;
+  }
+  oneof ipAddressAddr_present {
+  bytes ipAddressAddr = 3;
+  }
+  oneof ipAddressIfIndex_present {
+  int32 ipAddressIfIndex = 4;
+  }
+  oneof ipAddressType_present {
+  uint32 ipAddressType = 5;
+  }
+  oneof ipAddressOrigin_present {
+  uint32 ipAddressOrigin = 6;
+  }
+  oneof ipAddressStatus_present {
+  uint32 ipAddressStatus = 7;
+  }
+  oneof ipAddressCreated_present {
+  uint32 ipAddressCreated = 8;
+  }
+  oneof ipAddressLastChanged_present {
+  uint32 ipAddressLastChanged = 9;
+  }
+  oneof ipAddressPfxLen_present {
+  uint32 ipAddressPfxLen = 10;
+  }
+}
+
+// TLV 17
+message IPRoute {
+  oneof inetCidrRouteIndex_present {
+  int32 inetCidrRouteIndex = 1;
+  }
+  oneof inetCidrRouteDestType_present {
+  uint32 inetCidrRouteDestType = 2;
+  }
+  oneof inetCidrRouteDest_present {
+  bytes inetCidrRouteDest = 3;
+  }
+  oneof inetCidrRoutePfxLen_present {
+  uint32 inetCidrRoutePfxLen = 4;
+  }
+  oneof inetCidrRouteNextHopType_present {
+  uint32 inetCidrRouteNextHopType = 5;
+  }
+  oneof inetCidrRouteNextHop_present {
+  bytes inetCidrRouteNextHop = 6;
+  }
+  oneof inetCidrRouteIfIndex_present {
+  int32 inetCidrRouteIfIndex = 7;
+  }
+  oneof inetCidrRouteType_present {
+  uint32 inetCidrRouteType = 8;
+  }
+  oneof inetCidrRouteProto_present {
+  uint32 inetCidrRouteProto = 9;
+  }
+  oneof inetCidrRouteAge_present {
+  uint32 inetCidrRouteAge = 10;
+  }
+}
+
+// TLV 18
+message CurrentTime {
+  oneof posix_present {
+  uint32 posix = 1;
+  }
+  oneof iso8601_present {
+  string iso8601 = 2;
+  }
+  oneof source_present {
+  uint32 source = 3;
+  }
+}
+
+// TLV 22
+message Uptime {
+  oneof sysUpTime_present {
+  uint32 sysUpTime = 1;
+  }
+}
+
+// TLV 23
+message InterfaceMetrics {
+  oneof ifIndex_present {
+  int32 ifIndex = 1;
+  }
+  oneof ifInSpeed_present {
+  uint32 ifInSpeed = 2;
+  }
+  oneof ifOutSpeed_present {
+  uint32 ifOutSpeed = 3;
+  }
+  oneof ifAdminStatus_present {
+  uint32 ifAdminStatus = 4;
+  }
+  oneof ifOperStatus_present {
+  uint32 ifOperStatus = 5;
+  }
+  oneof ifLastChange_present {
+  uint32 ifLastChange = 6;
+  }
+  oneof ifInOctets_present {
+  uint32 ifInOctets = 7;
+  }
+  oneof ifOutOctets_present {
+  uint32 ifOutOctets = 8;
+  }
+  oneof ifInDiscards_present {
+  uint32 ifInDiscards = 9;
+  }
+  oneof ifInErrors_present {
+  uint32 ifInErrors = 10;
+  }
+  oneof ifOutDiscards_present {
+  uint32 ifOutDiscards = 11;
+  }
+  oneof ifOutErrors_present {
+  uint32 ifOutErrors = 12;
+  }
+}
+
+// TLV 25
+message IPRouteRPLMetrics {
+  oneof inetCidrRouteIndex_present {
+  int32 inetCidrRouteIndex = 1; // refers to a particular index in the IPRoute table
+  }
+  oneof instanceIndex_present {
+  int32 instanceIndex = 2; // Corresponding RPL instance of this route
+  }
+  oneof rank_present {
+  int32 rank = 3; // advertised rank
+  }
+  oneof hops_present {
+  int32 hops = 4; // not necessary now, but here so we can easily add later once we're propagating hops as a metric
+  }
+  oneof pathEtx_present {
+  int32 pathEtx = 5;  // advertised path ethx
+  }
+  oneof linkEtx_present {
+  int32 linkEtx = 6;  // next-hop link ETX
+  }
+  oneof rssiForward_present {
+  sint32 rssiForward = 7;
+  }
+  oneof rssiReverse_present {
+  sint32 rssiReverse = 8;
+  }
+  oneof lqiForward_present {
+  int32 lqiForward = 9;
+  }
+  oneof lqiReverse_present {
+  int32 lqiReverse = 10;
+  }
+  oneof dagSize_present {
+  uint32 dagSize = 11;
+  }
+}
+
+// TLV 35
+message WPANStatus {
+  oneof ifIndex_present {
+  int32 ifIndex = 1;
+  }
+  oneof SSID_present {
+  bytes SSID = 2;
+  }
+  oneof panid_present {
+  uint32 panid = 3;
+  }
+  oneof master_present {
+  bool master = 4;
+  }
+  oneof dot1xEnabled_present {
+  bool dot1xEnabled = 5;
+  }
+  oneof securityLevel_present {
+  uint32 securityLevel = 6;
+  }
+  oneof rank_present {
+  uint32 rank = 7;
+  }
+  oneof beaconValid_present {
+  bool beaconValid = 8;
+  }
+  oneof beaconVersion_present {
+  uint32 beaconVersion = 9;
+  }
+  oneof beaconAge_present {
+  uint32 beaconAge = 10;
+  }
+  oneof txPower_present {
+  int32 txPower = 11;
+  }
+  oneof dagSize_present {
+  uint32 dagSize = 12;
+  }
+  oneof metric_present {
+  uint32 metric = 13;
+  }
+  oneof lastChanged_present {
+  uint32 lastChanged = 14;
+  }
+  oneof lastChangedReason_present {
+  uint32 lastChangedReason = 15;
+  }
+  oneof demoModeEnabled_present {
+  bool demoModeEnabled = 16;
+  }
+}
+
+// TLV 53
+message RPLInstance {
+  oneof instanceIndex_present {
+  int32 instanceIndex = 1;
+  }
+  oneof instanceId_present {
+  int32 instanceId = 2;
+  }
+  oneof doDagId_present {
+  bytes doDagId = 3;
+  }
+  oneof doDagVersionNumber_present {
+  int32 doDagVersionNumber = 4;
+  }
+  oneof rank_present {
+  int32 rank = 5;
+  }
+  oneof parentCount_present {
+  int32 parentCount = 6; // Count of available parents
+  }
+  oneof dagSize_present {
+  uint32 dagSize = 7;
+  }
+}
+
+message HardwareInfo {
+  oneof hwId_present {
+  string hwId = 1;
+  }
+  oneof vendorHwId_present {
+  string vendorHwId = 2;
+  }
+}
+
+// TLV 75
+message FirmwareImageInfo {
+  oneof index_present {
+  uint32 index = 1;
+  }
+  oneof fileHash_present {
+  bytes fileHash = 2;
+  }
+  oneof fileName_present {
+  string fileName = 3;
+  }
+  oneof version_present {
+  string version = 4;
+  }
+  oneof fileSize_present {
+  uint32 fileSize = 5;
+  }
+  oneof blockSize_present {
+  uint32 blockSize = 6;
+  }
+  oneof bitmap_present {
+  bytes bitmap = 7;
+  }
+  oneof isDefault_present {
+  bool isDefault = 8;
+  }
+  oneof isRunning_present {
+  bool isRunning = 9;
+  }
+  oneof loadTime_present {
+  uint32 loadTime = 10;
+  }
+  HardwareInfo hwInfo = 11;
+}
