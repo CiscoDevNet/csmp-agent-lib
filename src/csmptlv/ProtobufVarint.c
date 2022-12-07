@@ -229,27 +229,27 @@ parse_sint64(int64_t *member, const uint8_t *data, uint32_t len)
   return rv;
 }
 
-uint32_t ProtobufVarint_encodeUINT32(uint8_t *buf, uint32_t len, uint32_t val) {
+uint32_t ProtobufVarint_encodeUINT32(uint8_t *buf, uint32_t val) {
   return uint32_pack(val, buf);
 }
 
-uint32_t ProtobufVarint_encodeINT32(uint8_t *buf, uint32_t len, int32_t val) {
+uint32_t ProtobufVarint_encodeINT32(uint8_t *buf, int32_t val) {
   return int32_pack(val,buf);
 }
 
-uint32_t ProtobufVarint_encodeSINT32(uint8_t *buf, uint32_t len, int32_t val) {
+uint32_t ProtobufVarint_encodeSINT32(uint8_t *buf, int32_t val) {
   return sint32_pack(val,buf);
 }
 
-uint32_t ProtobufVarint_encodeUINT64(uint8_t *buf, uint32_t len, uint64_t val) {
+uint32_t ProtobufVarint_encodeUINT64(uint8_t *buf, uint64_t val) {
   return uint64_pack(val, buf);
 }
 
-uint32_t ProtobufVarint_encodeINT64(uint8_t *buf, uint32_t len, int64_t val) {
+uint32_t ProtobufVarint_encodeINT64(uint8_t *buf, int64_t val) {
   return uint64_pack((uint64_t)val,buf);
 }
 
-uint32_t ProtobufVarint_encodeSINT64(uint8_t *buf, uint32_t len, int64_t val) {
+uint32_t ProtobufVarint_encodeSINT64(uint8_t *buf, int64_t val) {
   return sint64_pack(val,buf);
 }
 
@@ -258,7 +258,7 @@ uint32_t ProtobufVarint_decodeUINT32(const uint8_t *buf, uint32_t len, uint32_t 
 }
 
 uint32_t ProtobufVarint_decodeINT32(const uint8_t *buf, uint32_t len, int32_t *val) {
-  return parse_int32(val,buf,len);
+  return parse_int32((uint32_t *)val,buf,len);
 }
 
 uint32_t ProtobufVarint_decodeSINT32(const uint8_t *buf, uint32_t len, int32_t *val) {

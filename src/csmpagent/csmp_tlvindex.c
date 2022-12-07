@@ -43,10 +43,8 @@ static char *ptlvs[NUM_TLVS] = {
   FIRMWARE_IMAGE_INFO_ID_STRING
 };
 
-int csmp_get_tlvindex(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
+int csmp_get_tlvindex(tlvid_t tlvid, uint8_t *buf, size_t len)
 {
-  int i = 0;
-  int j = 0;
   size_t rv = 0;
 
   DPRINTF("csmpagent_tlvindex: start working.\n");

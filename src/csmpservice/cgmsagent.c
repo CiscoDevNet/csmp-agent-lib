@@ -62,7 +62,8 @@ int doSendtlvs(tlvid_t *list, uint32_t list_cnt, coap_transaction_type_t txn_typ
                            uint8_t token_length, uint8_t *token) {
   uint8_t *pbuf = g_outbuf;
   coap_uri_seg_t url;
-  int i, rvi, used = 0;
+  int rvi, used = 0;
+  uint32_t i;
   tlvid_t list_pre[2] = {{0,SESSION_ID_TLVID},{0,CURRENT_TIME_TLVID}};
 
   url.len = 1;
@@ -70,7 +71,7 @@ int doSendtlvs(tlvid_t *list, uint32_t list_cnt, coap_transaction_type_t txn_typ
 
   if (prepend) {
     for(i = 0; i < 2; i++)  {
-      rvi = csmpagent_get(list_pre[i], pbuf, OUTBUF_SIZE-used, -1,0,0,NULL);
+      rvi = csmpagent_get(list_pre[i], pbuf, OUTBUF_SIZE-used, -1);
       if (rvi < 0) {
         DPRINTF("CgmsAgent: Unable to write TLV %u.%u\n",list_pre[i].vendor,list_pre[i].type);
         return -1;
@@ -80,7 +81,7 @@ int doSendtlvs(tlvid_t *list, uint32_t list_cnt, coap_transaction_type_t txn_typ
   }
 
   for (i = 0; i < list_cnt; i++) {
-    rvi = csmpagent_get(list[i], pbuf, OUTBUF_SIZE-used, tlvindex,0,0,NULL);
+    rvi = csmpagent_get(list[i], pbuf, OUTBUF_SIZE-used, tlvindex);
     if (rvi < 0) {
       DPRINTF("CgmsAgent: Unable to write TLV %u.%u\n",list[i].vendor,list[i].type);
       return -1;
@@ -91,8 +92,9 @@ int doSendtlvs(tlvid_t *list, uint32_t list_cnt, coap_transaction_type_t txn_typ
   if (used) {
     rvi =  coapclient_request(&NMS_addr, txn_type, COAP_POST, token_length, token,
                               &url,1,NULL,0,g_outbuf,used);
-    if (rvi<0)
+    if (rvi<0) {
       DPRINTF("CsmpAgent: CoapClient.request failed! list[1] = e%u.%u\n",list[1].vendor,list[1].type);
+    }
   }
   return rvi;
 }
@@ -109,7 +111,7 @@ void reset_rpttimer() {
                         (trickle_timer_fired_t)report_timer_fired);
 }
 
-void process_reg(const uint8_t *buf,size_t len, bool preload_only, struct sockaddr_in6 *srcaddr) {
+void process_reg(const uint8_t *buf,size_t len, bool preload_only) {
   const uint8_t *pbuf = buf;
   tlvid_t tlvid;
   uint32_t tlvlen;
@@ -127,7 +129,7 @@ void process_reg(const uint8_t *buf,size_t len, bool preload_only, struct sockad
       case SIGNATURE_VALIDITY_TLVID:
         break;
       default:
-        rv = csmpagent_post(tlvid,pbuf,tlvlen,NULL,0,NULL,0,srcaddr);
+        rv = csmpagent_post(tlvid,pbuf,tlvlen,NULL,0,NULL,0);
         if (rv < 0)
           return;
         break;
@@ -144,15 +146,13 @@ void process_reg(const uint8_t *buf,size_t len, bool preload_only, struct sockad
    if(g_csmplib_report_list.period != 0)
      report_timer_fired();
 
-     trickle_timer_start(rpt_timer, g_csmplib_report_list.period, g_csmplib_report_list.period,
-                        (trickle_timer_fired_t)report_timer_fired);
+   trickle_timer_start(rpt_timer, g_csmplib_report_list.period, g_csmplib_report_list.period,
+                      (trickle_timer_fired_t)report_timer_fired);
   }
   return;
 }
 
 void register_timer_fired() {
-  int ret = 0;
-  int i = 0;
   tlvid_t list[] = {{0,DEVICE_ID_TLVID},{0,CURRENT_TIME_TLVID},
                     {0,HARDWARE_DESC_TLVID},{0,INTERFACE_DESC_TLVID},{0,IPADDRESS_TLVID},
                     {0,IPROUTE_TLVID},{0,INTERFACE_METRICS_TLVID},{0,IPROUTE_RPLMETRICS_TLVID},
@@ -164,11 +164,11 @@ void register_timer_fired() {
 }
 
 
-void response_handler(struct sockaddr_in6 *from,
-           uint16_t status, const void *body, uint16_t body_len)
+void response_handler(struct sockaddr_in6 *from, uint16_t status, const void *body, uint16_t body_len)
 {
   int sigStat = 0;
 
+  (void) from;	// To avoid the unused-parameter warning.
   DPRINTF("CgmsAgent: CoapClient.response with status=%d body_len=%d\n",status,body_len);
 
   if ((status/100) != 2) {
@@ -189,7 +189,7 @@ void response_handler(struct sockaddr_in6 *from,
   }
 
   if (body_len > 0) {
-    sigStat = checkSignature(body,body_len,from);
+    sigStat = checkSignature(body,body_len);
     if(sigStat <= 0) {
       if(sigStat == 0)
         g_csmplib_stats.sig_no_signature++;
@@ -203,7 +203,7 @@ void response_handler(struct sockaddr_in6 *from,
 
   switch (g_csmplib_status) {
   case REGISTRATION_IN_PROGRESS:
-    process_reg(body,body_len,false,from);
+    process_reg(body,body_len,false);
     if (g_csmplib_status == REGISTRATION_SUCCESS)  {
       g_csmplib_stats.reg_succeed++;
       DPRINTF("CgmsAgent: Registration Complete!\n");

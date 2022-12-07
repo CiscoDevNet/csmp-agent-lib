@@ -47,9 +47,9 @@ static int32_t m_remaining = (1UL << 31) - 1; /* max int32_t */
 static bool m_timert_isrunning = false;
 
 void update_timer();
-void alarm_fired(int32_t sig);
+void alarm_fired();
 
-void *timer_thread(void *arg) {
+void *timer_thread(void*) {
   sigset_t set;
 
   sigemptyset(&set);
@@ -68,7 +68,7 @@ void *timer_thread(void *arg) {
   }
 }
 
-void alarm_fired(int32_t sig)
+void alarm_fired(void)
 {
   uint32_t min;
   uint8_t i;
@@ -95,10 +95,12 @@ void alarm_fired(int32_t sig)
     if (timer->icur > timer->imax)
       timer->icur = timer->imax;
 
-    if(i == reg_timer)
+    if(i == reg_timer) {
       DPRINTF("register trickle timer fired\n");
-    else if(i == rpt_timer)
+    }
+    else if(i == rpt_timer) {
       DPRINTF("metrics report trickle timer fired\n");
+    }
 
     timer_fired[i]();
     min = timer->icur >> 1;
@@ -138,7 +140,6 @@ void trickle_timer_start(timerid_t timerid, uint32_t imin, uint32_t imax, trickl
   uint32_t min;
   struct timeval tv = {0};
   uint32_t seed = 0;
-  int rv;
   sigset_t set;
 
   if(!m_timert_isrunning) {
@@ -147,15 +148,17 @@ void trickle_timer_start(timerid_t timerid, uint32_t imin, uint32_t imax, trickl
     sigprocmask(SIG_BLOCK, &set, NULL);
 
     sem_init(&sem, 0, 0);
-    rv = pthread_create(&timert_id, NULL, timer_thread, NULL);
+    pthread_create(&timert_id, NULL, timer_thread, NULL);
     pthread_detach(timert_id);
     m_timert_isrunning = true;
   }
 
-  if(timerid == reg_timer)
+  if(timerid == reg_timer) {
     DPRINTF("register trickle timer start\n");
-  else if(timerid == rpt_timer)
+  }
+  else if(timerid == rpt_timer) {
     DPRINTF("metrics report trickle timer start\n");
+  }
 
   gettimeofday(&tv, NULL);
 
@@ -178,11 +181,12 @@ void trickle_timer_stop(timerid_t timerid)
   sigset_t set;
 
   timers[timerid].is_running = false;
-  if(timerid == reg_timer)
+  if(timerid == reg_timer) {
     DPRINTF("register trickle timer stop\n");
-  else if(timerid == rpt_timer)
+  }
+  else if(timerid == rpt_timer) {
     DPRINTF("metrics report trickle timer stop\n");
-
+  }
   for(i = 0; i < timer_num; i++) {
     if(timers[i].is_running)
       return;

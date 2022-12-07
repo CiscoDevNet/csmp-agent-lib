@@ -24,7 +24,7 @@
 
 extern uint8_t g_csmplib_eui64[8];
 
-int csmp_get_deviceid(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
+int csmp_get_deviceid(tlvid_t tlvid, uint8_t *buf, size_t len)
 {
   size_t rv = 0;
   char id[128];

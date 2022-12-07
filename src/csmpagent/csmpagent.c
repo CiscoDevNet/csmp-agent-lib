@@ -18,7 +18,7 @@
 #include "csmpagent.h"
 #include "csmpfunction.h"
 
-int csmpagent_get(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex, uint32_t t1, uint32_t t2, struct sockaddr_in6 *from)
+int csmpagent_get(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
 {
   switch (tlvid.type) {
     case TLV_INDEX_TLVID:
@@ -78,7 +78,7 @@ int csmpagent_get(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex, uin
   }
 }
 
-int csmpagent_post(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf, size_t out_size, size_t *out_len, int32_t tlvindex, struct sockaddr_in6 *from)
+int csmpagent_post(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf, size_t out_size, size_t *out_len, int32_t tlvindex)
 {
   switch (tlvid.type) {
     case CURRENT_TIME_TLVID:

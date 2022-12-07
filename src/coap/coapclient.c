@@ -41,7 +41,7 @@ static bool m_client_opened = false;
 static uint16_t m_transaction_id = 0;
 static pthread_t recvt_id;
 
-void *recv_fn(void *arg);
+void *recv_fn(void*);
 int write_option( uint8_t *buf, uint16_t buf_len, coap_option_t this_option, coap_option_t *last_option,
     const uint8_t* option_buf, uint32_t option_len, uint32_t *written_len );
 void process_response(uint8_t* data, uint16_t len, struct sockaddr_in6 *from);
@@ -56,7 +56,6 @@ int coapclient_stop()
 
 int coapclient_open(response_handler_t response_handler)
 {
-  int rv;
   int sockfd;
 
   if (m_client_opened) {
@@ -77,7 +76,7 @@ int coapclient_open(response_handler_t response_handler)
 
   m_sock = sockfd;
   m_client_opened = true;
-  rv = pthread_create(&recvt_id, NULL, recv_fn, NULL);
+  pthread_create(&recvt_id, NULL, recv_fn, NULL);
   pthread_detach(recvt_id);
   return 0;
 }
@@ -103,7 +102,7 @@ int coapclient_request (const struct sockaddr_in6 *to,
 
   coap_option_t last_option = (coap_option_t)0;
   uint32_t written_len = 0;
-  int j = 0;
+  uint32_t j = 0;
 
   if (url) {
     for (j=0; j < url_cnt; j++) {
@@ -249,7 +248,7 @@ void coap_option_map(uint32_t val, uint8_t *map)
     *map = 14;
 }
 
-void *recv_fn(void *arg)
+void *recv_fn(void*)
 {
   DPRINTF("coapclient receive thread is serving now...\n");
 
@@ -314,14 +313,14 @@ void process_response(uint8_t* data, uint16_t len, struct sockaddr_in6 *from)
   uint8_t status_detail;
   uint16_t status, buf_used = 0;
   uint32_t option_delta, option_len;
-  if ( (len - buf_used) < sizeof(coap_header_t) )
+  if ( (len - buf_used) < (uint16_t)sizeof(coap_header_t) )
     return;
 
   hdr = (coap_header_t*) cur;
 
   tkl = hdr->control & 0xF;
 
-  if ((len - buf_used) < (sizeof(coap_header_t) + tkl) || tkl > COAP_MAX_TKL)
+  if ((len - buf_used) < ((uint16_t)sizeof(coap_header_t) + tkl) || tkl > COAP_MAX_TKL)
     return;
 
   status_class = (hdr->code >> 5);
@@ -374,7 +373,7 @@ void process_response(uint8_t* data, uint16_t len, struct sockaddr_in6 *from)
       break;
     }
 
-    if ((len - buf_used) < option_len)
+    if ((uint32_t)(len - buf_used) < option_len)
       return;
 
     cur += option_len; buf_used += option_len;

@@ -54,7 +54,7 @@ bool getArgString(char *key, const coap_uri_seg_t *list,
 bool checkExempt(tlvid_t tlvid) {
   const tlvid_t exempt_list[] = {{0,DESCRIPTION_REQUEST_TLVID},{0,IMAGE_BLOCK_TLVID}};
   uint32_t list_cnt = sizeof(exempt_list)/sizeof(tlvid_t);
-  int i;
+  uint32_t i;
 
   for (i = 0; i < list_cnt; i++) {
     if ((tlvid.vendor == exempt_list[i].vendor) &&
@@ -65,17 +65,21 @@ bool checkExempt(tlvid_t tlvid) {
 }
 
 void recv_request(struct sockaddr_in6 *from,
-    coap_transaction_type_t tx_type, uint16_t tx_id,
-    uint8_t token_length, uint8_t *token,
+	coap_transaction_type_t tx_type,
+    uint16_t tx_id,
+    uint8_t token_length,
+	uint8_t *token,
     coap_method_t method,
-    const coap_uri_seg_t *url, uint32_t url_cnt,
-    const coap_uri_seg_t *query, uint32_t query_cnt,
-    const void *body, uint16_t body_len)
+    const coap_uri_seg_t *url,
+	uint32_t url_cnt,
+    const coap_uri_seg_t *query,
+	uint32_t query_cnt,
+    const void *body,
+	uint16_t body_len)
 {
-  DPRINTF("request recevied!\n");
+  DPRINTF("request received!\n");
   tlvid_t tlvid = {0,0};
   int32_t tlvindex = -1L;
-  uint32_t delay = 0;
   uint8_t *out_buf = NULL;
   size_t out_len = 0;
   uint16_t coap_status = COAP_CODE_BAD_REQ;
@@ -104,6 +108,8 @@ void recv_request(struct sockaddr_in6 *from,
     printf("%c%.*s",(i) ? '&' : '?',query[i].len,query[i].val);
   }
   printf("\n");
+#else
+  (void)tx_type;	// Null expression to avoid unused-parameter warning
 #endif
 
   if ((url_cnt) && (strncmp((char *)url[0].val,"c",url[0].len) == 0)) {
@@ -133,7 +139,7 @@ void recv_request(struct sockaddr_in6 *from,
         uint32_t t1=0, t2=0;
         tlvid_t tlvlist[QRY_LIST_MAX] = {{0,0}};
         uint32_t tlvcnt = QRY_LIST_MAX;
-        int i;
+        uint32_t i;
 
         getArgInt("t1=",query,query_cnt,&t1);
         getArgInt("t2=",query,query_cnt,&t2);
@@ -147,7 +153,7 @@ void recv_request(struct sockaddr_in6 *from,
 
         for (i=0; i<tlvcnt; i++) {
           DPRINTF("CsmpServer: Getting %u.%u\n", tlvlist[i].vendor, tlvlist[i].type);
-          rv = csmpagent_get(tlvlist[i], out_buf, OUTBUF_MAX - out_len, tlvindex,t1,t2,from);
+          rv = csmpagent_get(tlvlist[i], out_buf, OUTBUF_MAX - out_len, tlvindex);
           if (rv < 0) {
             if (tlvcnt > 1)  {
               rv = 0;
@@ -172,14 +178,14 @@ void recv_request(struct sockaddr_in6 *from,
         uint32_t iused = 0, oused = 0;
         size_t rvo = 0;
 
-        int sigStat = checkSignature(ibuf,body_len,from);
+        int sigStat = checkSignature(ibuf,body_len);
 
         if (sigStat < 0) {
           DPRINTF("CsmpServer: POST Signature Check failed.\n");
           coap_status = COAP_CODE_UNAUTHORIZED; // Unauthorized
           break;
         }
-        if (checkGroup(ibuf,body_len,from) == false) {
+        if (checkGroup(ibuf,body_len) == false) {
           DPRINTF("CsmpServer: POST Group Match false.\n");
           break;
         }
@@ -206,7 +212,7 @@ void recv_request(struct sockaddr_in6 *from,
             goto done;
           }
 
-          rv = csmpagent_post(tlvid, ibuf, rv + tlvlen, obuf, OUTBUF_MAX - oused, &rvo, tlvindex, from);
+          rv = csmpagent_post(tlvid, ibuf, rv + tlvlen, obuf, OUTBUF_MAX - oused, &rvo, tlvindex);
           if (rv < 0) {
             coap_status = COAP_CODE_NOT_FOUND; // Not Found
             goto done;
@@ -224,7 +230,7 @@ void recv_request(struct sockaddr_in6 *from,
        if (rv >= 0) {
          if (oused) {
            for(i=0;i<2;i++) {
-             rv = csmpagent_get(tlvid_default[i], obuf, OUTBUF_MAX - oused, 0,0,0,from);
+             rv = csmpagent_get(tlvid_default[i], obuf, OUTBUF_MAX - oused, 0);
              if (rv < 0)
                break;
              obuf += rv; oused += rv;

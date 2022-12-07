@@ -24,14 +24,14 @@
 static uint32_t m_GroupIds[CSMP_GROUP_NUM_TYPES] = {0};
 static bool m_bLastMatchValid;
 
-bool checkGroup(const uint8_t *buf, uint32_t len, struct sockaddr_in6 *srcaddr) {
+bool checkGroup(const uint8_t *buf, uint32_t len) {
   uint32_t msglen;
   tlvid_t tlvid = {0,GROUP_MATCH_TLVID};
   const uint8_t *pctlv = csmptlv_find(buf,len,tlvid,&msglen);
   int rv;
 
   if (pctlv) {
-    rv = csmpagent_post(tlvid, pctlv, msglen,NULL,0,NULL,0,srcaddr);
+    rv = csmpagent_post(tlvid, pctlv, msglen,NULL,0,NULL,0);
     if (rv == 0) {
       return false;
     }
@@ -48,7 +48,7 @@ bool checkGroup(const uint8_t *buf, uint32_t len, struct sockaddr_in6 *srcaddr) 
   return true;
 }
 
-int csmp_get_groupAssign(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
+int csmp_get_groupAssign(tlvid_t tlvid, uint8_t *buf, size_t len)
 {
   GroupAssign GroupAssignMsg = GROUP_ASSIGN__INIT;
   uint8_t *pbuf = buf;
@@ -79,8 +79,7 @@ int csmp_get_groupAssign(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvind
   return used;
 }
 
-int csmp_put_groupAssign(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf,
-                         size_t out_size, size_t *out_len, int32_t tlvindex)
+int csmp_put_groupAssign(tlvid_t tlvid, const uint8_t *buf, size_t len)
 {
   GroupAssign *GroupAssignMsg = NULL;
   tlvid_t tlvid0;
@@ -121,8 +120,7 @@ int csmp_put_groupAssign(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t 
   return used;
 }
 
-int csmp_put_groupMatch(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf,
-                         size_t out_size, size_t *out_len, int32_t tlvindex)
+int csmp_put_groupMatch(tlvid_t tlvid, const uint8_t *buf, size_t len)
 {
   GroupMatch *GroupMatchMsg = NULL;
   tlvid_t tlvid0;
@@ -163,7 +161,7 @@ int csmp_put_groupMatch(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *
 
 }
 
-int csmp_get_groupInfo(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
+int csmp_get_groupInfo(tlvid_t tlvid, uint8_t *buf, size_t len)
 {
   GroupInfo GroupInfoMsg = GROUP_INFO__INIT;
   uint8_t *pbuf = buf;
