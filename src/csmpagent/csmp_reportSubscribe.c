@@ -27,10 +27,10 @@
 
 csmp_subscription_list_t g_csmplib_report_list;
 
-int csmp_get_reportSubscribe(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
+int csmp_get_reportSubscribe(tlvid_t tlvid, uint8_t *buf, size_t len)
 {
   ReportSubscribe ReportSubscribeMsg = REPORT_SUBSCRIBE__INIT;
-  int i;
+  uint32_t i;
   uint8_t *pbuf = buf;
   size_t rv, used = 0;
   char **tlvlist = NULL;
@@ -65,7 +65,7 @@ int csmp_get_reportSubscribe(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tl
   return used;
 }
 
-int csmp_put_reportSubscribe(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf, size_t out_size, size_t *out_len, int32_t tlvindex)
+int csmp_put_reportSubscribe(const uint8_t *buf, size_t len)
 {
   ReportSubscribe *ReportSubscribeMsg = NULL;
   tlvid_t tlvid0;
@@ -74,7 +74,7 @@ int csmp_put_reportSubscribe(tlvid_t tlvid, const uint8_t *buf, size_t len, uint
   const uint8_t *pbuf = buf;
   size_t rv;
   int used = 0;
-  int i;
+  long unsigned int i;
 
   DPRINTF("Received POST reportSubscribe TLV\n");
 

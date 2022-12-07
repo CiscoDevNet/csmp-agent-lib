@@ -20,9 +20,9 @@
 #include "csmptlv.h"
 #include "CsmpTlvs.pb-c.h"
 
-int csmp_get_uptime(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
+int csmp_get_uptime(tlvid_t tlvid, uint8_t *buf, size_t len)
 {
-  struct timeval tv = {0};
+  // struct timeval tv = {0};
   size_t rv = 0;
   uint32_t num;
 

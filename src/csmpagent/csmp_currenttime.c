@@ -21,9 +21,8 @@
 #include "csmpagent.h"
 #include "CsmpTlvs.pb-c.h"
 
-int csmp_get_currenttime(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
+int csmp_get_currenttime(tlvid_t tlvid, uint8_t *buf, size_t len)
 {
-  struct timeval tv = {0};
   size_t rv = 0;
   uint32_t num;
 
@@ -58,7 +57,7 @@ int csmp_get_currenttime(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvind
   }
 }
 
-int csmp_put_currenttime(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf, size_t out_size, size_t *out_len, int32_t tlvindex)
+int csmp_put_currenttime(tlvid_t tlvid, const uint8_t *buf, size_t len)
 {
   CurrentTime *CurrentTimeMsg = NULL;
   Current_Time current_time = CURRENT_TIME_INIT;

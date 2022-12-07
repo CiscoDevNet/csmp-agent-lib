@@ -1,4 +1,6 @@
-CC = gcc
+# Turn on all warnings except missing-braces
+# (no-missing-braces is for protoc generated code)
+CC = gcc -Wall -Wextra -Wno-missing-braces
 AR = ar rc
 
 DIRs += $(shell find ./src -maxdepth 3 -type d)

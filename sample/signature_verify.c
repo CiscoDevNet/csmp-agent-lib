@@ -113,6 +113,11 @@ bool signature_verify(const void *data, size_t datalen, const void *sig, size_t 
   }
 
 #else
+  // Temporary stub for first release.
+  (void)data;
+  (void)datalen;
+  (void)sig;
+  (void)siglen;
   return true;
 #endif
 }

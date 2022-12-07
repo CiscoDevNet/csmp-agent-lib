@@ -45,7 +45,7 @@ void process_datagram(void *data, uint16_t len, struct sockaddr_in6 *from );
 void send_internal_response(const struct sockaddr_in6 *from, uint16_t tx_id,
                             uint8_t token_length, uint8_t *token, uint16_t status);
 
-void *recv_thread(void *arg);
+void *recv_thread(void*);
 
 int coapserver_stop()
 {
@@ -58,7 +58,6 @@ int coapserver_listen(uint16_t sport, recv_handler_t recv_handler)
 {
   int sockfd;
   struct sockaddr_in6 listen_addr;
-  int rv;
 
   if (m_server_opened) {
     DPRINTF("coapserver_listen coapserver was already opened!\n");
@@ -93,12 +92,12 @@ int coapserver_listen(uint16_t sport, recv_handler_t recv_handler)
 
   m_sockfd = sockfd;
   m_server_opened = true;
-  rv = pthread_create(&recvt_id, NULL, recv_thread, NULL);
+  pthread_create(&recvt_id, NULL, recv_thread, NULL);
   pthread_detach(recvt_id);
   return 0;
 }
 
-void *recv_thread(void *arg)
+void *recv_thread(void*)
 {
   DPRINTF("coapserver receive thread is serving now...\n");
 
@@ -250,7 +249,7 @@ void process_datagram(void *data, uint16_t len, struct sockaddr_in6 *from )
   uint32_t query_seg_cnt = 0;
   //char* query_ptr = query;
 
-  if ( (len - buf_used) < sizeof(coap_header_t) )
+  if ( (len - buf_used) < (uint16_t)sizeof(coap_header_t) )
     goto short_msg;
 
   hdr = (coap_header_t*) cur;
@@ -258,7 +257,7 @@ void process_datagram(void *data, uint16_t len, struct sockaddr_in6 *from )
   tx_type = (coap_transaction_type_t)((hdr->control >> 4) & 0x3);
   token_length = hdr->control & 0xF;
 
-  if ((len - buf_used) < (sizeof(coap_header_t) + token_length) || token_length > COAP_MAX_TKL)
+  if ((len - buf_used) < ((uint16_t)sizeof(coap_header_t) + token_length) || token_length > COAP_MAX_TKL)
     goto short_msg;
 
   method = (coap_method_t)hdr->code;
@@ -316,7 +315,7 @@ void process_datagram(void *data, uint16_t len, struct sockaddr_in6 *from )
 
     option_code = option_delta + previous_delta;
 
-    if ((len - buf_used) < option_len)
+    if ((uint32_t)(len - buf_used) < option_len)
       goto short_msg;
 
     switch (option_code) {

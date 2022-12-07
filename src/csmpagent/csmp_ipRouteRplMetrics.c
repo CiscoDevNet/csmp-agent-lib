@@ -21,10 +21,10 @@
 #include "csmpagent.h"
 #include "CsmpTlvs.pb-c.h"
 
-int csmp_get_ipRouteRplMetrics(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
+int csmp_get_ipRouteRplMetrics(tlvid_t tlvid, uint8_t *buf, size_t len)
 {
   size_t rv = 0;
-  uint32_t i, num;
+  uint32_t num;
   uint8_t *pbuf = buf;
   uint32_t used = 0;
 

@@ -1,5 +1,5 @@
 #define your own gcc here if you need cross-compile the code
-CC = gcc
+CC = gcc -Wall -Wextra
 
 CFLAGS += -I ../include
 LIBS += -lpthread

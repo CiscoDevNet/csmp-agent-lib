@@ -420,7 +420,7 @@ void* firmware_image_info_get(uint32_t *num) {
 
   g_firmwareImageInfo.index = 1;
   g_firmwareImageInfo.filehash.len = 32;
-  sprintf(g_firmwareImageInfo.filehash.data, "12345");
+  sprintf((char *)g_firmwareImageInfo.filehash.data, "12345");
   sprintf(g_firmwareImageInfo.filename, "vendor firmware");
   sprintf(g_firmwareImageInfo.version, "1.0.0");
   g_firmwareImageInfo.filesize = 246272;
@@ -656,3 +656,4 @@ int main(int argc, char **argv)
 start_error:
   printf("start csmp agent service: fail!\n");
 }
+

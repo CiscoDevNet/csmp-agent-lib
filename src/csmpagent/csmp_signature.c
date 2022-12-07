@@ -25,26 +25,26 @@ static Signature g_SigMsg = SIGNATURE__INIT;
 static SignatureValidity g_SigValidityMsg = SIGNATURE_VALIDITY__INIT;
 static uint8_t signature_data[88] = {0};
 
-int checkSignature(const uint8_t *buf, uint32_t len, struct sockaddr_in6 *srcaddr) {
-  tlvid_t tlvid = {0,SIGNATURE_TLVID};
-  uint32_t msglen, seclen;
+
+int checkSignature(const uint8_t *buf, uint32_t len) {
+
+#if 0
   const uint8_t *ptlv;
+  uint32_t seclen;
   int rv;
   struct timeval tv = {0};
   uint8_t *sig = NULL;
   uint8_t *sigend = NULL;
   size_t siglen;
 
-  return 1;
-
-#if 0 // ignore signature check for first release
   ptlv = csmptlv_find(buf,len,tlvid,&msglen);
+
   if (!ptlv) {
     DPRINTF("CsmpServer: Cannot locate required Signature TLV\n");
     return 0;
   }
 
-  rv = csmpagent_post(tlvid, ptlv, msglen,NULL,0,NULL,0,srcaddr);
+  rv = csmpagent_post(tlvid, ptlv, msglen,NULL,0,NULL,0);
   if (rv == 0) {
     DPRINTF("CsmpServer: Problem parsing Signature TLV\n");
     return -1;
@@ -59,7 +59,7 @@ int checkSignature(const uint8_t *buf, uint32_t len, struct sockaddr_in6 *srcadd
       DPRINTF("CsmpServer: Cannot locate required SignatureValidity TLV\n");
       return -1;
     }
-    rv = csmpagent_post(tlvid, ptlv, msglen,NULL,0,NULL,0,srcaddr);
+    rv = csmpagent_post(tlvid, ptlv, msglen,NULL,0,NULL,0);
     if (rv == 0) {
       DPRINTF("CsmpServer: Problem parsing SignatureValidity TLV\n");
       return -1;
@@ -109,11 +109,16 @@ int checkSignature(const uint8_t *buf, uint32_t len, struct sockaddr_in6 *srcadd
     DPRINTF("CsmpServer: invalid time \n");
     return -1;
   }
+#else
+  // Temporary for first release.
+  tlvid_t tlvid = {0,SIGNATURE_TLVID};
+  uint32_t msglen;
+  csmptlv_find(buf,len,tlvid,&msglen);
+  return 1;
 #endif
 }
 
-
-int csmp_put_signature(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf, size_t out_size, size_t *out_len, int32_t tlvindex)
+int csmp_put_signature(const uint8_t *buf, size_t len)
 {
   Signature *SignatureMsg = NULL;
   tlvid_t tlvid0;
@@ -147,7 +152,7 @@ int csmp_put_signature(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *o
   return used;
 }
 
-int csmp_put_signatureValidity(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf, size_t out_size, size_t *out_len, int32_t tlvindex)
+int csmp_put_signatureValidity(const uint8_t *buf, size_t len)
 {
   SignatureValidity *SignatureValidityMsg = NULL;
   tlvid_t tlvid0;

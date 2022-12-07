@@ -23,7 +23,7 @@
 static SessionID gSessionIDVal = SESSION_ID__INIT;
 static char sessionID[17] = {0};
 
-int csmp_get_sessionID(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
+int csmp_get_sessionID(tlvid_t tlvid, uint8_t *buf, size_t len)
 {
   size_t rv = 0;
 
@@ -42,7 +42,7 @@ int csmp_get_sessionID(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex
   }
 }
 
-int csmp_put_sessionID(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf, size_t out_size, size_t *out_len, int32_t tlvindex)
+int csmp_put_sessionID(const uint8_t *buf, size_t len)
 {
   SessionID *SessionIDMsg = NULL;
   tlvid_t tlvid0;

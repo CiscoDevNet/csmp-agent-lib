@@ -35,12 +35,9 @@
  * @param buf  request buffer
  * @param len  request buffer length
  * @param tlvindex   tlv url that is used
- * @param t1
- * @param t2
- * @param from  callee address
  * @return int 0 is success
  */
-int csmpagent_get(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex, uint32_t t1, uint32_t t2, struct sockaddr_in6 *from);
+int csmpagent_get(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 
 /**
  * @brief coap POST handler, based on tlvid as URL
@@ -52,30 +49,27 @@ int csmpagent_get(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex, uin
  * @param out_size response buffer size
  * @param out_len actual used length of the response buffer
  * @param tlvindex index
- * @param from callee address, also used for the response
  * @return int  0 is success
  */
-int csmpagent_post(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf, size_t out_size, size_t *out_len, int32_t tlvindex, struct sockaddr_in6 *from);
+int csmpagent_post(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf, size_t out_size, size_t *out_len, int32_t tlvindex);
 
 /**
  * @brief check signature
  *
  * @param buf request buffer
  * @param len request buffer size
- * @param srcaddr sender address
  * @return int 0 is success
  */
-int checkSignature(const uint8_t *buf, uint32_t len, struct sockaddr_in6 *srcaddr);
+int checkSignature(const uint8_t *buf, uint32_t len);
 
 /**
  * @brief check group
  *
  * @param buf request buffer
  * @param len request buffer length
- * @param srcaddr sender address
  * @return true
  * @return false
  */
-bool checkGroup(const uint8_t *buf, uint32_t len, struct sockaddr_in6 *srcaddr);
+bool checkGroup(const uint8_t *buf, uint32_t len);
 
 #endif
