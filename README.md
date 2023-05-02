@@ -40,7 +40,7 @@ NOTE: a valid FND IPv6 address must be supplied.
 2. Once "csmpsagent" is started, it will begin registration attempts with the FND server.
 
 ## Decoding CSMP Agent Messaging with Wireshark
-Wireshark network analyzer may be used to observe CSMP messaging exchanged between the CSMP Agent and the FND instance.
+Wireshark network analyzer may be used to observe CSMP messaging exchanged between the CSMP Agent and the FND instance. Note that this is a partial decode of the CoAP messaging and does not yet include decode of the TLV message payloads.
 
 ### Install Wireshark
 Follow the instructions here ... https://itsfoss.com/install-wireshark-ubuntu/.  As of this writting, version 3.2.7 is installed.
