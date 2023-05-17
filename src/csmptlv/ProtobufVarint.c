@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "protobuf-c.h"
+#include "ProtobufVarint.h"
 
 /* =========== pack() ============ */
 /* Pack an unsigned 32-bit integer in base-128 encoding, and return the number of bytes needed:
@@ -229,27 +230,45 @@ parse_sint64(int64_t *member, const uint8_t *data, uint32_t len)
   return rv;
 }
 
-uint32_t ProtobufVarint_encodeUINT32(uint8_t *buf, uint32_t val) {
+uint32_t ProtobufVarint_encodeUINT32(uint8_t *buf, uint32_t len, uint32_t val) {
+  // This is here to supress unused arg warning.  
+  // "len" should be passed to subsequent call and used to check for buf overflow. 
+  (void)len;
   return uint32_pack(val, buf);
 }
 
-uint32_t ProtobufVarint_encodeINT32(uint8_t *buf, int32_t val) {
+uint32_t ProtobufVarint_encodeINT32(uint8_t *buf, uint32_t len, int32_t val) {
+  // This is here to supress unused arg warning.  
+  // "len" should be passed to subsequent call and used to check for buf overflow. 
+  (void)len;  
   return int32_pack(val,buf);
 }
 
-uint32_t ProtobufVarint_encodeSINT32(uint8_t *buf, int32_t val) {
+uint32_t ProtobufVarint_encodeSINT32(uint8_t *buf, uint32_t len, int32_t val) {
+  // This is here to supress unused arg warning.  
+  // "len" should be passed to subsequent call and used to check for buf overflow. 
+  (void)len;
   return sint32_pack(val,buf);
 }
 
-uint32_t ProtobufVarint_encodeUINT64(uint8_t *buf, uint64_t val) {
+uint32_t ProtobufVarint_encodeUINT64(uint8_t *buf, uint32_t len, uint64_t val) {
+  // This is here to supress unused arg warning.  
+  // "len" should be passed to subsequent call and used to check for buf overflow. 
+  (void)len;
   return uint64_pack(val, buf);
 }
 
-uint32_t ProtobufVarint_encodeINT64(uint8_t *buf, int64_t val) {
+uint32_t ProtobufVarint_encodeINT64(uint8_t *buf, uint32_t len, int64_t val) {
+  // This is here to supress unused arg warning.  
+  // "len" should be passed to subsequent call and used to check for buf overflow. 
+  (void)len;
   return uint64_pack((uint64_t)val,buf);
 }
 
-uint32_t ProtobufVarint_encodeSINT64(uint8_t *buf, int64_t val) {
+uint32_t ProtobufVarint_encodeSINT64(uint8_t *buf, uint32_t len, int64_t val) {
+  // This is here to supress unused arg warning.  
+  // "len" should be passed to subsequent call and used to check for buf overflow.   
+  (void)len;
   return sint64_pack(val,buf);
 }
 
