@@ -85,7 +85,7 @@ void recv_request(struct sockaddr_in6 *from,
   uint16_t coap_status = COAP_CODE_BAD_REQ;
   int rv = 0;
   tlvid_t tlvid_default[2] = {{0, SESSION_ID_TLVID},{0, CURRENT_TIME_TLVID}};
-  int i;
+  uint32_t i;
 
 #ifdef PRINTDEBUG
   printf("CsmpServer: ");
