@@ -49,9 +49,9 @@ static bool m_timert_isrunning = false;
 void update_timer();
 void alarm_fired();
 
-void *timer_thread(void*) {
+void *timer_thread(void* arg) {
   sigset_t set;
-
+  (void)arg; // Disable un-used argument compiler warning.
   sigemptyset(&set);
   sigaddset(&set, SIGALRM);
   pthread_sigmask(SIG_UNBLOCK, &set, NULL);
