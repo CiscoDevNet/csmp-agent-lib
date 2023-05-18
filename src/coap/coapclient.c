@@ -248,8 +248,9 @@ void coap_option_map(uint32_t val, uint8_t *map)
     *map = 14;
 }
 
-void *recv_fn(void*)
+void *recv_fn(void* arg)
 {
+  (void)arg; // Disable un-used argument compiler warning.
   DPRINTF("coapclient receive thread is serving now...\n");
 
   int rv;
