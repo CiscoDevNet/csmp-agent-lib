@@ -19,6 +19,7 @@
 #include "csmp.h"
 #include "csmptlv.h"
 #include "csmpagent.h"
+#include "csmpfunction.h"
 #include "CsmpTlvs.pb-c.h"
 
 static Signature g_SigMsg = SIGNATURE__INIT;
@@ -118,7 +119,7 @@ int checkSignature(const uint8_t *buf, uint32_t len) {
 #endif
 }
 
-int csmp_put_signature(const uint8_t *buf, size_t len)
+int csmp_put_signature(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf, size_t out_size, size_t *out_len, int32_t tlvindex)
 {
   Signature *SignatureMsg = NULL;
   tlvid_t tlvid0;
@@ -127,6 +128,11 @@ int csmp_put_signature(const uint8_t *buf, size_t len)
   size_t rv;
   int used = 0;
 
+  (void) tlvid; // Suppress unused param compiler warning.
+  (void) out_buf; // Suppress unused param compiler warning.
+  (void) out_size; // Suppress unused param compiler warning.
+  (void) out_len; // Suppress unused param compiler warning.
+  (void) tlvindex; // Suppress unused param compiler warning.
   DPRINTF("Received POST Signature TLV\n");
 
   rv = csmptlv_readTL(pbuf, len, &tlvid0, &tlvlen);
@@ -152,7 +158,7 @@ int csmp_put_signature(const uint8_t *buf, size_t len)
   return used;
 }
 
-int csmp_put_signatureValidity(const uint8_t *buf, size_t len)
+int csmp_put_signatureValidity(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf, size_t out_size, size_t *out_len, int32_t tlvindex)
 {
   SignatureValidity *SignatureValidityMsg = NULL;
   tlvid_t tlvid0;
@@ -161,6 +167,11 @@ int csmp_put_signatureValidity(const uint8_t *buf, size_t len)
   size_t rv;
   int used = 0;
 
+  (void) tlvid; // Suppress unused param compiler warning.
+  (void) out_buf; // Suppress unused param compiler warning.
+  (void) out_size; // Suppress unused param compiler warning.
+  (void) out_len; // Suppress unused param compiler warning.
+  (void) tlvindex; // Suppress unused param compiler warning.
   DPRINTF("Received POST SignatureValidity TLV\n");
 
   rv = csmptlv_readTL(pbuf, len, &tlvid0, &tlvlen);

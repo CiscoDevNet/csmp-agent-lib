@@ -18,6 +18,7 @@
 #include <string.h>
 #include "csmp.h"
 #include "csmpagent.h"
+#include "csmpfunction.h"
 #include "csmptlv.h"
 #include "CsmpTlvs.pb-c.h"
 
@@ -43,8 +44,9 @@ static char *ptlvs[NUM_TLVS] = {
   FIRMWARE_IMAGE_INFO_ID_STRING
 };
 
-int csmp_get_tlvindex(tlvid_t tlvid, uint8_t *buf, size_t len)
+int csmp_get_tlvindex(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
 {
+  (void)tlvindex; // Suppress unused param compiler warning.
   size_t rv = 0;
 
   DPRINTF("csmpagent_tlvindex: start working.\n");
