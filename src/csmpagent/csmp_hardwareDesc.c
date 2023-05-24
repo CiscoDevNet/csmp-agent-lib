@@ -18,12 +18,15 @@
 #include "csmpinfo.h"
 #include "csmptlv.h"
 #include "csmpagent.h"
+#include "csmpfunction.h"
 #include "CsmpTlvs.pb-c.h"
 
-int csmp_get_hardwareDesc(tlvid_t tlvid, uint8_t *buf, size_t len)
+int csmp_get_hardwareDesc(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
 {
   size_t rv = 0;
   uint32_t num;
+  
+  (void)tlvindex; // Suppress un-used param warning.
 
   DPRINTF("csmpagent_hardwareDesc: start working.\n");
 

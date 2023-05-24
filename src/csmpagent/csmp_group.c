@@ -19,6 +19,7 @@
 #include "csmp.h"
 #include "csmptlv.h"
 #include "csmpagent.h"
+#include "csmpfunction.h"
 #include "CsmpTlvs.pb-c.h"
 
 static uint32_t m_GroupIds[CSMP_GROUP_NUM_TYPES] = {0};
@@ -48,14 +49,15 @@ bool checkGroup(const uint8_t *buf, uint32_t len) {
   return true;
 }
 
-int csmp_get_groupAssign(tlvid_t tlvid, uint8_t *buf, size_t len)
+int csmp_get_groupAssign(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
 {
   GroupAssign GroupAssignMsg = GROUP_ASSIGN__INIT;
   uint8_t *pbuf = buf;
   size_t rv;
   int used = 0;
   int i;
-
+  
+  (void)tlvindex; // Suppress unused param compiler warning.
   DPRINTF("csmpagent_groupAssign: start working.\n");
   GroupAssignMsg.type_present_case = GROUP_ASSIGN__TYPE_PRESENT_TYPE;
   GroupAssignMsg.id_present_case = GROUP_ASSIGN__ID_PRESENT_ID;
@@ -79,7 +81,7 @@ int csmp_get_groupAssign(tlvid_t tlvid, uint8_t *buf, size_t len)
   return used;
 }
 
-int csmp_put_groupAssign(tlvid_t tlvid, const uint8_t *buf, size_t len)
+int csmp_put_groupAssign(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf, size_t out_size, size_t *out_len, int32_t tlvindex)
 {
   GroupAssign *GroupAssignMsg = NULL;
   tlvid_t tlvid0;
@@ -87,6 +89,12 @@ int csmp_put_groupAssign(tlvid_t tlvid, const uint8_t *buf, size_t len)
   const uint8_t *pbuf = buf;
   size_t rv;
   int used = 0;
+
+  (void) tlvid; // Suppress unused param compiler warning.
+  (void) out_buf; // Suppress unused param compiler warning.
+  (void) out_size; // Suppress unused param compiler warning.
+  (void) out_len; // Suppress unused param compiler warning.
+  (void) tlvindex; // Suppress unused param compiler warning.
 
   DPRINTF("Received POST groupAssign TLV\n");
 
@@ -120,7 +128,7 @@ int csmp_put_groupAssign(tlvid_t tlvid, const uint8_t *buf, size_t len)
   return used;
 }
 
-int csmp_put_groupMatch(tlvid_t tlvid, const uint8_t *buf, size_t len)
+int csmp_put_groupMatch(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf, size_t out_size, size_t *out_len, int32_t tlvindex)
 {
   GroupMatch *GroupMatchMsg = NULL;
   tlvid_t tlvid0;
@@ -128,6 +136,12 @@ int csmp_put_groupMatch(tlvid_t tlvid, const uint8_t *buf, size_t len)
   const uint8_t *pbuf = buf;
   size_t rv;
   int used = 0;
+
+  (void) tlvid; // Suppress unused param compiler warning.
+  (void) out_buf; // Suppress unused param compiler warning.
+  (void) out_size; // Suppress unused param compiler warning.
+  (void) out_len; // Suppress unused param compiler warning.
+  (void) tlvindex; // Suppress unused param compiler warning.
 
   DPRINTF("Received POST groupMatch TLV\n");
 
@@ -161,7 +175,7 @@ int csmp_put_groupMatch(tlvid_t tlvid, const uint8_t *buf, size_t len)
 
 }
 
-int csmp_get_groupInfo(tlvid_t tlvid, uint8_t *buf, size_t len)
+int csmp_get_groupInfo(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
 {
   GroupInfo GroupInfoMsg = GROUP_INFO__INIT;
   uint8_t *pbuf = buf;
@@ -169,6 +183,7 @@ int csmp_get_groupInfo(tlvid_t tlvid, uint8_t *buf, size_t len)
   int used = 0;
   int i;
 
+  (void)tlvindex; // Suppress unused param compiler warning.
   DPRINTF("csmpagent_groupInfo: start working.\n");
   GroupInfoMsg.type_present_case = GROUP_INFO__TYPE_PRESENT_TYPE;
   GroupInfoMsg.id_present_case = GROUP_INFO__ID_PRESENT_ID;

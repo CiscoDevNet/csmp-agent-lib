@@ -20,6 +20,7 @@
 #include "cgmsagent.h"
 #include "csmptlv.h"
 #include "csmpagent.h"
+#include "csmpfunction.h"
 #include "CsmpTlvs.pb-c.h"
 
 #define MAX_CNT 15
@@ -27,7 +28,7 @@
 
 csmp_subscription_list_t g_csmplib_report_list;
 
-int csmp_get_reportSubscribe(tlvid_t tlvid, uint8_t *buf, size_t len)
+int csmp_get_reportSubscribe(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
 {
   ReportSubscribe ReportSubscribeMsg = REPORT_SUBSCRIBE__INIT;
   uint32_t i;
@@ -35,6 +36,8 @@ int csmp_get_reportSubscribe(tlvid_t tlvid, uint8_t *buf, size_t len)
   size_t rv, used = 0;
   char **tlvlist = NULL;
 
+  (void)tlvindex; // Suppress unused param compiler warning.
+  
   tlvlist = malloc(MAX_CNT * sizeof(void *));
 
   DPRINTF("csmpagent_reportSubscribe: start working.\n");
@@ -65,7 +68,7 @@ int csmp_get_reportSubscribe(tlvid_t tlvid, uint8_t *buf, size_t len)
   return used;
 }
 
-int csmp_put_reportSubscribe(const uint8_t *buf, size_t len)
+int csmp_put_reportSubscribe(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf, size_t out_size, size_t *out_len, int32_t tlvindex)
 {
   ReportSubscribe *ReportSubscribeMsg = NULL;
   tlvid_t tlvid0;
@@ -75,6 +78,12 @@ int csmp_put_reportSubscribe(const uint8_t *buf, size_t len)
   size_t rv;
   int used = 0;
   long unsigned int i;
+
+  (void) tlvid; // Suppress unused param compiler warning.
+  (void) out_buf; // Suppress unused param compiler warning.
+  (void) out_size; // Suppress unused param compiler warning.
+  (void) out_len; // Suppress unused param compiler warning.
+  (void) tlvindex; // Suppress unused param compiler warning.
 
   DPRINTF("Received POST reportSubscribe TLV\n");
 

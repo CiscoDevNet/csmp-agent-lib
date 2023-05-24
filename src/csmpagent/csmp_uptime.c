@@ -17,15 +17,17 @@
 #include "csmp.h"
 #include "csmpinfo.h"
 #include "csmpservice.h"
+#include "csmpfunction.h"
 #include "csmptlv.h"
 #include "CsmpTlvs.pb-c.h"
 
-int csmp_get_uptime(tlvid_t tlvid, uint8_t *buf, size_t len)
+int csmp_get_uptime(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
 {
   // struct timeval tv = {0};
   size_t rv = 0;
   uint32_t num;
 
+  (void)tlvindex; // Suppress unused param warning.
   DPRINTF("csmpagent_uptime: start working.\n");
   Uptime UptimeMsg = UPTIME__INIT;
 

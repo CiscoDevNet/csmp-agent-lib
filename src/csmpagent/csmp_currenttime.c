@@ -19,13 +19,15 @@
 #include "csmpinfo.h"
 #include "csmptlv.h"
 #include "csmpagent.h"
+#include "csmpfunction.h"
 #include "CsmpTlvs.pb-c.h"
 
-int csmp_get_currenttime(tlvid_t tlvid, uint8_t *buf, size_t len)
+int csmp_get_currenttime(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
 {
   size_t rv = 0;
   uint32_t num;
-
+  
+  (void)tlvindex; // Suppress unused param warning.
   DPRINTF("csmpagent_currenttime: start working.\n");
   CurrentTime CurrentTimeMsg = CURRENT_TIME__INIT;
 
@@ -57,7 +59,7 @@ int csmp_get_currenttime(tlvid_t tlvid, uint8_t *buf, size_t len)
   }
 }
 
-int csmp_put_currenttime(tlvid_t tlvid, const uint8_t *buf, size_t len)
+int csmp_put_currenttime(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf, size_t out_size, size_t *out_len, int32_t tlvindex)
 {
   CurrentTime *CurrentTimeMsg = NULL;
   Current_Time current_time = CURRENT_TIME_INIT;
@@ -66,6 +68,11 @@ int csmp_put_currenttime(tlvid_t tlvid, const uint8_t *buf, size_t len)
   const uint8_t *pbuf = buf;
   size_t rv;
   int used = 0;
+
+  (void) out_buf; // Suppress unused param compiler warning.
+  (void) out_size; // Suppress unused param compiler warning.
+  (void) out_len; // Suppress unused param compiler warning.
+  (void) tlvindex; // Suppress unused param compiler warning.
 
   DPRINTF("Received POST currenttime TLV\n");
 

@@ -19,13 +19,15 @@
 #include "csmp.h"
 #include "csmpinfo.h"
 #include "csmpagent.h"
+#include "csmpfunction.h"
 #include "csmptlv.h"
 #include "CsmpTlvs.pb-c.h"
 
 extern uint8_t g_csmplib_eui64[8];
 
-int csmp_get_deviceid(tlvid_t tlvid, uint8_t *buf, size_t len)
+int csmp_get_deviceid(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
 {
+  (void)tlvindex; // Suppress unused param compiler warning.
   size_t rv = 0;
   char id[128];
   DeviceID DeviceIDMsg = DEVICE_ID__INIT;

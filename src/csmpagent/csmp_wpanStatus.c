@@ -18,15 +18,17 @@
 #include "csmpinfo.h"
 #include "csmptlv.h"
 #include "csmpagent.h"
+#include "csmpfunction.h"
 #include "CsmpTlvs.pb-c.h"
 
-int csmp_get_wpanStatus(tlvid_t tlvid, uint8_t *buf, size_t len)
+int csmp_get_wpanStatus(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
 {
   size_t rv = 0;
   uint32_t i, num;
   uint8_t *pbuf = buf;
   uint32_t used = 0;
 
+  (void)tlvindex; // Suppress unused param warning.
   DPRINTF("csmpagent_wpanStatus: start working.\n");
 
 
