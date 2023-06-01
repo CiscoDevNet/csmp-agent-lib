@@ -78,5 +78,5 @@ Go to src/csmpagent/tlvs/ and `make` to verify protoc-c is operating successfull
 2. Add required GET or POST implementations following the examples in folder 'src/csmpagent/'.
 
 ## Further Information for Developers
-A CSMP Developer Guide can be found in the /docs folder.  This guide describes how to install, build, and run the cSMP agent on popular evaluation platforms to register and report metrics to an instance of Cisco Field Network Director.
+A CSMP Developer Guide can be found in the /docs folder.  This guide describes how to install, build, and run the CSMP agent which will register and report metrics to an instance of Cisco Field Network Director.
 
