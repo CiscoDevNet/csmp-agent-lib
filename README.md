@@ -66,6 +66,7 @@ Use `protoc-c` (1.3.3 or later) to compile *.proto file into *.c and *.h files u
 ### Install protoc-c
 > sudo apt-install protobuf-c-compiler  
 
+
 Go to src/csmpagent/tlvs/ and `make` to verify protoc-c is operating successfully.
 
 ### Add TLVs
@@ -74,4 +75,10 @@ Go to src/csmpagent/tlvs/ and `make` to verify protoc-c is operating successfull
 
 ### Modify sample agent
 1. Add desired GET or POST method dispatch for the new TLV XXX within 'src/csmpagent/csmpagent.c'.  
-2. Add required GET or POST implementations following the examples in folder 'src/csmpagent/'.  
+2. Add required GET or POST implementations following the examples in folder 'src/csmpagent/'.
+
+## Further Information for Developers
+A CSMP Developer Guide can be found in the /docs folder.  This guide describes how to install, build, and run the cSMP agent on popular evaluation platforms to register and report metrics to an instance of Cisco Field Network Director.
+## Fu
+rther Information for Developers
+A CSMP Developer Guide can be found in the /docs folder.  This guide describes how to install, build, and run the cSMP agent on popular evaluation platforms to register and report metrics to an instance of Cisco Field Network Director.
