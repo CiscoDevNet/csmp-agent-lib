@@ -46,6 +46,7 @@ typedef struct _Neighbor_802154G Neighbor_802154G;
 typedef struct _RPL_Instance RPL_Instance;
 typedef struct _Firmware_Image_Info Firmware_Image_Info;
 typedef struct _Signature_Settings Signature_Settings;
+typedef struct _Vendor_Specific Vendor_Specific;
 
 // HARDWARE_DESC
 typedef enum {
@@ -502,4 +503,16 @@ struct _Signature_Settings
 };
 #define SIGNATURE_SETTINGS_INIT \
    { 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,{0,{0}} }
+
+// VENDOR
+struct  _Vendor_Specific
+{
+  bool has_data;
+  struct {
+    size_t len;
+    uint8_t data[64];
+  } data;
+};
+#define VENDOR_INIT \
+ { 0,{0,{0}} }
 #endif

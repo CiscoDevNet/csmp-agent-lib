@@ -15,6 +15,7 @@
  */
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <sys/time.h>
 #include <stdlib.h>
 #include <netinet/in.h>
@@ -29,8 +30,10 @@
 #include "signature_verify.h"
 
 #define nexthop_IP "fe80::a00:27ff:fe3b:2ab1"
+#define CSMP_NON_VENDOR_ID 0
+#define VENDOR_DATA_LEN 64
 
-char *SSID = "CRDC";
+char *SSID = "Cisco Systems";
 char vendorhwid[32] = "vendor hardware ID";
 uint32_t g_init_time;
 uint8_t neighbor_eui64[2][8] = {{0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb1},
@@ -240,6 +243,41 @@ void currenttime_post(Current_Time *tlv) {
     tv.tv_sec = tlv->posix;
     settimeofday(&tv, NULL);
   }
+}
+
+/**
+ * @brief get the vendor specific data
+ *
+ * @param num amount of instances
+ * @return void* pointer to g_VendorData
+ */
+void* vendorspecificdata_get(tlvid_t tlvid, uint32_t *num) {
+  if (tlvid.type <= 0 || tlvid.type > 10)
+  {
+    return NULL;
+  }
+  *num = 1;
+  g_VendorData[tlvid.type - 1].has_data = true;
+  return &g_VendorData[tlvid.type - 1];
+}
+
+/**
+ * @brief set the vendor specific data
+ *
+ * @param tlv
+ */
+void vendorspecificdata_post(tlvid_t tlvid, Vendor_Specific *tlv) {
+  if (tlvid.type <= 0 || tlvid.type > 10)
+  {
+    return;
+  }
+  if (tlv->data.len > VENDOR_DATA_LEN)
+  {
+    return;
+  }
+  g_VendorData[tlvid.type - 1].has_data = true;
+  g_VendorData[tlvid.type - 1].data.len = tlv->data.len;
+  memcpy(g_VendorData[tlvid.type - 1].data.data,tlv->data.data,g_VendorData[tlvid.type - 1].data.len);
 }
 
 /**
@@ -508,7 +546,9 @@ void signature_settings_post(Signature_Settings *tlv) {
  * @return void* pointer to the global variable containing the return data
  */
 void* csmptlvs_get(tlvid_t tlvid, uint32_t *num) {
-  switch(tlvid.type) {
+  if (tlvid.vendor == CSMP_NON_VENDOR_ID)
+  {
+    switch(tlvid.type) {
     case HARDWARE_DESC_ID:
       return hardware_desc_get(num);
     case INTERFACE_DESC_ID:
@@ -536,6 +576,11 @@ void* csmptlvs_get(tlvid_t tlvid, uint32_t *num) {
 
     default:
       break;
+    }
+  }
+  else
+  {
+    return vendorspecificdata_get(tlvid, num);
   }
   return NULL;
 }
@@ -547,7 +592,9 @@ void* csmptlvs_get(tlvid_t tlvid, uint32_t *num) {
  * @param tlv the request data
  */
 void csmptlvs_post(tlvid_t tlvid, void *tlv) {
-  switch(tlvid.type) {
+  if (tlvid.vendor == CSMP_NON_VENDOR_ID)
+  {
+    switch(tlvid.type) {
     case CURRENT_TIME_ID:
       currenttime_post((Current_Time*)tlv);
       break;
@@ -556,6 +603,11 @@ void csmptlvs_post(tlvid_t tlvid, void *tlv) {
       break;
     default:
       break;
+    }
+  }
+  else
+  {
+    vendorspecificdata_post(tlvid, (Vendor_Specific*)tlv);
   }
 }
 
@@ -612,6 +664,7 @@ int main(int argc, char **argv)
                        "Regist to the NMS successfully\n"};
   int ret, i;
   char *endptr;
+  bool sigFlag = false;
 
   gettimeofday(&tv, NULL);
   g_init_time = tv.tv_sec;
@@ -627,16 +680,6 @@ int main(int argc, char **argv)
   memcpy(g_devconfig.ieee_eui64.data, g_eui64, sizeof(g_eui64));
   g_devconfig.reginterval_min = reg_interval_min;
   g_devconfig.reginterval_max = reg_interval_max;
-
-  //csmp signature settings data
-  g_devconfig.csmp_sig_settings.reqsignedpost = true;
-  g_devconfig.csmp_sig_settings.reqvalidcheckpost = true;
-  g_devconfig.csmp_sig_settings.reqtimesyncpost = true;
-  g_devconfig.csmp_sig_settings.reqseclocalpost = true;
-  g_devconfig.csmp_sig_settings.reqsignedresp = true;
-  g_devconfig.csmp_sig_settings.reqvalidcheckresp = true;
-  g_devconfig.csmp_sig_settings.reqtimesyncresp = true;
-  g_devconfig.csmp_sig_settings.reqseclocalresp = true;
 
   for (i = 0; i < argc; i++) {
     if (strcmp(argv[i], "-min") == 0) {   // reginterval_min
@@ -666,7 +709,40 @@ int main(int argc, char **argv)
         printf("NMS address in presentation format\n");
         goto start_error;
       }
+    } else if (strcmp(argv[i], "-sig") == 0) {  // Signature Settings
+      if (++i >= argc)
+        goto start_error;
+      if (strcmp(argv[i], "true") == 0) {
+        printf("setting signature settings to TRUE\n");
+        sigFlag = true;
+      }
     }
+  }
+
+  //Setting signature settings according to input in command line
+  if (sigFlag)
+  {
+    //csmp signature settings data true
+    g_devconfig.csmp_sig_settings.reqsignedpost = true;
+    g_devconfig.csmp_sig_settings.reqvalidcheckpost = true;
+    g_devconfig.csmp_sig_settings.reqtimesyncpost = true;
+    g_devconfig.csmp_sig_settings.reqseclocalpost = true;
+    g_devconfig.csmp_sig_settings.reqsignedresp = true;
+    g_devconfig.csmp_sig_settings.reqvalidcheckresp = true;
+    g_devconfig.csmp_sig_settings.reqtimesyncresp = true;
+    g_devconfig.csmp_sig_settings.reqseclocalresp = true;
+  }
+  else
+  {
+    //csmp signature settings data false
+    g_devconfig.csmp_sig_settings.reqsignedpost = false;
+    g_devconfig.csmp_sig_settings.reqvalidcheckpost = false;
+    g_devconfig.csmp_sig_settings.reqtimesyncpost = false;
+    g_devconfig.csmp_sig_settings.reqseclocalpost = false;
+    g_devconfig.csmp_sig_settings.reqsignedresp = false;
+    g_devconfig.csmp_sig_settings.reqvalidcheckresp = false;
+    g_devconfig.csmp_sig_settings.reqtimesyncresp = false;
+    g_devconfig.csmp_sig_settings.reqseclocalresp = false;
   }
 
   /* check reginterval_max and reginterval_min */
