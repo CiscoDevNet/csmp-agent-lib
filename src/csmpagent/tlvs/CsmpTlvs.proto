@@ -568,3 +568,10 @@ message FirmwareImageInfo {
   }
   HardwareInfo hwInfo = 11;
 }
+
+// TLV 127
+message Vendor {
+  oneof ifData_present {
+  bytes ifData = 1;
+  }
+}

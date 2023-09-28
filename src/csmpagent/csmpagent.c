@@ -18,80 +18,96 @@
 #include "csmpagent.h"
 #include "csmpfunction.h"
 
+#define CSMP_NON_VENDOR_ID 0
+
 int csmpagent_get(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
 {
-  switch (tlvid.type) {
-    case TLV_INDEX_TLVID:
-      return csmp_get_tlvindex(tlvid, buf, len, tlvindex);
-    case DEVICE_ID_TLVID:
-      return csmp_get_deviceid(tlvid, buf, len, tlvindex);
-    case SESSION_ID_TLVID:
-      return csmp_get_sessionID(tlvid, buf, len, tlvindex);
-    case GROUP_ASSIGN_TLVID:
-      return csmp_get_groupAssign(tlvid, buf, len, tlvindex);
-    case GROUP_INFO_TLVID:
-      return csmp_get_groupInfo(tlvid, buf, len, tlvindex);
-    case REPORT_SUBSCRIBE_TLVID:
-      return csmp_get_reportSubscribe(tlvid, buf, len, tlvindex);
-    case HARDWARE_DESC_TLVID:
-      return csmp_get_hardwareDesc(tlvid, buf, len, tlvindex);
-    case INTERFACE_DESC_TLVID:
-      return csmp_get_interfaceDesc(tlvid, buf, len, tlvindex);
-    case IPADDRESS_TLVID:
-      return csmp_get_ipAddress(tlvid, buf, len, tlvindex);
-    case IPROUTE_TLVID:
-      return csmp_get_ipRoute(tlvid, buf, len, tlvindex);
-    case CURRENT_TIME_TLVID:
-      return csmp_get_currenttime(tlvid, buf, len, tlvindex);
-    case UPTIME_TLVID:
-      return csmp_get_uptime(tlvid, buf, len, tlvindex);
-    case INTERFACE_METRICS_TLVID:
-      return csmp_get_interfaceMetrics(tlvid, buf, len, tlvindex);
-    case IPROUTE_RPLMETRICS_TLVID:
-      return csmp_get_ipRouteRplMetrics(tlvid, buf, len, tlvindex);
-    case WPANSTATUS_TLVID:
-      return csmp_get_wpanStatus(tlvid, buf, len, tlvindex);
-    case CGMSNOTIFICATION_TLVID:
-      return csmp_get_cgmsNotification(tlvid, buf, len, tlvindex);
-    case CGMSSTATS_TLVID:
-      return csmp_get_cgmsStats(tlvid, buf, len, tlvindex);
-    case RPLINSTANCE_TLVID:
-      return csmp_get_rplInstance(tlvid, buf, len, tlvindex);
-    case FIRMWARE_IMAGE_INFO_TLVID:
-      return csmp_get_firmwareImageInfo(tlvid, buf, len, tlvindex);
-    case SIGNATURE_TLVID:
-      return csmp_get_signature(tlvid, buf, len, tlvindex);
-    case SIGNATURE_VALIDITY_TLVID:
-      return csmp_get_signatureValidity(tlvid, buf, len, tlvindex);
-    case SIGNATURE_SETTINGS_TLVID:
-      return csmp_get_signatureSettings(tlvid, buf, len, tlvindex);
-    default:
-      DPRINTF("csmpagent_get: doesn't support get option of tlv:%u.%u\n",tlvid.vendor,tlvid.type);
-      return CSMP_OP_TLV_RD_EMPTY;
+  if (tlvid.vendor == CSMP_NON_VENDOR_ID)
+  {
+    switch (tlvid.type) {
+      case TLV_INDEX_TLVID:
+        return csmp_get_tlvindex(tlvid, buf, len, tlvindex);
+      case DEVICE_ID_TLVID:
+        return csmp_get_deviceid(tlvid, buf, len, tlvindex);
+      case SESSION_ID_TLVID:
+        return csmp_get_sessionID(tlvid, buf, len, tlvindex);
+      case GROUP_ASSIGN_TLVID:
+        return csmp_get_groupAssign(tlvid, buf, len, tlvindex);
+      case GROUP_INFO_TLVID:
+        return csmp_get_groupInfo(tlvid, buf, len, tlvindex);
+      case REPORT_SUBSCRIBE_TLVID:
+        return csmp_get_reportSubscribe(tlvid, buf, len, tlvindex);
+      case HARDWARE_DESC_TLVID:
+        return csmp_get_hardwareDesc(tlvid, buf, len, tlvindex);
+      case INTERFACE_DESC_TLVID:
+        return csmp_get_interfaceDesc(tlvid, buf, len, tlvindex);
+      case IPADDRESS_TLVID:
+        return csmp_get_ipAddress(tlvid, buf, len, tlvindex);
+      case IPROUTE_TLVID:
+        return csmp_get_ipRoute(tlvid, buf, len, tlvindex);
+      case CURRENT_TIME_TLVID:
+        return csmp_get_currenttime(tlvid, buf, len, tlvindex);
+      case UPTIME_TLVID:
+        return csmp_get_uptime(tlvid, buf, len, tlvindex);
+      case INTERFACE_METRICS_TLVID:
+        return csmp_get_interfaceMetrics(tlvid, buf, len, tlvindex);
+      case IPROUTE_RPLMETRICS_TLVID:
+        return csmp_get_ipRouteRplMetrics(tlvid, buf, len, tlvindex);
+      case WPANSTATUS_TLVID:
+        return csmp_get_wpanStatus(tlvid, buf, len, tlvindex);
+      case CGMSNOTIFICATION_TLVID:
+        return csmp_get_cgmsNotification(tlvid, buf, len, tlvindex);
+      case CGMSSTATS_TLVID:
+        return csmp_get_cgmsStats(tlvid, buf, len, tlvindex);
+      case RPLINSTANCE_TLVID:
+        return csmp_get_rplInstance(tlvid, buf, len, tlvindex);
+      case FIRMWARE_IMAGE_INFO_TLVID:
+        return csmp_get_firmwareImageInfo(tlvid, buf, len, tlvindex);
+      case SIGNATURE_TLVID:
+        return csmp_get_signature(tlvid, buf, len, tlvindex);
+      case SIGNATURE_VALIDITY_TLVID:
+        return csmp_get_signatureValidity(tlvid, buf, len, tlvindex);
+      case SIGNATURE_SETTINGS_TLVID:
+        return csmp_get_signatureSettings(tlvid, buf, len, tlvindex);
+      default:
+        DPRINTF("csmpagent_get: doesn't support get option of tlv:%u.%u\n",tlvid.vendor,tlvid.type);
+        return CSMP_OP_TLV_RD_EMPTY;
+      }
+  }
+  else
+  {
+    return csmp_get_vendor(tlvid, buf, len, tlvindex);
   }
 }
 
 int csmpagent_post(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf, size_t out_size, size_t *out_len, int32_t tlvindex)
 {
-  switch (tlvid.type) {
-    case CURRENT_TIME_TLVID:
-      return csmp_put_currenttime(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
-    case SESSION_ID_TLVID:
-      return csmp_put_sessionID(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
-    case SIGNATURE_TLVID:
-      return csmp_put_signature(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
-    case SIGNATURE_VALIDITY_TLVID:
-      return csmp_put_signatureValidity(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
-    case SIGNATURE_SETTINGS_TLVID:
-      return csmp_put_signatureSettings(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
-    case GROUP_ASSIGN_TLVID:
-      return csmp_put_groupAssign(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
-    case GROUP_MATCH_TLVID:
-      return csmp_put_groupMatch(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
-    case REPORT_SUBSCRIBE_TLVID:
-      return csmp_put_reportSubscribe(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
-    default:
-      DPRINTF("csmpagent_post: doesn't support post option of tlv:%u.%u\n",tlvid.vendor,tlvid.type);
-      return CSMP_OP_TLV_RD_EMPTY;
+  if (tlvid.vendor == CSMP_NON_VENDOR_ID)
+  {
+    switch (tlvid.type) {
+      case CURRENT_TIME_TLVID:
+        return csmp_put_currenttime(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case SESSION_ID_TLVID:
+        return csmp_put_sessionID(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case SIGNATURE_TLVID:
+        return csmp_put_signature(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case SIGNATURE_VALIDITY_TLVID:
+        return csmp_put_signatureValidity(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case SIGNATURE_SETTINGS_TLVID:
+        return csmp_put_signatureSettings(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case GROUP_ASSIGN_TLVID:
+        return csmp_put_groupAssign(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case GROUP_MATCH_TLVID:
+        return csmp_put_groupMatch(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case REPORT_SUBSCRIBE_TLVID:
+        return csmp_put_reportSubscribe(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      default:
+        DPRINTF("csmpagent_post: doesn't support post option of tlv:%u.%u\n",tlvid.vendor,tlvid.type);
+        return CSMP_OP_TLV_RD_EMPTY;
+    }
+  }
+  else
+  {
+    return csmp_put_vendor(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
   }
 }

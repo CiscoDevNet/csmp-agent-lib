@@ -58,6 +58,7 @@ typedef struct _WPAN_Status WPAN_Status;               /**< data related to TLV 
 typedef struct _RPL_Instance RPL_Instance;             /**< data related to TLV 53 */
 typedef struct _Firmware_Image_Info Firmware_Image_Info; /**< data related to TLV 75 */
 typedef struct _Signature_Settings Signature_Settings; /**< data related to TLV 79 */
+typedef struct _Vendor_Specific Vendor_Specific;       /**< data related to TLV 127 */
 
 // HARDWARE_DESC
 typedef enum {
@@ -490,4 +491,16 @@ struct _Signature_Settings
 
 #define SIGNATURE_SETTINGS_INIT \
    { 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,{0,{0}} }
+
+// VENDOR
+struct  _Vendor_Specific
+{
+  bool has_data;
+  struct {
+    size_t len;
+    uint8_t data[64];
+  } data;
+};
+#define VENDOR_INIT \
+ { 0,{0,{0}} }
 #endif

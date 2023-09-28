@@ -42,6 +42,7 @@ int csmp_get_firmwareImageInfo(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t 
 int csmp_get_signatureValidity(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 int csmp_get_signature(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 int csmp_get_signatureSettings(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
+int csmp_get_vendor(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 
 int csmp_put_currenttime(tlvid_t tlvid, const uint8_t *buf, size_t len,
                          uint8_t *out_buf, size_t out_size, size_t *out_len,
@@ -65,6 +66,9 @@ int csmp_put_groupMatch(tlvid_t tlvid, const uint8_t *buf, size_t len,
                          uint8_t *out_buf, size_t out_size, size_t *out_len,
                          int32_t tlvindex);
 int csmp_put_reportSubscribe(tlvid_t tlvid, const uint8_t *buf, size_t len,
+                         uint8_t *out_buf, size_t out_size, size_t *out_len,
+                         int32_t tlvindex);
+int csmp_put_vendor(tlvid_t tlvid, const uint8_t *buf, size_t len,
                          uint8_t *out_buf, size_t out_size, size_t *out_len,
                          int32_t tlvindex);
 
