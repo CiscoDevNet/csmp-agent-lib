@@ -55,7 +55,51 @@ extern uint32_t g_csmplib_reginterval_min;
 extern uint32_t g_csmplib_reginterval_max;
 extern csmp_subscription_list_t g_csmplib_report_list;
 
-uint32_t g_csmplib_notificationCode = 0;
+uint32_t m_code;
+uint32_t m_tlvlist[MAX_NOTIFY_TLVID_CNT];
+uint8_t m_token_length;
+uint8_t m_token[COAP_MAX_TKL];
+uint32_t m_errorlist[MAX_NOTIFY_TLVID_CNT];
+
+int doSendtlvs(tlvid_t *list, uint32_t list_cnt, coap_transaction_type_t txn_type,
+                           char name, int32_t tlvindex, bool prepend,
+                           uint8_t token_length, uint8_t *token);
+
+void doNotification(bool is_noPost) {
+  tlvid_t list[] = {{0,DEVICE_ID_TLVID},{0,CGMSNOTIFICATION_TLVID}};
+
+  if (is_noPost)
+  {
+    doSendtlvs(list,2,COAP_NON,'c',-1,false,0,NULL);
+  }
+  else
+  {
+    doSendtlvs(list,2,COAP_NON,'c',-1,false,m_token_length,m_token);
+  }
+}
+
+void csmpNotify(bool is_reg, uint32_t code, uint32_t *errlist, uint8_t token_length, uint8_t *token) {
+  m_code = code;
+  m_token_length = token_length;
+
+  if (m_token_length != 0) {
+    memcpy(m_token, token, m_token_length);
+  }
+
+  if (code == CSMP_CGMS_ERR_PROCESS) {
+    memcpy(m_tlvlist, errlist, sizeof(m_tlvlist));
+  }
+
+  if (!is_reg) {
+    doNotification(false);
+  }
+}
+
+void sendNotification(uint32_t code, uint32_t *errlist) {
+  csmpNotify(true, code, errlist, 0, NULL);
+  DPRINTF("CgmsAgent: Response error %d.\n", code);
+  doNotification(true);
+}
 
 int doSendtlvs(tlvid_t *list, uint32_t list_cnt, coap_transaction_type_t txn_type,
                            char name, int32_t tlvindex, bool prepend,
@@ -84,6 +128,16 @@ int doSendtlvs(tlvid_t *list, uint32_t list_cnt, coap_transaction_type_t txn_typ
     rvi = csmpagent_get(list[i], pbuf, OUTBUF_SIZE-used, tlvindex);
     if (rvi < 0) {
       DPRINTF("CgmsAgent: Unable to write TLV %u.%u\n",list[i].vendor,list[i].type);
+      if (rvi == CSMP_OP_TLV_WR_ERROR) {
+        DPRINTF("CgmsAgent: Current Buffer is insufficient. TLV %u.%u\n",list[i].vendor,list[i].type);
+        break;
+      } else if (rvi == CSMP_OP_UNSUPPORTED) {
+        DPRINTF("CgmsAgent: Unsupported TLV %u.%u\n",list[i].vendor,list[i].type);
+        rvi = 0;  // ignore unsupported tlvs
+      } else {
+        DPRINTF("CgmsAgent: Unable to get TLV %u.%u\n",list[i].vendor,list[i].type);
+        rvi = 0;
+      }
       return -1;
     }
     pbuf += rvi; used += rvi;
@@ -117,6 +171,7 @@ void process_reg(const uint8_t *buf,size_t len, bool preload_only) {
   uint32_t tlvlen;
   uint32_t used = 0;
   int rv = 0;
+  uint8_t errIndex = 0;
 
   while (used < len) {
     rv = csmptlv_readTL(pbuf,len - used,&tlvid,&tlvlen);
@@ -130,8 +185,15 @@ void process_reg(const uint8_t *buf,size_t len, bool preload_only) {
         break;
       default:
         rv = csmpagent_post(tlvid,pbuf,tlvlen,NULL,0,NULL,0);
-        if (rv < 0)
+        if (rv < 0){
+          if (!preload_only){
+            m_errorlist[errIndex] = tlvid.type;
+            errIndex++;
+            if (errIndex == MAX_NOTIFY_TLVID_CNT)
+              return;
+          }
           return;
+        }
         break;
     }
     pbuf += tlvlen; used += tlvlen;
@@ -178,6 +240,7 @@ void response_handler(struct sockaddr_in6 *from, uint16_t status, const void *bo
       trickle_timer_start(reg_timer, g_csmplib_reginterval_min, g_csmplib_reginterval_max,
                          (trickle_timer_fired_t)register_timer_fired);
       g_csmplib_status = REGISTRATION_IN_PROGRESS;
+      g_csmplib_stats.nms_errors++;
     }
     else {
       g_csmplib_stats.reg_fails++;
@@ -185,11 +248,12 @@ void response_handler(struct sockaddr_in6 *from, uint16_t status, const void *bo
     }
 
     DPRINTF("CgmsAgent: Response status Check failed.\n");
+    sendNotification(CSMP_CGMS_ERR_COAP, NULL);
     return;
   }
 
   if (body_len > 0) {
-    sigStat = checkSignature(body,body_len);
+    sigStat = checkSignature(body,body_len, true);
     if(sigStat <= 0) {
       if(sigStat == 0)
         g_csmplib_stats.sig_no_signature++;
@@ -197,6 +261,7 @@ void response_handler(struct sockaddr_in6 *from, uint16_t status, const void *bo
       DPRINTF("CgmsAgent: Response Signature Check failed.\n");
       g_csmplib_stats.reg_fails++;
       g_csmplib_stats.reg_fails_stats.error_signature++;
+      sendNotification(CSMP_CGMS_ERR_SIGNATURE, NULL);
       return;
     }
   }
@@ -209,6 +274,7 @@ void response_handler(struct sockaddr_in6 *from, uint16_t status, const void *bo
       DPRINTF("CgmsAgent: Registration Complete!\n");
     }
     else {
+      sendNotification(CSMP_CGMS_ERR_SIGNATURE, m_errorlist);
       g_csmplib_stats.reg_fails++;
       g_csmplib_stats.reg_fails_stats.error_process++;
     }

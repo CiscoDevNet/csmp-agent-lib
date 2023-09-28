@@ -322,6 +322,51 @@ void   cgmsstatus__free_unpacked
   assert(message->base.descriptor == &cgmsstatus__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   cgmsnotification__init
+                     (CGMSNotification         *message)
+{
+  static const CGMSNotification init_value = CGMSNOTIFICATION__INIT;
+  *message = init_value;
+}
+size_t cgmsnotification__get_packed_size
+                     (const CGMSNotification *message)
+{
+  assert(message->base.descriptor == &cgmsnotification__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t cgmsnotification__pack
+                     (const CGMSNotification *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &cgmsnotification__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t cgmsnotification__pack_to_buffer
+                     (const CGMSNotification *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &cgmsnotification__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+CGMSNotification *
+       cgmsnotification__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (CGMSNotification *)
+     protobuf_c_message_unpack (&cgmsnotification__descriptor,
+                                allocator, len, data);
+}
+void   cgmsnotification__free_unpacked
+                     (CGMSNotification *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &cgmsnotification__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 void   cgmsstats__init
                      (CGMSStats         *message)
 {
@@ -590,6 +635,51 @@ void   signature__free_unpacked
   if(!message)
     return;
   assert(message->base.descriptor == &signature__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   signature_settings__init
+                     (SignatureSettings         *message)
+{
+  static const SignatureSettings init_value = SIGNATURE_SETTINGS__INIT;
+  *message = init_value;
+}
+size_t signature_settings__get_packed_size
+                     (const SignatureSettings *message)
+{
+  assert(message->base.descriptor == &signature_settings__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t signature_settings__pack
+                     (const SignatureSettings *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &signature_settings__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t signature_settings__pack_to_buffer
+                     (const SignatureSettings *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &signature_settings__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+SignatureSettings *
+       signature_settings__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (SignatureSettings *)
+     protobuf_c_message_unpack (&signature_settings__descriptor,
+                                allocator, len, data);
+}
+void   signature_settings__free_unpacked
+                     (SignatureSettings *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &signature_settings__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
 void   hardware_desc__init
@@ -1515,6 +1605,57 @@ const ProtobufCMessageDescriptor cgmsstatus__descriptor =
   (ProtobufCMessageInit) cgmsstatus__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
+static const ProtobufCFieldDescriptor cgmsnotification__field_descriptors[2] =
+{
+  {
+    "code",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(CGMSNotification, code_present_case),
+    offsetof(CGMSNotification, code),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "tlvs",
+    2,
+    PROTOBUF_C_LABEL_REPEATED,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(CGMSNotification, n_tlvs),
+    offsetof(CGMSNotification, tlvs),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_PACKED,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned cgmsnotification__field_indices_by_name[] = {
+  0,   /* field[0] = code */
+  1,   /* field[1] = tlvs */
+};
+static const ProtobufCIntRange cgmsnotification__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor cgmsnotification__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "CGMSNotification",
+  "CGMSNotification",
+  "CGMSNotification",
+  "",
+  sizeof(CGMSNotification),
+  2,
+  cgmsnotification__field_descriptors,
+  cgmsnotification__field_indices_by_name,
+  1,  cgmsnotification__number_ranges,
+  (ProtobufCMessageInit) cgmsnotification__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
 static const ProtobufCFieldDescriptor cgmsstats__field_descriptors[9] =
 {
   {
@@ -1897,6 +2038,148 @@ const ProtobufCMessageDescriptor signature__descriptor =
   signature__field_indices_by_name,
   1,  signature__number_ranges,
   (ProtobufCMessageInit) signature__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor signature_settings__field_descriptors[9] =
+{
+  {
+    "reqSignedPost",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BOOL,
+    offsetof(SignatureSettings, req_signed_post_present_case),
+    offsetof(SignatureSettings, reqsignedpost),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "reqValidCheckPost",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BOOL,
+    offsetof(SignatureSettings, req_valid_check_post_present_case),
+    offsetof(SignatureSettings, reqvalidcheckpost),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "reqTimeSyncPost",
+    3,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BOOL,
+    offsetof(SignatureSettings, req_time_sync_post_present_case),
+    offsetof(SignatureSettings, reqtimesyncpost),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "reqSecLocalPost",
+    4,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BOOL,
+    offsetof(SignatureSettings, req_sec_local_post_present_case),
+    offsetof(SignatureSettings, reqseclocalpost),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "reqSignedResp",
+    5,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BOOL,
+    offsetof(SignatureSettings, req_signed_resp_present_case),
+    offsetof(SignatureSettings, reqsignedresp),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "reqValidCheckResp",
+    6,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BOOL,
+    offsetof(SignatureSettings, req_valid_check_resp_present_case),
+    offsetof(SignatureSettings, reqvalidcheckresp),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "reqTimeSyncResp",
+    7,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BOOL,
+    offsetof(SignatureSettings, req_time_sync_resp_present_case),
+    offsetof(SignatureSettings, reqtimesyncresp),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "reqSecLocalResp",
+    8,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BOOL,
+    offsetof(SignatureSettings, req_sec_local_resp_present_case),
+    offsetof(SignatureSettings, reqseclocalresp),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "cert",
+    9,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BYTES,
+    offsetof(SignatureSettings, cert_present_case),
+    offsetof(SignatureSettings, cert),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned signature_settings__field_indices_by_name[] = {
+  8,   /* field[8] = cert */
+  3,   /* field[3] = reqSecLocalPost */
+  7,   /* field[7] = reqSecLocalResp */
+  0,   /* field[0] = reqSignedPost */
+  4,   /* field[4] = reqSignedResp */
+  2,   /* field[2] = reqTimeSyncPost */
+  6,   /* field[6] = reqTimeSyncResp */
+  1,   /* field[1] = reqValidCheckPost */
+  5,   /* field[5] = reqValidCheckResp */
+};
+static const ProtobufCIntRange signature_settings__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 9 }
+};
+const ProtobufCMessageDescriptor signature_settings__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "SignatureSettings",
+  "SignatureSettings",
+  "SignatureSettings",
+  "",
+  sizeof(SignatureSettings),
+  9,
+  signature_settings__field_descriptors,
+  signature_settings__field_indices_by_name,
+  1,  signature_settings__number_ranges,
+  (ProtobufCMessageInit) signature_settings__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
 static const ProtobufCFieldDescriptor hardware_desc__field_descriptors[18] =

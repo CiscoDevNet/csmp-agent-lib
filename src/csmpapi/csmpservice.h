@@ -35,14 +35,42 @@ typedef enum {
   INTERFACE_DESC_ID = 12,  /**< Interface description */
   IPADDRESS_ID = 16,        /**< Ip address info */
   IPROUTE_ID = 17,        /**< ip route info */
-  CURRENT_TIME_ID = 17,   /**< current time */
+  CURRENT_TIME_ID = 18,   /**< current time */
   UPTIME_ID = 22,         /**< up time */
   INTERFACE_METRICS_ID = 23,  /**< interface metrics info */
   IPROUTE_RPLMETRICS_ID = 25, /**< ip route rpl info */
   WPANSTATUS_ID = 35,       /**< wan status info */
   NEIGHBOR802154_G_ID = 52, /**< neighbor info */
-  RPLINSTANCE_ID = 53    /**< rpl instance info */
+  RPLINSTANCE_ID = 53,    /**< rpl instance info */
+  SIGNATURE_SETTINGS_ID = 79 /**< signature settings request */
 } tlv_type_t;
+
+/**
+ * csmp_cert
+ *
+ * csmp certificate
+ */
+typedef struct csmp_sig_cert{
+    size_t len;
+    uint8_t data[MAX_SIGNATURE_CERT_LENGTH];
+}csmp_cert;
+
+/**
+ * csmp_cfg_t
+ *
+ * csmp signature settings configuration
+ */
+typedef struct csmp_sig_cfg{
+    bool reqsignedpost;
+    bool reqvalidcheckpost;
+    bool reqtimesyncpost;
+    bool reqseclocalpost;
+    bool reqsignedresp;
+    bool reqvalidcheckresp;
+    bool reqtimesyncresp;
+    bool reqseclocalresp;
+    csmp_cert cert;
+} csmp_cfg_t;
 
 /**
  * dev_config_t
@@ -56,6 +84,7 @@ typedef struct dev_config {
   } ieee_eui64;          /**< the device’s eui64, should be the same with the EID that imported on NMS */
   uint32_t reginterval_min;  /**< the minimum interval to send register message to NMS */
   uint32_t reginterval_max;  /**< the maximum interval to send register message to NMS */
+  csmp_cfg_t csmp_sig_settings;/**< the csmp signature settings data*/
 } dev_config_t;
 
 /**
@@ -121,6 +150,9 @@ typedef struct {
     uint32_t error_process;/**< overall error */
   } reg_fails_stats; /**< failure statistics */
   uint32_t metrics_reports;/**< metric reports */
+
+  uint32_t nms_errors; /**< nms error */
+  uint32_t sig_no_sync; /**< get time error*/
 
   uint32_t csmp_get_succeed;/**< CoAP GET successfull */
   uint32_t csmp_post_succeed;/**< CoAP POST successfull */

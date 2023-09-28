@@ -38,6 +38,28 @@ uint8_t neighbor_eui64[2][8] = {{0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb1}
 dev_config_t g_devconfig;
 csmp_handle_t g_csmp_handle;
 
+/* public key */
+//new key
+static const char pubkey[PUBLIC_KEY_LEN] = {
+  0x04, 0x23, 0xD2, 0x83, 0x45, 0xE8, 0xD5, 0xDF, 0x86, 0x9D,
+  0x6E, 0xE7, 0x58, 0x0D, 0xC1, 0x8F, 0x35, 0x9D, 0x57, 0xB1,
+  0x3D, 0x50, 0x4A, 0x16, 0x01, 0x15, 0xC4, 0x81, 0x19, 0xB0,
+  0xE6, 0x60, 0xB8, 0x64, 0x14, 0x01, 0x5D, 0x56, 0x83, 0xBE,
+  0xE1, 0x85, 0x98, 0xCB, 0x90, 0xE1, 0xF7, 0x9B, 0xF4, 0x33,
+  0x5A, 0x4B, 0x29, 0xAD, 0x35, 0x69, 0x9B, 0x4F, 0xDC, 0x42,
+  0x7F, 0xEB, 0xC2, 0x99, 0xA5
+};
+
+/**
+ * @brief pubkey_get
+ *
+ * @param key pointer to pubkey
+ */
+void pubkey_get(char *key) {
+  strncpy(key, pubkey, PUBLIC_KEY_LEN);
+  key[PUBLIC_KEY_LEN] = '\0';
+}
+
 /**
  * @brief hardware description function
  *
@@ -432,6 +454,53 @@ void* firmware_image_info_get(uint32_t *num) {
 }
 
 /**
+ * @brief get up the signature settings
+ *
+ * @param num amount of instances
+ * @return void* pointer to global g_SignatureSettings
+ */
+void* signature_settings_get(uint32_t *num) {
+  *num = 1;
+
+  return &g_SignatureSettings;
+}
+
+/**
+ * @brief set the signature settings
+ *
+ * @param tlv
+ */
+void signature_settings_post(Signature_Settings *tlv) {
+  g_SignatureSettings.has_reqsignedpost = true;
+  g_SignatureSettings.reqsignedpost = tlv->reqsignedpost;
+
+  g_SignatureSettings.has_reqvalidcheckpost = true;
+  g_SignatureSettings.reqvalidcheckpost = tlv->reqvalidcheckpost;
+
+  g_SignatureSettings.has_reqtimesyncpost = true;
+  g_SignatureSettings.reqtimesyncpost = tlv->reqtimesyncpost;
+
+  g_SignatureSettings.has_reqseclocalpost = true;
+  g_SignatureSettings.reqseclocalpost = tlv->reqseclocalpost;
+
+  g_SignatureSettings.has_reqsignedresp = true;
+  g_SignatureSettings.reqsignedresp = tlv->reqsignedresp;
+
+  g_SignatureSettings.has_reqvalidcheckresp = true;
+  g_SignatureSettings.reqvalidcheckresp = tlv->reqvalidcheckresp;
+
+  g_SignatureSettings.has_reqtimesyncresp = true;
+  g_SignatureSettings.reqtimesyncresp = tlv->reqtimesyncresp;
+
+  g_SignatureSettings.has_reqseclocalresp = true;
+  g_SignatureSettings.reqseclocalresp = tlv->reqseclocalresp;
+
+  g_SignatureSettings.has_cert = true;
+  g_SignatureSettings.cert.len = tlv->cert.len;
+  memcpy(g_SignatureSettings.cert.data,tlv->cert.data,g_SignatureSettings.cert.len);
+}
+
+/**
  * @brief csmp get TLV request
  *
  * @param tlvid the tlvid to handle
@@ -442,37 +511,28 @@ void* csmptlvs_get(tlvid_t tlvid, uint32_t *num) {
   switch(tlvid.type) {
     case HARDWARE_DESC_ID:
       return hardware_desc_get(num);
-      break;
     case INTERFACE_DESC_ID:
       return interface_desc_get(num);
-      break;
     case IPADDRESS_ID:
       return ipaddress_get(num);
-      break;
     case IPROUTE_ID:
       return iproute_get(num);
-      break;
     case CURRENT_TIME_ID:
       return currenttime_get(num);
-      break;
     case UPTIME_ID:
       return uptime_get(num);
-      break;
     case INTERFACE_METRICS_ID:
       return interface_metrics_get(num);
-      break;
     case IPROUTE_RPLMETRICS_ID:
       return iproute_rplmetrics_get(num);
-      break;
     case WPANSTATUS_ID:
       return wpanstatus_get(num);
-      break;
     case RPLINSTANCE_ID:
       return rplinstance_get(num);
-      break;
     case FIRMWARE_IMAGE_INFO_ID:
       return firmware_image_info_get(num);
-      break;
+    case SIGNATURE_SETTINGS_ID:
+      return signature_settings_get(num);
 
     default:
       break;
@@ -490,6 +550,9 @@ void csmptlvs_post(tlvid_t tlvid, void *tlv) {
   switch(tlvid.type) {
     case CURRENT_TIME_ID:
       currenttime_post((Current_Time*)tlv);
+      break;
+    case SIGNATURE_SETTINGS_ID:
+      signature_settings_post((Signature_Settings*)tlv);
       break;
     default:
       break;
@@ -565,6 +628,16 @@ int main(int argc, char **argv)
   g_devconfig.reginterval_min = reg_interval_min;
   g_devconfig.reginterval_max = reg_interval_max;
 
+  //csmp signature settings data
+  g_devconfig.csmp_sig_settings.reqsignedpost = true;
+  g_devconfig.csmp_sig_settings.reqvalidcheckpost = true;
+  g_devconfig.csmp_sig_settings.reqtimesyncpost = true;
+  g_devconfig.csmp_sig_settings.reqseclocalpost = true;
+  g_devconfig.csmp_sig_settings.reqsignedresp = true;
+  g_devconfig.csmp_sig_settings.reqvalidcheckresp = true;
+  g_devconfig.csmp_sig_settings.reqtimesyncresp = true;
+  g_devconfig.csmp_sig_settings.reqseclocalresp = true;
+
   for (i = 0; i < argc; i++) {
     if (strcmp(argv[i], "-min") == 0) {   // reginterval_min
       if (++i >= argc)
@@ -621,6 +694,9 @@ int main(int argc, char **argv)
     printf("start csmp agent service: fail!\n");
   else
     printf("start csmp agent service: success!\n");
+
+  // get the regmin and regmax
+  printf("min : %d, max = %d\n",g_devconfig.reginterval_min, g_devconfig.reginterval_max);
 
   while(1) {
     sleep(g_devconfig.reginterval_min);

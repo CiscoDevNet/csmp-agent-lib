@@ -50,6 +50,8 @@ bool getArgTlvList(char *key, const coap_uri_seg_t *list,
 bool getArgString(char *key, const coap_uri_seg_t *list,
     uint32_t list_cnt, char* s, uint32_t *slen);
 
+extern void csmpNotify(bool is_reg, uint32_t code, uint32_t *errlist, uint8_t token_length, uint8_t *token);
+
 
 bool checkExempt(tlvid_t tlvid) {
   const tlvid_t exempt_list[] = {{0,DESCRIPTION_REQUEST_TLVID},{0,IMAGE_BLOCK_TLVID}};
@@ -86,6 +88,8 @@ void recv_request(struct sockaddr_in6 *from,
   int rv = 0;
   tlvid_t tlvid_default[2] = {{0, SESSION_ID_TLVID},{0, CURRENT_TIME_TLVID}};
   uint32_t i;
+  uint8_t err_tlvid_count = 0;
+  uint32_t err_tlvid[MAX_NOTIFY_TLVID_CNT] = {0};
 
 #ifdef PRINTDEBUG
   printf("CsmpServer: ");
@@ -159,7 +163,16 @@ void recv_request(struct sockaddr_in6 *from,
               rv = 0;
             }
             else {
-              coap_status = COAP_CODE_NOT_FOUND; out_len = 0;
+              if (rv == CSMP_OP_UNSUPPORTED)
+                coap_status = COAP_CODE_NOT_FOUND;
+              else if (rv == CSMP_OP_TLV_RD_ERROR)
+                coap_status = COAP_CODE_BAD_REQ;
+              else if (rv == CSMP_OP_FAILED)
+                coap_status = COAP_CODE_INTERNAL_SERVER_ERROR;
+              else
+                coap_status = COAP_CODE_FORBIDDEN;
+
+              out_len = 0;
               goto done;
             }
           }
@@ -178,7 +191,7 @@ void recv_request(struct sockaddr_in6 *from,
         uint32_t iused = 0, oused = 0;
         size_t rvo = 0;
 
-        int sigStat = checkSignature(ibuf,body_len);
+        int sigStat = checkSignature(ibuf,body_len, false);
 
         if (sigStat < 0) {
           DPRINTF("CsmpServer: POST Signature Check failed.\n");
@@ -214,8 +227,17 @@ void recv_request(struct sockaddr_in6 *from,
 
           rv = csmpagent_post(tlvid, ibuf, rv + tlvlen, obuf, OUTBUF_MAX - oused, &rvo, tlvindex);
           if (rv < 0) {
-            coap_status = COAP_CODE_NOT_FOUND; // Not Found
-            goto done;
+            if (tx_type == COAP_NON){
+              err_tlvid[err_tlvid_count] = tlvid.type;
+              err_tlvid_count++;
+              if (err_tlvid_count == MAX_NOTIFY_TLVID_CNT) {
+                goto done;
+              }
+            }
+            else {
+              coap_status = COAP_CODE_NOT_FOUND; // Not Found
+              goto done;
+            }
           }
          }
           ibuf += rv; iused += rv;
@@ -226,6 +248,10 @@ void recv_request(struct sockaddr_in6 *from,
             break;
           }
        }
+
+       if (err_tlvid_count > 0) {
+            break;
+        }
 
        if (rv >= 0) {
          if (oused) {
@@ -251,8 +277,18 @@ void recv_request(struct sockaddr_in6 *from,
   }
 
 done:
-    DPRINTF("CsmpServer: Sending Response [out_len=%u], [coap_status=%u]\n",(int)out_len, coap_status);
-    coapserver_response(from, COAP_ACK, tx_id, token_length, token, coap_status, m_RespBuf, out_len);
+    if (tx_type == COAP_CON) {
+      DPRINTF("CsmpServer: Sending Response [out_len=%u], [coap_status=%u]\n",(int)out_len, coap_status);
+      coapserver_response(from, COAP_ACK, tx_id, token_length, token, coap_status, m_RespBuf, out_len);
+    }
+    else if (method == COAP_POST) {
+      if (err_tlvid_count > 0) {
+        csmpNotify(false, CSMP_CGMS_ERR_PROCESS, err_tlvid, token_length, token);
+      }
+      else {
+        csmpNotify(false, CSMP_CGMS_SUC_PROCESS, NULL, token_length, token);
+      }
+    }
 
   return;
 }

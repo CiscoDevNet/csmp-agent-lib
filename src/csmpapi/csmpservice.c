@@ -37,6 +37,8 @@ csmptlvs_get_t g_csmptlvs_get;
 csmptlvs_post_t g_csmptlvs_post;
 signature_verify_t g_csmplib_signature_verify;
 
+csmp_cfg_t g_csmp_signature_settings;
+
 int csmp_service_start(dev_config_t *devconfig, csmp_handle_t *csmp_handle) {
   bool ret;
 
@@ -52,6 +54,15 @@ int csmp_service_start(dev_config_t *devconfig, csmp_handle_t *csmp_handle) {
   memcpy(g_csmplib_eui64, devconfig->ieee_eui64.data, sizeof(g_csmplib_eui64));
   g_csmplib_reginterval_min = devconfig->reginterval_min;
   g_csmplib_reginterval_max = devconfig->reginterval_max;
+
+  g_csmp_signature_settings.reqsignedpost = devconfig->csmp_sig_settings.reqsignedpost;
+  g_csmp_signature_settings.reqvalidcheckpost = devconfig->csmp_sig_settings.reqvalidcheckpost;
+  g_csmp_signature_settings.reqtimesyncpost = devconfig->csmp_sig_settings.reqtimesyncpost;
+  g_csmp_signature_settings.reqseclocalpost = devconfig->csmp_sig_settings.reqseclocalpost;
+  g_csmp_signature_settings.reqsignedresp = devconfig->csmp_sig_settings.reqsignedresp;
+  g_csmp_signature_settings.reqvalidcheckresp = devconfig->csmp_sig_settings.reqvalidcheckresp;
+  g_csmp_signature_settings.reqtimesyncresp = devconfig->csmp_sig_settings.reqtimesyncresp;
+  g_csmp_signature_settings.reqseclocalresp = devconfig->csmp_sig_settings.reqseclocalresp;
 
   g_csmptlvs_get = csmp_handle->csmptlvs_get;
   g_csmptlvs_post = csmp_handle->csmptlvs_post;
