@@ -20,6 +20,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+/** maximum CSMP cert length */
+#define MAX_SIGNATURE_CERT_LENGTH 512
+
 /*! \file
  *
  * CSMP info
@@ -42,6 +45,7 @@ typedef struct _WPAN_Status WPAN_Status;
 typedef struct _Neighbor_802154G Neighbor_802154G;
 typedef struct _RPL_Instance RPL_Instance;
 typedef struct _Firmware_Image_Info Firmware_Image_Info;
+typedef struct _Signature_Settings Signature_Settings;
 
 // HARDWARE_DESC
 typedef enum {
@@ -471,4 +475,31 @@ struct  _Firmware_Image_Info
 };
 #define FIRMWARE_IMAGE_INFO_INIT \
    { 0,0, 0,{0,{0}}, 0,{0}, 0,{0}, 0,0, 0,0, 0,{0,{0}}, 0,0, 0,0, 0,0, 0,{0,{0}, 0,{0}} }
+
+struct _Signature_Settings
+{
+    bool has_reqsignedpost;
+    bool reqsignedpost;
+    bool has_reqvalidcheckpost;
+    bool reqvalidcheckpost;
+    bool has_reqtimesyncpost;
+    bool reqtimesyncpost;
+    bool has_reqseclocalpost;
+    bool reqseclocalpost;
+    bool has_reqsignedresp;
+    bool reqsignedresp;
+    bool has_reqvalidcheckresp;
+    bool reqvalidcheckresp;
+    bool has_reqtimesyncresp;
+    bool reqtimesyncresp;
+    bool has_reqseclocalresp;
+    bool reqseclocalresp;
+    bool has_cert;
+    struct {
+      size_t len;
+      uint8_t data[MAX_SIGNATURE_CERT_LENGTH];
+    } cert;
+};
+#define SIGNATURE_SETTINGS_INIT \
+   { 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,{0,{0}} }
 #endif

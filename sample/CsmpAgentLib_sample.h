@@ -150,4 +150,7 @@ RPL_Instance g_rplInstance = RPLINSTANCE_INIT;
 /** \brief the firmware info data */
 Firmware_Image_Info g_firmwareImageInfo = FIRMWARE_IMAGE_INFO_INIT;
 
+/** \brief the signature settings data */
+Signature_Settings g_SignatureSettings = SIGNATURE_SETTINGS_INIT;
+
 #endif

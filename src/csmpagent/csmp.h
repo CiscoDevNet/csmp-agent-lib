@@ -26,6 +26,18 @@
 #include <stdint.h>
 #include "coap.h"
 
+/* CSMP return codes */
+#define CSMP_OP_TLV_RD_EMPTY   0
+#define CSMP_OP_TLV_RD_ERROR   -1
+#define CSMP_OP_TLV_WR_ERROR   -2
+#define CSMP_OP_UNSUPPORTED    -3
+#define CSMP_OP_FAILED         -4
+
+/* return codes */
+#define SUCCESS 1
+#define FAILURE 0
+#define ERROR -1
+
 /**
  * @brief vendor info
  *
@@ -47,6 +59,16 @@ typedef struct _eventid_t {
 #ifndef MAX_SUBSCRIBE_LIST_CNT
 /** maximum subscribers */
 #define MAX_SUBSCRIBE_LIST_CNT (15)
+#endif
+
+#ifndef MAX_SIGNATURE_CERT_LENGTH
+/** maximum CSMP cert length */
+#define MAX_SIGNATURE_CERT_LENGTH 512
+#endif
+
+#ifndef MAX_NOTIFY_TLVID_CNT
+/** maximum error TLV*/
+#define MAX_NOTIFY_TLVID_CNT 20
 #endif
 
 /**
@@ -126,6 +148,13 @@ enum {
   CSMP_PHYSICAL_FUNCTION_UNKNOWN = 99
 };
 
+enum {
+  CSMP_CGMS_SUC_PROCESS = 0,
+  CSMP_CGMS_ERR_COAP = 1,
+  CSMP_CGMS_ERR_SIGNATURE = 2,
+  CSMP_CGMS_ERR_PROCESS = 3
+};
+
 // Follows entPhysicalClass OID 1.3.6.1.2.1.47.1.1.1.1.5
 enum {
   CSMP_PHYSICAL_CLASS_OTHER = 1,
@@ -168,6 +197,8 @@ enum {
   DHCP6_CLIENT_STATUS_TLVID = 36,
   CGMSSETTINGS_TLVID = 42,
   CGMSSTATUS_TLVID = 43,
+  CGMSNOTIFICATION_TLVID = 44,
+  CGMSSTATS_TLVID = 45,
   IEEE8021X_SETTINGS_TLVID = 47,
   IEEE802154_BEACON_STATS_TLVID = 48,
   RPLINSTANCE_TLVID = 53,

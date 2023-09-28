@@ -30,6 +30,8 @@
 
 #define SHA256_HASH_SIZE  32
 
+extern void pubkey_get(char *key);
+
 bool signature_verify(const void *data, size_t datalen, const void *sig, size_t siglen)
 {
 #ifdef OPENSSL
@@ -38,17 +40,19 @@ bool signature_verify(const void *data, size_t datalen, const void *sig, size_t 
   int ret;
   EC_KEY *ec_key = NULL;
   EC_GROUP *ec_group;
-  unsigned char *pp = (unsigned char*)pubkey;
-  EVP_MD_CTX md_ctx;
+  char *pp = (char *)malloc(sizeof(char) * PUBLIC_KEY_LEN+1);
+  char *pp_o2i = pp;
+  pubkey_get(pp);
+  EVP_MD_CTX *md_ctx;
+  md_ctx = EVP_MD_CTX_new();
   unsigned long err_code;
-  char err_buf[120];
   ECDSA_SIG *si = NULL;
 
   // sha256 hash
-  EVP_MD_CTX_init(&md_ctx);
-  EVP_DigestInit(&md_ctx, EVP_sha256());
-  EVP_DigestUpdate(&md_ctx, (const void*)data,datalen);
-  EVP_DigestFinal(&md_ctx, digest, &dgst_len);
+  EVP_MD_CTX_init(md_ctx);
+  EVP_DigestInit(md_ctx, EVP_sha256());
+  EVP_DigestUpdate(md_ctx, (const void*)data,datalen);
+  EVP_DigestFinal(md_ctx, digest, &dgst_len);
 
   // creat EC_KEY
   if ((ec_key = EC_KEY_new()) == NULL)
@@ -75,7 +79,7 @@ bool signature_verify(const void *data, size_t datalen, const void *sig, size_t 
   }
 
   // import public key into ec_key
-  ec_key = o2i_ECPublicKey(&ec_key,(const unsigned char**)&pp,sizeof(pubkey));
+  ec_key = o2i_ECPublicKey(&ec_key,(const unsigned char**)&pp_o2i,PUBLIC_KEY_LEN);
   if (ec_key == NULL)
   {
     printf("Error：o2i_ECPublicKey\n");
@@ -95,6 +99,7 @@ bool signature_verify(const void *data, size_t datalen, const void *sig, size_t 
   EC_KEY_free(ec_key);
   ECDSA_SIG_free(si);
 
+  free(pp);
   if(ret==1)
   {
     printf("Signature Verify：OK\n");

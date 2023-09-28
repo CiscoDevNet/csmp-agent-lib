@@ -35,8 +35,13 @@ int csmp_get_uptime(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 int csmp_get_interfaceMetrics(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 int csmp_get_ipRouteRplMetrics(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 int csmp_get_wpanStatus(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
+int csmp_get_cgmsNotification(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
+int csmp_get_cgmsStats(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 int csmp_get_rplInstance(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 int csmp_get_firmwareImageInfo(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
+int csmp_get_signatureValidity(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
+int csmp_get_signature(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
+int csmp_get_signatureSettings(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 
 int csmp_put_currenttime(tlvid_t tlvid, const uint8_t *buf, size_t len,
                          uint8_t *out_buf, size_t out_size, size_t *out_len,
@@ -48,6 +53,9 @@ int csmp_put_signature(tlvid_t tlvid, const uint8_t *buf, size_t len,
                          uint8_t *out_buf, size_t out_size, size_t *out_len,
                          int32_t tlvindex);
 int csmp_put_signatureValidity(tlvid_t tlvid, const uint8_t *buf, size_t len,
+                         uint8_t *out_buf, size_t out_size, size_t *out_len,
+                         int32_t tlvindex);
+int csmp_put_signatureSettings(tlvid_t tlvid, const uint8_t *buf, size_t len,
                          uint8_t *out_buf, size_t out_size, size_t *out_len,
                          int32_t tlvindex);
 int csmp_put_groupAssign(tlvid_t tlvid, const uint8_t *buf, size_t len,

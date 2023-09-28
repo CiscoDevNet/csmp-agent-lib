@@ -86,6 +86,14 @@ message CGMSStatus {
   }
 }
 
+// TLV 44
+message CGMSNotification {
+  oneof code_present {
+  uint32 code = 1;
+  }
+  repeated uint32 tlvs = 2;
+}
+
 // TLV 45
 message CGMSStats {
   oneof sigOk_present {
@@ -164,6 +172,36 @@ message Signature {
   }
 }
 
+// TLV 79
+message SignatureSettings {
+  oneof reqSignedPost_present {
+  bool reqSignedPost = 1;
+  }
+  oneof reqValidCheckPost_present {
+  bool reqValidCheckPost = 2;
+  }
+  oneof reqTimeSyncPost_present {
+  bool reqTimeSyncPost = 3;
+  }
+  oneof reqSecLocalPost_present {
+  bool reqSecLocalPost = 4;
+  }
+  oneof reqSignedResp_present {
+  bool reqSignedResp = 5;
+  }
+  oneof reqValidCheckResp_present {
+  bool reqValidCheckResp = 6;
+  }
+  oneof reqTimeSyncResp_present {
+  bool reqTimeSyncResp = 7;
+  }
+  oneof reqSecLocalResp_present {
+  bool reqSecLocalResp = 8;
+  }
+  oneof cert_present {
+  bytes cert = 9;
+  }
+}
 
 // TLV 11
 message HardwareDesc {

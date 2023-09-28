@@ -22,7 +22,7 @@
 #include "csmptlv.h"
 #include "CsmpTlvs.pb-c.h"
 
-#define NUM_TLVS 17
+#define NUM_TLVS 20
 static char *ptlvs[NUM_TLVS] = {
   TLV_INDEX_ID_STRING,
   DEVICE_ID_ID_STRING,
@@ -41,7 +41,10 @@ static char *ptlvs[NUM_TLVS] = {
   IPROUTE_RPLMETRICS_ID_STRING,
   WPANSTATUS_ID_STRING,
   RPLINSTANCE_ID_STRING,
-  FIRMWARE_IMAGE_INFO_ID_STRING
+  FIRMWARE_IMAGE_INFO_ID_STRING,
+  SIGNATURE_VALIDITY_ID_STRING,
+  SIGNATURE_ID_STRING,
+  SIGNATURE_SETTINGS_ID_STRING
 };
 
 int csmp_get_tlvindex(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
