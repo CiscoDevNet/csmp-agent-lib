@@ -8,20 +8,22 @@ DESTDIR=$TOPDIR
 SAMPLEDIR=$TOPDIR/sample
 TLVPROTODIR=$TOPDIR/src/csmpagent/tlvs
 
+export OS=$1
+
 build_header()
 {
   echo "########## generating protobuf header files...##########"
-  make -C $TLVPROTODIR
+  make $OS -C $TLVPROTODIR
 }
 
 build_sample()
 {
-  make -C $SAMPLEDIR
+  make $OS -C $SAMPLEDIR
 }
 
 build_lib()
 {
-  make -C $DESTDIR
+  make $OS -C $DESTDIR
   rm *.o
   mv csmp_agent_lib.a sample/
 }
