@@ -3,8 +3,10 @@
 # CSMP-Agent Library (csmp_agent_lib.a)
 #
 # Valid targets:
-# linux 		- POSIX Linux application
-# freertos	- FreeRTOS application
+# linux    - POSIX Linux application
+# freertos - FreeRTOS application
+#
+# clean    - Clean binaries
 #
 
 linux:
