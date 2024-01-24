@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021-2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include <sys/time.h>
 #include <stdlib.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <string.h>
 #include <ifaddrs.h>
 #include <unistd.h>
@@ -28,6 +25,7 @@
 #include "csmp_info.h"
 #include "CsmpAgentLib_sample.h"
 #include "signature_verify.h"
+#include "osal_common.h"
 
 #define nexthop_IP "fe80::a00:27ff:fe3b:2ab1"
 #define CSMP_NON_VENDOR_ID 0
@@ -158,7 +156,7 @@ void* ipaddress_get(uint32_t *num) {
 
   g_ipAddress[0].ipaddressaddrtype = IPV6;
   g_ipAddress[0].ipaddressaddr.len = 16;
-  inet_pton(AF_INET6, "0::1", &g_ipAddress[0].ipaddressaddr.data);
+  osal_inet_pton(AF_INET6, "0::1", &g_ipAddress[0].ipaddressaddr.data);
   g_ipAddress[0].ipaddressifindex = 1;
   g_ipAddress[0].ipaddresstype = UNICAST;
   g_ipAddress[0].ipaddressorigin = DHCP;
@@ -167,7 +165,7 @@ void* ipaddress_get(uint32_t *num) {
 
   g_ipAddress[1].ipaddressaddrtype = IPV6;
   g_ipAddress[1].ipaddressaddr.len = 16;
-  inet_pton(AF_INET6, "fe80::207:8109:dc:c8d", &g_ipAddress[1].ipaddressaddr.data);
+  osal_inet_pton(AF_INET6, "fe80::207:8109:dc:c8d", &g_ipAddress[1].ipaddressaddr.data);
   g_ipAddress[1].ipaddressifindex = 2;
   g_ipAddress[1].ipaddresstype = UNICAST;
   g_ipAddress[1].ipaddressorigin = LINKLAYER;
@@ -176,7 +174,7 @@ void* ipaddress_get(uint32_t *num) {
 
   g_ipAddress[2].ipaddressaddrtype = IPV6;
   g_ipAddress[2].ipaddressaddr.len = 16;
-  inet_pton(AF_INET6, "2001:a:b:c::9", &g_ipAddress[2].ipaddressaddr.data);
+  osal_inet_pton(AF_INET6, "2001:a:b:c::9", &g_ipAddress[2].ipaddressaddr.data);
   g_ipAddress[2].ipaddressifindex = 2;
   g_ipAddress[2].ipaddresstype = UNICAST;
   g_ipAddress[2].ipaddressorigin = DHCP;
@@ -205,11 +203,11 @@ void* iproute_get(uint32_t *num) {
   g_ipRoute.inetcidrrouteindex = 1;
   g_ipRoute.inetcidrroutedesttype = IPV6;
   g_ipRoute.inetcidrroutedest.len = 16;
-  inet_pton(AF_INET6, "0::0", &g_ipRoute.inetcidrroutedest.data);
+  osal_inet_pton(AF_INET6, "0::0", &g_ipRoute.inetcidrroutedest.data);
   g_ipRoute.inetcidrroutepfxlen = 0;
   g_ipRoute.inetcidrroutenexthoptype = IPV6Z;
   g_ipRoute.inetcidrroutenexthop.len = 16;
-  inet_pton(AF_INET6, nexthop_IP, &g_ipRoute.inetcidrroutenexthop.data);
+  osal_inet_pton(AF_INET6, nexthop_IP, &g_ipRoute.inetcidrroutenexthop.data);
   g_ipRoute.inetcidrrouteifindex = 2;
   return &g_ipRoute;
 }
@@ -226,7 +224,7 @@ void* currenttime_get(uint32_t *num) {
   memset(&g_currentTime, 0, sizeof(g_currentTime));
 
   *num = 1;
-  gettimeofday(&tv, NULL);
+  osal_gettimeofday(&tv, NULL);
   g_currentTime.has_posix = true;
   g_currentTime.posix = tv.tv_sec;
   return &g_currentTime;
@@ -292,7 +290,7 @@ void* uptime_get(uint32_t *num) {
   memset(&g_upTime, 0, sizeof(g_upTime));
 
   *num = 1;
-  gettimeofday(&tv, NULL);
+  osal_gettimeofday(&tv, NULL);
   g_upTime.has_sysuptime = true;
   g_upTime.sysuptime = tv.tv_sec - g_init_time;
   return &g_upTime;
@@ -666,7 +664,7 @@ int main(int argc, char **argv)
   char *endptr;
   bool sigFlag = false;
 
-  gettimeofday(&tv, NULL);
+  osal_gettimeofday(&tv, NULL);
   g_init_time = tv.tv_sec;
 
   /**************************************************************
@@ -676,7 +674,7 @@ int main(int argc, char **argv)
       * register interval(min, max)
   ***************************************************************/
   memset(&g_devconfig, 0, sizeof(dev_config_t));
-  inet_pton(AF_INET6, NMS_IP, &g_devconfig.NMSaddr.s6_addr);
+  osal_inet_pton(AF_INET6, NMS_IP, &g_devconfig.NMSaddr.s6_addr);
   memcpy(g_devconfig.ieee_eui64.data, g_eui64, sizeof(g_eui64));
   g_devconfig.reginterval_min = reg_interval_min;
   g_devconfig.reginterval_max = reg_interval_max;
@@ -705,7 +703,7 @@ int main(int argc, char **argv)
     } else if (strcmp(argv[i], "-d") == 0) {  // NMS address
       if (++i >= argc)
         goto start_error;
-      if (inet_pton(AF_INET6, argv[i], &g_devconfig.NMSaddr.s6_addr) <= 0) {
+      if (osal_inet_pton(AF_INET6, argv[i], &g_devconfig.NMSaddr.s6_addr) <= 0) {
         printf("NMS address in presentation format\n");
         goto start_error;
       }

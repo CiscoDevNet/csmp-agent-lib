@@ -1,0 +1,27 @@
+# Turn on all warnings except missing-braces
+# (no-missing-braces is for protoc generated code)
+CC = gcc -Wall -Wextra -Wno-missing-braces
+AR = ar rc
+
+DIRs += $(shell find ./src -maxdepth 3 -type d)
+
+#CFLAGS += -DPRINTDEBUG
+CFLAGS += $(foreach dir, $(DIRs), -I $(dir))
+
+LIBS += -lpthread
+
+LIBSRC = $(foreach dir, $(DIRs), $(wildcard $(dir)/*.c))
+LIBOBJ_nodir = $(notdir $(LIBSRC))
+LIBOBJ = $(patsubst %.c,%.o,$(LIBOBJ_nodir))
+
+LIB_OBJECT = csmp_agent_lib.a
+
+LIBSRC += osal/linux/osal_common.c
+INC += osal/linux/
+
+$(LIB_OBJECT):$(LIBOBJ)
+	$(AR) $@ $^
+
+$(LIBOBJ):$(LIBSRC)
+	$(CC) -c $(CFLAGS) $^ $(LIBS) -I $(INC)
+

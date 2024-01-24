@@ -22,6 +22,7 @@
 #include "csmpagent.h"
 #include "csmpfunction.h"
 #include "CsmpTlvs.pb-c.h"
+#include "osal_common.h"
 
 extern csmp_cfg_t g_csmp_signature_settings;
 
@@ -128,7 +129,7 @@ int checkSignature(const uint8_t *buf, uint32_t len, bool agent)
   siglen = sigend - sig;
   }
 
-  ret = gettimeofday(&tv, NULL);
+  ret = osal_gettimeofday(&tv, NULL);
 
   if (ret == -1)
   {

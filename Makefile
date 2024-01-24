@@ -1,26 +1,21 @@
-# Turn on all warnings except missing-braces
-# (no-missing-braces is for protoc generated code)
-CC = gcc -Wall -Wextra -Wno-missing-braces
-AR = ar rc
+#
+# Top level makefile
+#
+# Usage:
+# make <target>
+#
+# Valid targets:
+# linux    - POSIX Linux
+# freertos - FreeRTOS
+#
+# clean    - clean binaries
+#
 
-DIRs += $(shell find ./src -maxdepth 3 -type d)
+linux:
+	make -f linux.target
 
-#CFLAGS += -DPRINTDEBUG
-CFLAGS += $(foreach dir, $(DIRs), -I $(dir))
-
-LIBS += -lpthread
-
-LIBSRC = $(foreach dir, $(DIRs), $(wildcard $(dir)/*.c))
-LIBOBJ_nodir = $(notdir $(LIBSRC))
-LIBOBJ = $(patsubst %.c,%.o,$(LIBOBJ_nodir))
-
-LIB_OBJECT = csmp_agent_lib.a
-
-$(LIB_OBJECT):$(LIBOBJ)
-	$(AR) $@ $^
-
-$(LIBOBJ):$(LIBSRC)
-	$(CC) -c $(CFLAGS) $^ $(LIBS)
+freertos:
+	make -f freertos.target
 
 clean:
 	-rm -rf *.o $(LIB_OBJECT)
