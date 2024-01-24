@@ -33,10 +33,10 @@
 #include "csmpagent.h"
 #include "cgmsagent.h"
 #include "CsmpTlvs.pb-c.h"
-#include "trickle_timer.h"
+#include "osal_common.h"
 
 #define OUTBUF_SIZE 1048
-static struct sockaddr_in6 NMS_addr;
+static osal_sockaddr NMS_addr;
 static uint8_t g_outbuf[OUTBUF_SIZE];
 
 enum {
@@ -160,9 +160,9 @@ void report_timer_fired() {
 }
 
 void reset_rpttimer() {
-  trickle_timer_stop(rpt_timer);
-  trickle_timer_start(rpt_timer, g_csmplib_report_list.period, g_csmplib_report_list.period,
-                        (trickle_timer_fired_t)report_timer_fired);
+  osal_trickle_timer_stop(rpt_timer);
+  osal_trickle_timer_start(rpt_timer, g_csmplib_report_list.period, g_csmplib_report_list.period,
+                          (trickle_timer_fired_t)report_timer_fired);
 }
 
 void process_reg(const uint8_t *buf,size_t len, bool preload_only) {
@@ -202,14 +202,14 @@ void process_reg(const uint8_t *buf,size_t len, bool preload_only) {
   if (!preload_only) {
    if(used == 0)
       return;
-   trickle_timer_stop(reg_timer);
+   osal_trickle_timer_stop(reg_timer);
    g_csmplib_status = REGISTRATION_SUCCESS;
 
    if(g_csmplib_report_list.period != 0)
      report_timer_fired();
 
-   trickle_timer_start(rpt_timer, g_csmplib_report_list.period, g_csmplib_report_list.period,
-                      (trickle_timer_fired_t)report_timer_fired);
+   osal_trickle_timer_start(rpt_timer, g_csmplib_report_list.period, g_csmplib_report_list.period,
+                           (trickle_timer_fired_t)report_timer_fired);
   }
   return;
 }
@@ -237,7 +237,7 @@ void response_handler(struct sockaddr_in6 *from, uint16_t status, const void *bo
     if (g_csmplib_status == REGISTRATION_SUCCESS) {
       // Something went wrong at the NMS. Re-register
 
-      trickle_timer_start(reg_timer, g_csmplib_reginterval_min, g_csmplib_reginterval_max,
+      osal_trickle_timer_start(reg_timer, g_csmplib_reginterval_min, g_csmplib_reginterval_max,
                          (trickle_timer_fired_t)register_timer_fired);
       g_csmplib_status = REGISTRATION_IN_PROGRESS;
       g_csmplib_stats.nms_errors++;
@@ -286,8 +286,8 @@ void response_handler(struct sockaddr_in6 *from, uint16_t status, const void *bo
 bool cgmsagent_stop()
 {
   int ret = 0;
-  trickle_timer_stop(reg_timer);
-  trickle_timer_stop(rpt_timer);
+  osal_trickle_timer_stop(reg_timer);
+  osal_trickle_timer_stop(rpt_timer);
   ret = coapclient_stop();
   if(ret < 0)
     return false;
@@ -313,7 +313,7 @@ bool register_start(struct in6_addr *NMSaddr, bool update)
   memcpy(NMS_addr.sin6_addr.s6_addr, NMSaddr, sizeof(struct in6_addr));
 
   g_csmplib_status = REGISTRATION_IN_PROGRESS;
-  trickle_timer_start(reg_timer, g_csmplib_reginterval_min, g_csmplib_reginterval_max,
+  osal_trickle_timer_start(reg_timer, g_csmplib_reginterval_min, g_csmplib_reginterval_max,
       (trickle_timer_fired_t)register_timer_fired);
   return true;
 }

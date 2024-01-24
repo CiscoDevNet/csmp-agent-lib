@@ -19,27 +19,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <time.h>
-#include <sys/types.h>
-#include <pthread.h>
 #include <unistd.h>
-
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
 
 #include "coap.h"
 #include "coapclient.h"
+#include "osal_common.h"
 
 enum {
   MAX_OPTION_LEN = 128,
 };
 
 static response_handler_t m_response_handler = NULL;
-static int m_sock = 0;
+static osal_basetype_t m_sock = 0;
 static bool m_client_opened = false;
 static uint16_t m_transaction_id = 0;
-static pthread_t recvt_id;
+static osal_task_t recvt_id_task;
 
 void *recv_fn(void*);
 int write_option( uint8_t *buf, uint16_t buf_len, coap_option_t this_option, coap_option_t *last_option,
@@ -50,13 +44,13 @@ void coap_option_map(uint32_t val, uint8_t *map);
 int coapclient_stop()
 {
   m_client_opened = false;
-  pthread_cancel(recvt_id);
+  osal_task_cancel(recvt_id_task);
   return close(m_sock);
 }
 
 int coapclient_open(response_handler_t response_handler)
 {
-  int sockfd;
+  osal_socket_handle_t sockfd;
 
   if (m_client_opened) {
     DPRINTF("coaplient was already opened!\n");
@@ -66,7 +60,7 @@ int coapclient_open(response_handler_t response_handler)
 
   m_response_handler = response_handler;
 
-  sockfd = socket(AF_INET6, SOCK_DGRAM, 0);
+  sockfd = osal_socket(OSAL_AF_INET6, OSAL_SOCK_DGRAM, 0);
   if (sockfd < 0) {
     DPRINTF("CoapClient.open - failed.\n");
     return -1;
@@ -76,12 +70,11 @@ int coapclient_open(response_handler_t response_handler)
 
   m_sock = sockfd;
   m_client_opened = true;
-  pthread_create(&recvt_id, NULL, recv_fn, NULL);
-  pthread_detach(recvt_id);
+  recvt_id_task = osal_task_create(NULL, 0, 0, recv_fn, NULL);
   return 0;
 }
 
-int coapclient_request (const struct sockaddr_in6 *to,
+int coapclient_request (const osal_sockaddr *to,
     coap_transaction_type_t tx_type,
     coap_method_t method,
     uint8_t token_length, uint8_t *token,
@@ -155,19 +148,10 @@ int coapclient_request (const struct sockaddr_in6 *to,
     outbufp += body_len;
   }
 
-  DPRINTF("CoapClient.request - Sending %d-byte request to [%x:%x:%x:%x:%x:%x:%x:%x]:%hu\n",
-      outbuf_len,
-      ((uint16_t)to->sin6_addr.s6_addr[0] << 8) | to->sin6_addr.s6_addr[1],
-      ((uint16_t)to->sin6_addr.s6_addr[2] << 8) | to->sin6_addr.s6_addr[3],
-      ((uint16_t)to->sin6_addr.s6_addr[4] << 8) | to->sin6_addr.s6_addr[5],
-      ((uint16_t)to->sin6_addr.s6_addr[6] << 8) | to->sin6_addr.s6_addr[7],
-      ((uint16_t)to->sin6_addr.s6_addr[8] << 8) | to->sin6_addr.s6_addr[9],
-      ((uint16_t)to->sin6_addr.s6_addr[10] << 8) |  to->sin6_addr.s6_addr[11],
-      ((uint16_t)to->sin6_addr.s6_addr[12] << 8) |  to->sin6_addr.s6_addr[13],
-      ((uint16_t)to->sin6_addr.s6_addr[14] << 8) |  to->sin6_addr.s6_addr[15],
-      ntohs(to->sin6_port));
+  DPRINTF("CoapClient.request - Sending %d-byte request to ",outbuf_len);
+  osal_print_formatted_ip(to);
 
-  rv = sendto(m_sock, outbuf, outbuf_len, 0, (const struct sockaddr *)to, sizeof(struct sockaddr_in6));
+  rv = osal_sendto(m_sock, outbuf, outbuf_len, 0, to, sizeof(struct sockaddr_in6));
   if (rv < 0) {
     DPRINTF("CoapClient.request sendto error, errno:%d\n", errno);
     return -1;
@@ -253,51 +237,42 @@ void *recv_fn(void* arg)
   (void)arg; // Disable un-used argument compiler warning.
   DPRINTF("coapclient receive thread is serving now...\n");
 
-  int rv;
-  struct sockaddr_in6 from = {0};
+  osal_ssize_t rv;
+  osal_sockaddr from = {0};
   socklen_t socklen = sizeof(struct sockaddr_in6);
   uint8_t data[1024];
-  int16_t len;
+  osal_basetype_t len;
 
-  pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+  osal_task_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 
   fd_set readset;
   fd_set tempset;
 
-  FD_ZERO(&readset);
-  FD_ZERO(&tempset);
-  FD_SET(m_sock, &tempset);
+  osal_fd_zero(&readset);
+  osal_fd_zero(&tempset);
+  osal_fd_set(m_sock, &tempset);
 
   while (1)
   {
-    FD_ZERO(&readset);
+    osal_fd_zero(&readset);
     readset = tempset;
-    rv = select(m_sock+1, &readset, NULL, NULL, NULL);
+    rv = osal_select(m_sock+1, &readset, NULL, NULL, NULL);
 
     if (rv < 0) {
     //perror("select");
       continue;
     }
 
-    if (FD_ISSET(m_sock, &readset))
+    if (osal_fd_isset(m_sock, &readset))
     {
-      len = recvfrom(m_sock, data, sizeof(data), 0, (struct sockaddr *)(&from), &socklen);
+      len = osal_recvfrom(m_sock, data, sizeof(data), 0, &from, &socklen);
       if (len < 0) {
         DPRINTF("coapserver_listen recv_fn recvmsg error!\n");
         continue;
       }
 
-      DPRINTF("coapclient.Socket.recvfrom - Got %u-byte response from [%x:%x:%x:%x:%x:%x:%x:%x%%%u]:%hu\n",
-          len,
-          ((uint16_t)from.sin6_addr.s6_addr[0] << 8) | from.sin6_addr.s6_addr[1],
-          ((uint16_t)from.sin6_addr.s6_addr[2] << 8) | from.sin6_addr.s6_addr[3],
-          ((uint16_t)from.sin6_addr.s6_addr[4] << 8) | from.sin6_addr.s6_addr[5],
-          ((uint16_t)from.sin6_addr.s6_addr[6] << 8) | from.sin6_addr.s6_addr[7],
-          ((uint16_t)from.sin6_addr.s6_addr[8] << 8) | from.sin6_addr.s6_addr[9],
-          ((uint16_t)from.sin6_addr.s6_addr[10] << 8) | from.sin6_addr.s6_addr[11],
-          ((uint16_t)from.sin6_addr.s6_addr[12] << 8) | from.sin6_addr.s6_addr[13],
-          ((uint16_t)from.sin6_addr.s6_addr[14] << 8) | from.sin6_addr.s6_addr[15],
-          from.sin6_scope_id, ntohs(from.sin6_port));
+      DPRINTF("coapclient.Socket.recvfrom - Got %u-byte response from ",len);
+      osal_print_formatted_ip(&from);
 
       process_response(data, len, &from );
       continue;

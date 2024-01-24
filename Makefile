@@ -5,8 +5,10 @@
 # make <target>
 #
 # Valid targets:
-# linux			- POSIX Linux
-# freertos 	- FreeRTOS
+# linux    - POSIX Linux
+# freertos - FreeRTOS
+#
+# clean    - clean binaries
 #
 
 linux:

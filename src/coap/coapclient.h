@@ -18,7 +18,7 @@
 #define __COAPCLIENT_H
 
 #include "coap.h"
-
+#include "osal_common.h"
 
 /*! \file
  *
@@ -68,7 +68,7 @@ int coapclient_stop();
  * @param body_len request body length
  * @return int The return value is 0 on success and -1 on failure.
  */
-int coapclient_request(const struct sockaddr_in6 *to,
+int coapclient_request(const osal_sockaddr *to,
 		coap_transaction_type_t tx_type,
 		coap_method_t method,
 		uint8_t token_length, uint8_t *token,
