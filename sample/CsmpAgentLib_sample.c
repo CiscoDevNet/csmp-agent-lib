@@ -30,11 +30,9 @@
 #include "signature_verify.h"
 
 #define nexthop_IP "fe80::a00:27ff:fe3b:2ab1"
-#define CSMP_NON_VENDOR_ID 0
-#define VENDOR_DATA_LEN 64
 
-char *SSID = "Cisco Systems";
-char vendorhwid[32] = "vendor hardware ID";
+char *SSID = "Cisco";
+char vendorhwid[32] = "Vendor Hardware-ID";
 uint32_t g_init_time;
 uint8_t neighbor_eui64[2][8] = {{0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb1},
                              {0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb0}};
@@ -243,41 +241,6 @@ void currenttime_post(Current_Time *tlv) {
     tv.tv_sec = tlv->posix;
     settimeofday(&tv, NULL);
   }
-}
-
-/**
- * @brief get the vendor specific data
- *
- * @param num amount of instances
- * @return void* pointer to g_VendorData
- */
-void* vendorspecificdata_get(tlvid_t tlvid, uint32_t *num) {
-  if (tlvid.type <= 0 || tlvid.type > 10)
-  {
-    return NULL;
-  }
-  *num = 1;
-  g_VendorData[tlvid.type - 1].has_data = true;
-  return &g_VendorData[tlvid.type - 1];
-}
-
-/**
- * @brief set the vendor specific data
- *
- * @param tlv
- */
-void vendorspecificdata_post(tlvid_t tlvid, Vendor_Specific *tlv) {
-  if (tlvid.type <= 0 || tlvid.type > 10)
-  {
-    return;
-  }
-  if (tlv->data.len > VENDOR_DATA_LEN)
-  {
-    return;
-  }
-  g_VendorData[tlvid.type - 1].has_data = true;
-  g_VendorData[tlvid.type - 1].data.len = tlv->data.len;
-  memcpy(g_VendorData[tlvid.type - 1].data.data,tlv->data.data,g_VendorData[tlvid.type - 1].data.len);
 }
 
 /**
@@ -539,6 +502,66 @@ void signature_settings_post(Signature_Settings *tlv) {
 }
 
 /**
+ * @brief   GET TLV127 VENDOR_TLVID
+ *
+ * @param   tlvid tlvid structure
+ * @param   num instances of subtypes or g_vendorTlv
+ * @return  void* pointer to global g_vendorTlv
+ */
+void* sample_get_vendorTlv(tlvid_t tlvid, uint32_t *num) {
+  printf("## sample_vendorTlv: GET for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
+
+  // Vendor-ID validation
+  // Received Vendor-ID to match device's VENDOR_ID
+  if (tlvid.vendor != VENDOR_ID) {
+    printf("sample_vendorTlv: csmptlv %d vendor-id mismatch (Expected:%d, Received:%d)\n", tlvid.type, VENDOR_ID, tlvid.vendor);
+    return NULL;
+  }
+  // Max support subtypes by the vendor
+  *num = VENDOR_MAX_SUBTYPES;
+
+  printf("## sample_vendorTlv: GET for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
+  return &g_vendorTlv;
+}
+
+/**
+ * @brief   POST TLV127 VENDOR_TLVID
+ *
+ * @param   tlvid tlvid structure
+ * @param   tlv Vendor_Tlv structure
+ * @return  void
+ */
+void sample_put_vendorTlv(tlvid_t tlvid, Vendor_Tlv *tlv) {
+  printf("## sample_vendorTlv: POST for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
+
+  int idx;
+
+  // Vendor-ID validation
+  // Received Vendor-ID to match device's VENDOR_ID
+  if (tlvid.vendor != VENDOR_ID) {
+    printf("sample_vendorTlv: csmptlv %d vendor-id mismatch (Expected:%d, Received:%d)\n", tlvid.type, VENDOR_ID, tlvid.vendor);
+    return;
+  }
+  // Lookup and update subtype
+  for (idx = 0; idx < VENDOR_MAX_SUBTYPES; idx++) {
+    if (tlv->subtype == g_vendorTlv[idx].subtype) {
+      g_vendorTlv[idx].value.len = tlv->value.len;
+      memcpy(g_vendorTlv[idx].value.data, tlv->value.data, g_vendorTlv[idx].value.len);
+      printf("sample_vendorTlv: Updated vendor subtype:%u\n", g_vendorTlv[idx].subtype);
+      printf("## sample_vendorTlv: POST for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
+      return;
+    }
+  }
+  // New subtype will be added, overwrites subtype at g_vendorTlv[0]
+  g_vendorTlv[0].subtype = tlv->subtype;
+  g_vendorTlv[0].value.len = tlv->value.len;
+  memcpy(g_vendorTlv[0].value.data, tlv->value.data, g_vendorTlv[0].value.len);
+  printf("sample_vendorTlv: Added vendor subtype:%u\n", g_vendorTlv[0].subtype);
+
+  printf("## sample_vendorTlv: POST for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
+}
+
+/**
  * @brief csmp get TLV request
  *
  * @param tlvid the tlvid to handle
@@ -546,9 +569,7 @@ void signature_settings_post(Signature_Settings *tlv) {
  * @return void* pointer to the global variable containing the return data
  */
 void* csmptlvs_get(tlvid_t tlvid, uint32_t *num) {
-  if (tlvid.vendor == CSMP_NON_VENDOR_ID)
-  {
-    switch(tlvid.type) {
+  switch(tlvid.type) {
     case HARDWARE_DESC_ID:
       return hardware_desc_get(num);
     case INTERFACE_DESC_ID:
@@ -575,12 +596,8 @@ void* csmptlvs_get(tlvid_t tlvid, uint32_t *num) {
       return signature_settings_get(num);
 
     default:
+      printf("sample_csmptlvs_get: GET un-supported for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
       break;
-    }
-  }
-  else
-  {
-    return vendorspecificdata_get(tlvid, num);
   }
   return NULL;
 }
@@ -592,9 +609,7 @@ void* csmptlvs_get(tlvid_t tlvid, uint32_t *num) {
  * @param tlv the request data
  */
 void csmptlvs_post(tlvid_t tlvid, void *tlv) {
-  if (tlvid.vendor == CSMP_NON_VENDOR_ID)
-  {
-    switch(tlvid.type) {
+  switch(tlvid.type) {
     case CURRENT_TIME_ID:
       currenttime_post((Current_Time*)tlv);
       break;
@@ -602,12 +617,8 @@ void csmptlvs_post(tlvid_t tlvid, void *tlv) {
       signature_settings_post((Signature_Settings*)tlv);
       break;
     default:
+      printf("sample_csmptlvs_post: POST un-supported for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
       break;
-    }
-  }
-  else
-  {
-    vendorspecificdata_post(tlvid, (Vendor_Specific*)tlv);
   }
 }
 
@@ -646,6 +657,28 @@ int str2addr(char *str, uint8_t *addr) {
   return 0;
 }
 
+/**
+ * @brief Initialize sample data before CSMP service start
+ *
+ * @param void
+ * @return void
+ */
+void sample_data_init() {
+  printf("sample_data_init: Initialize sample data\n");
+
+  int idx;
+
+  // Init sample Vendor Tlv data
+  for (idx = 0; idx < VENDOR_MAX_SUBTYPES; idx++) {
+    g_vendorTlv[idx].has_subtype = true;
+    g_vendorTlv[idx].subtype = idx + 1;
+    g_vendorTlv[idx].has_value = true;
+    g_vendorTlv[idx].value.len = VENDOR_MAX_DATA_LEN;
+    memset(g_vendorTlv[idx].value.data, idx+1, VENDOR_MAX_DATA_LEN);
+  }
+
+}
+
 /**************************************************************
   usage: ./CsmpAgentLib_sample
           [-d NMS_ipv6_address]
@@ -658,10 +691,10 @@ int main(int argc, char **argv)
   struct timeval tv = {0};
   csmp_service_status_t status;
   csmp_service_stats_t *stats_ptr;
-  char *status_msg[] = {"CSMP service is not started\n",
-                       "Failed to start CSMP service\n",
-                       "Registration is in progress...\n",
-                       "Regist to the NMS successfully\n"};
+  char *status_msg[] = {"Service is not started\n",
+                       "Service failed to start\n",
+                       "Service registration in progress...\n",
+                       "Service registration with NMS successful\n"};
   int ret, i;
   char *endptr;
   bool sigFlag = false;
@@ -779,11 +812,12 @@ int main(int argc, char **argv)
 
     // get the service status
     status = csmp_service_status();
-    printf("%s\n",status_msg[status]);
+    printf("\n============== CSMP-service ==============\n");
+    printf("\n%s\n",status_msg[status]);
 
     // get the stats of CSMP agent service
     stats_ptr = csmp_service_stats();
-    printf("-------------- CSMP service stats --------------\n");
+    printf("----------------- Stats ------------------\n");
     printf(" reg_succeed: %d\n reg_attempts: %d\n reg_fails: %d\n\
         \n *** reg_fail reason ***\n  error_coap: %d\n  error_signature: %d\n  error_process: %d\n\
         \n metrics_reports: %d\n csmp_get_succeed: %d\n csmp_post_succeed: %d\n\
@@ -793,7 +827,7 @@ int main(int argc, char **argv)
         stats_ptr->reg_fails_stats.error_process,stats_ptr->metrics_reports,\
         stats_ptr->csmp_get_succeed,stats_ptr->csmp_post_succeed,stats_ptr->sig_ok,\
         stats_ptr->sig_no_signature,stats_ptr->sig_bad_auth,stats_ptr->sig_bad_validity);
-    printf("---------------------- end --------------------\n");
+    printf("------------------ end -------------------\n");
   }
 
   //stop csmp agent service

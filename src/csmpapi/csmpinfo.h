@@ -20,8 +20,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "../../include/iana_pen.h"
+
 /** maximum CSMP cert length */
 #define MAX_SIGNATURE_CERT_LENGTH 512
+
+/* Max vendor data length */
+#define VENDOR_MAX_DATA_LEN 32
 
 /*! \file
  *
@@ -46,7 +51,7 @@ typedef struct _Neighbor_802154G Neighbor_802154G;
 typedef struct _RPL_Instance RPL_Instance;
 typedef struct _Firmware_Image_Info Firmware_Image_Info;
 typedef struct _Signature_Settings Signature_Settings;
-typedef struct _Vendor_Specific Vendor_Specific;
+typedef struct _Vendor_Tlv Vendor_Tlv;
 
 // HARDWARE_DESC
 typedef enum {
@@ -504,15 +509,18 @@ struct _Signature_Settings
 #define SIGNATURE_SETTINGS_INIT \
    { 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,{0,{0}} }
 
-// VENDOR
-struct  _Vendor_Specific
+// VENDOR TLV
+struct _Vendor_Tlv
 {
-  bool has_data;
+  bool has_subtype;
+  uint32_t subtype;
+  bool has_value;
   struct {
     size_t len;
-    uint8_t data[64];
-  } data;
+    uint8_t data[VENDOR_MAX_DATA_LEN];
+  } value;
 };
-#define VENDOR_INIT \
- { 0,{0,{0}} }
+#define VENDOR_TLV_INIT \
+   { 0,0, 0,{0,{0}} }
+
 #endif

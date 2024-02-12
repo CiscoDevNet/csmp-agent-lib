@@ -570,8 +570,11 @@ message FirmwareImageInfo {
 }
 
 // TLV 127
-message Vendor {
-  oneof ifData_present {
-  bytes ifData = 1;
+message VendorTlv {
+  oneof subType_present {
+  uint32 subType = 1;
+  }
+  oneof value_present {
+  bytes value = 2;
   }
 }

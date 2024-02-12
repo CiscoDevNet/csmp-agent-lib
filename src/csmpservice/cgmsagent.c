@@ -34,6 +34,7 @@
 #include "cgmsagent.h"
 #include "CsmpTlvs.pb-c.h"
 #include "trickle_timer.h"
+#include "../../include/iana_pen.h"
 
 #define OUTBUF_SIZE 1048
 static struct sockaddr_in6 NMS_addr;
@@ -218,7 +219,8 @@ void register_timer_fired() {
   tlvid_t list[] = {{0,DEVICE_ID_TLVID},{0,CURRENT_TIME_TLVID},
                     {0,HARDWARE_DESC_TLVID},{0,INTERFACE_DESC_TLVID},{0,IPADDRESS_TLVID},
                     {0,IPROUTE_TLVID},{0,INTERFACE_METRICS_TLVID},{0,IPROUTE_RPLMETRICS_TLVID},
-                    {0,WPANSTATUS_TLVID}, {0,RPLINSTANCE_TLVID}, {0,FIRMWARE_IMAGE_INFO_TLVID}};
+                    {0,WPANSTATUS_TLVID}, {0,RPLINSTANCE_TLVID}, {0,FIRMWARE_IMAGE_INFO_TLVID},
+                    {VENDOR_ID,VENDOR_TLVID}};
   uint32_t list_cnt = sizeof(list)/sizeof(tlvid_t);
 
   g_csmplib_stats.reg_attempts++;
