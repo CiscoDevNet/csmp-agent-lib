@@ -42,7 +42,8 @@ typedef enum {
   WPANSTATUS_ID = 35,       /**< wan status info */
   NEIGHBOR802154_G_ID = 52, /**< neighbor info */
   RPLINSTANCE_ID = 53,    /**< rpl instance info */
-  SIGNATURE_SETTINGS_ID = 79 /**< signature settings request */
+  SIGNATURE_SETTINGS_ID = 79, /**< signature settings request */
+  VENDOR_TLV_ID = 127 /**< vendor tlv */
 } tlv_type_t;
 
 /**

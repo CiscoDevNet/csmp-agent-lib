@@ -18,7 +18,7 @@
 #define _SAMPLE_H
 
 #include "csmp_info.h"
-
+#include "iana_pen.h"
 
 /*! \file
  *
@@ -117,9 +117,6 @@ uint8_t g_eui64[8] = {0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb2};
 /** \brief max number of neighbor*/
 #define neighbor_max_num 2
 
-/** \brief  number of vendor subtype*/
-#define VENDOR_SUBTYPE_NUM 10
-
 /** \brief the hardware information */
 Hardware_Desc g_hardwareDesc = HARDWARE_DESC_INIT;
 
@@ -156,7 +153,10 @@ Firmware_Image_Info g_firmwareImageInfo = FIRMWARE_IMAGE_INFO_INIT;
 /** \brief the signature settings data */
 Signature_Settings g_SignatureSettings = SIGNATURE_SETTINGS_INIT;
 
-/** \brief the vendor specific data */
-Vendor_Specific g_VendorData[VENDOR_SUBTYPE_NUM] = {VENDOR_INIT};
+/** \brief Max number of vendor subtypes */
+#define VENDOR_MAX_SUBTYPES 5
+
+/** \brief Vendor tlv data */
+Vendor_Tlv g_vendorTlv[VENDOR_MAX_SUBTYPES] = {VENDOR_TLV_INIT};
 
 #endif

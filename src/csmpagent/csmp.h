@@ -33,10 +33,10 @@
 #define CSMP_OP_UNSUPPORTED    -3
 #define CSMP_OP_FAILED         -4
 
-/* return codes */
+/* General return codes */
 #define SUCCESS 1
 #define FAILURE 0
-#define ERROR -1
+#define ERROR  -1
 
 /**
  * @brief vendor info

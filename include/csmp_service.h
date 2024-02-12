@@ -49,7 +49,8 @@ typedef enum {
   WPANSTATUS_ID = 35, /**< wpan status request */
   RPLINSTANCE_ID = 53, /**< rpl instance info request */
   FIRMWARE_IMAGE_INFO_ID = 75, /**< firmware info request */
-  SIGNATURE_SETTINGS_ID = 79 /**< signature settings request */
+  SIGNATURE_SETTINGS_ID = 79, /**< signature settings request */
+  VENDOR_TLV_ID = 127 /**< vendor tlv */
 } tlv_type_t;
 
 /**

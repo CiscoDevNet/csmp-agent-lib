@@ -1222,49 +1222,49 @@ void   firmware_image_info__free_unpacked
   assert(message->base.descriptor == &firmware_image_info__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   vendor__init
-                     (Vendor         *message)
+void   vendor_tlv__init
+                     (VendorTlv         *message)
 {
-  static const Vendor init_value = VENDOR__INIT;
+  static const VendorTlv init_value = VENDOR_TLV__INIT;
   *message = init_value;
 }
-size_t vendor__get_packed_size
-                     (const Vendor *message)
+size_t vendor_tlv__get_packed_size
+                     (const VendorTlv *message)
 {
-  assert(message->base.descriptor == &vendor__descriptor);
+  assert(message->base.descriptor == &vendor_tlv__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t vendor__pack
-                     (const Vendor *message,
+size_t vendor_tlv__pack
+                     (const VendorTlv *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &vendor__descriptor);
+  assert(message->base.descriptor == &vendor_tlv__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t vendor__pack_to_buffer
-                     (const Vendor *message,
+size_t vendor_tlv__pack_to_buffer
+                     (const VendorTlv *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &vendor__descriptor);
+  assert(message->base.descriptor == &vendor_tlv__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-Vendor *
-       vendor__unpack
+VendorTlv *
+       vendor_tlv__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (Vendor *)
-     protobuf_c_message_unpack (&vendor__descriptor,
+  return (VendorTlv *)
+     protobuf_c_message_unpack (&vendor_tlv__descriptor,
                                 allocator, len, data);
 }
-void   vendor__free_unpacked
-                     (Vendor *message,
+void   vendor_tlv__free_unpacked
+                     (VendorTlv *message,
                       ProtobufCAllocator *allocator)
 {
   if(!message)
     return;
-  assert(message->base.descriptor == &vendor__descriptor);
+  assert(message->base.descriptor == &vendor_tlv__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
 static const ProtobufCFieldDescriptor tlv_index__field_descriptors[1] =
@@ -3918,41 +3918,54 @@ const ProtobufCMessageDescriptor firmware_image_info__descriptor =
   (ProtobufCMessageInit) firmware_image_info__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor vendor__field_descriptors[1] =
+static const ProtobufCFieldDescriptor vendor_tlv__field_descriptors[2] =
 {
   {
-    "ifData",
+    "subType",
     1,
     PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(VendorTlv, sub_type_present_case),
+    offsetof(VendorTlv, subtype),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "value",
+    2,
+    PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_BYTES,
-    offsetof(Vendor, if_data_present_case),
-    offsetof(Vendor, ifdata),
+    offsetof(VendorTlv, value_present_case),
+    offsetof(VendorTlv, value),
     NULL,
     NULL,
     0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned vendor__field_indices_by_name[] = {
-  0,   /* field[0] = ifData */
+static const unsigned vendor_tlv__field_indices_by_name[] = {
+  0,   /* field[0] = subType */
+  1,   /* field[1] = value */
 };
-static const ProtobufCIntRange vendor__number_ranges[1 + 1] =
+static const ProtobufCIntRange vendor_tlv__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 1 }
+  { 0, 2 }
 };
-const ProtobufCMessageDescriptor vendor__descriptor =
+const ProtobufCMessageDescriptor vendor_tlv__descriptor =
 {
   PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "Vendor",
-  "Vendor",
-  "Vendor",
+  "VendorTlv",
+  "VendorTlv",
+  "VendorTlv",
   "",
-  sizeof(Vendor),
-  1,
-  vendor__field_descriptors,
-  vendor__field_indices_by_name,
-  1,  vendor__number_ranges,
-  (ProtobufCMessageInit) vendor__init,
+  sizeof(VendorTlv),
+  2,
+  vendor_tlv__field_descriptors,
+  vendor_tlv__field_indices_by_name,
+  1,  vendor_tlv__number_ranges,
+  (ProtobufCMessageInit) vendor_tlv__init,
   NULL,NULL,NULL    /* reserved[123] */
 };

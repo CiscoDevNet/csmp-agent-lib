@@ -143,7 +143,6 @@ void recv_request(struct sockaddr_in6 *from,
         tlvid_t tlvlist[QRY_LIST_MAX] = {{0,0}};
         uint32_t tlvcnt = QRY_LIST_MAX;
         uint32_t i;
-        bool vendorFlag = false;
 
         getArgInt("t1=",query,query_cnt,&t1);
         getArgInt("t2=",query,query_cnt,&t2);
@@ -157,31 +156,7 @@ void recv_request(struct sockaddr_in6 *from,
 
         for (i=0; i<tlvcnt; i++) {
           DPRINTF("CsmpServer: Getting %u.%u\n", tlvlist[i].vendor, tlvlist[i].type);
-          /*In case of vendor TLV i.e. 127, we're considering continuous three arguments
-          1st : vendor TLV (127)
-          2nd : vendor subtype
-          3rd : IANAEN i.e. vendorID
-          Once, we're encountering the vendor TLV (127), it's type is being overwritten by the subtype (2nd argument)
-          E.g. GetTLV 127 8 4
-          tlvid.type = 127
-          if (tlvid.type == 127)
-          {
-            tlvid.vendor = 4 //(tlvid+2).type
-            tlvid.type = 8   //(tlvid+1).type
-          }
-          Hence, for vendor TLV, the type would be equal to vendor subtype (instead of 127)*/
-          if (tlvlist[i].type == VENDOR_TLVID)
-          {
-            tlvlist[i].vendor = tlvlist[i+2].type;
-            tlvlist[i].type = tlvlist[i+1].type;
-            vendorFlag = true;
-          }
           rv = csmpagent_get(tlvlist[i], out_buf, OUTBUF_MAX - out_len, tlvindex);
-          if (vendorFlag)
-          {
-            i = i+2;
-            vendorFlag = false;
-          }
           if (rv < 0) {
             if (tlvcnt > 1)  {
               rv = 0;

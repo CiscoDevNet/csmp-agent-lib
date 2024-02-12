@@ -18,12 +18,8 @@
 #include "csmpagent.h"
 #include "csmpfunction.h"
 
-#define CSMP_NON_VENDOR_ID 0
-
 int csmpagent_get(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
 {
-  if (tlvid.vendor == CSMP_NON_VENDOR_ID)
-  {
     switch (tlvid.type) {
       case TLV_INDEX_TLVID:
         return csmp_get_tlvindex(tlvid, buf, len, tlvindex);
@@ -69,21 +65,17 @@ int csmpagent_get(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
         return csmp_get_signatureValidity(tlvid, buf, len, tlvindex);
       case SIGNATURE_SETTINGS_TLVID:
         return csmp_get_signatureSettings(tlvid, buf, len, tlvindex);
+      case VENDOR_TLVID:
+        return csmp_get_vendorTlv(tlvid, buf, len, tlvindex);
+
       default:
-        DPRINTF("csmpagent_get: doesn't support get option of tlv:%u.%u\n",tlvid.vendor,tlvid.type);
+        DPRINTF("csmpagent_get: Doesn't support GET for tlv:%u.%u\n",tlvid.vendor,tlvid.type);
         return CSMP_OP_TLV_RD_EMPTY;
-      }
-  }
-  else
-  {
-    return csmp_get_vendor(tlvid, buf, len, tlvindex);
-  }
+    }
 }
 
 int csmpagent_post(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf, size_t out_size, size_t *out_len, int32_t tlvindex)
 {
-  if (tlvid.vendor == CSMP_NON_VENDOR_ID)
-  {
     switch (tlvid.type) {
       case CURRENT_TIME_TLVID:
         return csmp_put_currenttime(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
@@ -101,13 +93,11 @@ int csmpagent_post(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_b
         return csmp_put_groupMatch(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
       case REPORT_SUBSCRIBE_TLVID:
         return csmp_put_reportSubscribe(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case VENDOR_TLVID:
+        return csmp_put_vendorTlv(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+
       default:
-        DPRINTF("csmpagent_post: doesn't support post option of tlv:%u.%u\n",tlvid.vendor,tlvid.type);
+        DPRINTF("csmpagent_post: Doesn't support POST for tlv:%u.%u\n",tlvid.vendor,tlvid.type);
         return CSMP_OP_TLV_RD_EMPTY;
     }
-  }
-  else
-  {
-    return csmp_put_vendor(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
-  }
 }

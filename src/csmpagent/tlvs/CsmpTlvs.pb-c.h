@@ -42,7 +42,7 @@ typedef struct _WPANStatus WPANStatus;
 typedef struct _RPLInstance RPLInstance;
 typedef struct _HardwareInfo HardwareInfo;
 typedef struct _FirmwareImageInfo FirmwareImageInfo;
-typedef struct _Vendor Vendor;
+typedef struct _VendorTlv VendorTlv;
 
 
 /* --- enums --- */
@@ -1872,25 +1872,35 @@ struct  _FirmwareImageInfo
 
 
 typedef enum {
-  VENDOR__IF_DATA_PRESENT__NOT_SET = 0,
-  VENDOR__IF_DATA_PRESENT_IF_DATA = 1
-    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(VENDOR__IF_DATA_PRESENT)
-} Vendor__IfDataPresentCase;
+  VENDOR_TLV__SUB_TYPE_PRESENT__NOT_SET = 0,
+  VENDOR_TLV__SUB_TYPE_PRESENT_SUB_TYPE = 1
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(VENDOR_TLV__SUB_TYPE_PRESENT)
+} VendorTlv__SubTypePresentCase;
+
+typedef enum {
+  VENDOR_TLV__VALUE_PRESENT__NOT_SET = 0,
+  VENDOR_TLV__VALUE_PRESENT_VALUE = 2
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(VENDOR_TLV__VALUE_PRESENT)
+} VendorTlv__ValuePresentCase;
 
 /*
  * TLV 127
  */
-struct  _Vendor
+struct  _VendorTlv
 {
   ProtobufCMessage base;
-  Vendor__IfDataPresentCase if_data_present_case;
+  VendorTlv__SubTypePresentCase sub_type_present_case;
   union {
-    ProtobufCBinaryData ifdata;
+    uint32_t subtype;
+  };
+  VendorTlv__ValuePresentCase value_present_case;
+  union {
+    ProtobufCBinaryData value;
   };
 };
-#define VENDOR__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&vendor__descriptor) \
-    , VENDOR__IF_DATA_PRESENT__NOT_SET, {0} }
+#define VENDOR_TLV__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&vendor_tlv__descriptor) \
+    , VENDOR_TLV__SUB_TYPE_PRESENT__NOT_SET, {0}, VENDOR_TLV__VALUE_PRESENT__NOT_SET, {0} }
 
 
 /* TlvIndex methods */
@@ -2406,24 +2416,24 @@ FirmwareImageInfo *
 void   firmware_image_info__free_unpacked
                      (FirmwareImageInfo *message,
                       ProtobufCAllocator *allocator);
-/* Vendor methods */
-void   vendor__init
-                     (Vendor         *message);
-size_t vendor__get_packed_size
-                     (const Vendor   *message);
-size_t vendor__pack
-                     (const Vendor   *message,
+/* VendorTlv methods */
+void   vendor_tlv__init
+                     (VendorTlv         *message);
+size_t vendor_tlv__get_packed_size
+                     (const VendorTlv   *message);
+size_t vendor_tlv__pack
+                     (const VendorTlv   *message,
                       uint8_t             *out);
-size_t vendor__pack_to_buffer
-                     (const Vendor   *message,
+size_t vendor_tlv__pack_to_buffer
+                     (const VendorTlv   *message,
                       ProtobufCBuffer     *buffer);
-Vendor *
-       vendor__unpack
+VendorTlv *
+       vendor_tlv__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   vendor__free_unpacked
-                     (Vendor *message,
+void   vendor_tlv__free_unpacked
+                     (VendorTlv *message,
                       ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
@@ -2508,8 +2518,8 @@ typedef void (*HardwareInfo_Closure)
 typedef void (*FirmwareImageInfo_Closure)
                  (const FirmwareImageInfo *message,
                   void *closure_data);
-typedef void (*Vendor_Closure)
-                 (const Vendor *message,
+typedef void (*VendorTlv_Closure)
+                 (const VendorTlv *message,
                   void *closure_data);
 
 /* --- services --- */
@@ -2544,7 +2554,7 @@ extern const ProtobufCMessageDescriptor wpanstatus__descriptor;
 extern const ProtobufCMessageDescriptor rplinstance__descriptor;
 extern const ProtobufCMessageDescriptor hardware_info__descriptor;
 extern const ProtobufCMessageDescriptor firmware_image_info__descriptor;
-extern const ProtobufCMessageDescriptor vendor__descriptor;
+extern const ProtobufCMessageDescriptor vendor_tlv__descriptor;
 
 PROTOBUF_C__END_DECLS
 
