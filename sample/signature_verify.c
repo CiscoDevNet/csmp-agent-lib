@@ -18,7 +18,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdlib.h>
+#include "osal_common.h"
 
 #ifdef OPENSSL
 #include <openssl/evp.h>
@@ -40,7 +40,7 @@ bool signature_verify(const void *data, size_t datalen, const void *sig, size_t 
   int ret;
   EC_KEY *ec_key = NULL;
   EC_GROUP *ec_group;
-  char *pp = (char *)malloc(sizeof(char) * PUBLIC_KEY_LEN+1);
+  char *pp = (char *)osal_malloc(sizeof(char) * PUBLIC_KEY_LEN+1);
   char *pp_o2i = pp;
   pubkey_get(pp);
   EVP_MD_CTX *md_ctx;
@@ -99,7 +99,7 @@ bool signature_verify(const void *data, size_t datalen, const void *sig, size_t 
   EC_KEY_free(ec_key);
   ECDSA_SIG_free(si);
 
-  free(pp);
+  osal_free(pp);
   if(ret==1)
   {
     printf("Signature Verify：OK\n");

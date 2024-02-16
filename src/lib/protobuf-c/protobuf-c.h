@@ -200,6 +200,7 @@ size_t foo__bar__baz_bah__pack_to_buffer
 #include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
+#include "osal_common.h"
 
 #ifdef __cplusplus
 # define PROTOBUF_C__BEGIN_DECLS	extern "C" {
@@ -1065,7 +1066,7 @@ do {                                                                    \
 				(simp_buf)->allocator,                  \
 				(simp_buf)->data);			\
 		else                                                    \
-			free((simp_buf)->data);                         \
+			osal_free((simp_buf)->data);                         \
 	}                                                               \
 } while (0)
 
