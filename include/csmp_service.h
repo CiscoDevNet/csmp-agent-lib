@@ -29,7 +29,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <netinet/in.h>
+#include "osal_common.h"
 
 /** maximum CSMP cert length */
 #define MAX_SIGNATURE_CERT_LENGTH 512
