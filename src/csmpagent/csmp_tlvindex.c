@@ -14,13 +14,13 @@
  *  limitations under the License.
  */
 
-#include <stdlib.h>
 #include <string.h>
 #include "csmp.h"
 #include "csmpagent.h"
 #include "csmpfunction.h"
 #include "csmptlv.h"
 #include "CsmpTlvs.pb-c.h"
+#include "osal_common.h"
 
 #define NUM_TLVS 20
 static char *ptlvs[NUM_TLVS] = {

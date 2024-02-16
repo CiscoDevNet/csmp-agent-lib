@@ -23,7 +23,7 @@
  *
  */
 
-#include <netinet/in.h>
+#include "osal_common.h"
 
 /**
  * @brief

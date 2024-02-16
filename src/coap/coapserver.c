@@ -16,17 +16,8 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <time.h>
-#include <sys/types.h>
-#include <pthread.h>
-#include <unistd.h>
-
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
 
 #include "coap.h"
 #include "coapserver.h"
