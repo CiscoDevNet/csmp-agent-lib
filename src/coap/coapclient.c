@@ -68,7 +68,7 @@ int coapclient_open(response_handler_t response_handler)
 
   m_sock = sockfd;
   m_client_opened = true;
-  recvt_id_task = osal_task_create(NULL, 0, 0, recv_fn, NULL);
+  osal_task_create(&recvt_id_task, NULL, 0, 0, recv_fn, NULL);
   return 0;
 }
 
