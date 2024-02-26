@@ -43,7 +43,7 @@ static void osal_alarm_fired();
  *
  * @brief     create new task/thread. 
  * input parameters
- *
+ *  @param[in] thread address to store thread ID
  *  @param[in] name name of the task
  *  @param[in] priotiy of task 
  *  @param[in] stacksize size of the thread stack.
@@ -51,9 +51,10 @@ static void osal_alarm_fired();
  *  @param[in] arg entry routine arguments 
  *
  * output parameters
- * @return    osal_task_t ID of the created task/thread
+ * @return    osal_basetype_t on success return 0 otherwise error value
  *****************************************************************************/
-osal_task_t osal_task_create (
+osal_basetype_t osal_task_create (
+   osal_task_t * thread,
    const char * name,
    uint32_t priority,
    size_t stacksize,
@@ -64,21 +65,25 @@ osal_task_t osal_task_create (
    (void) name;
    (void) priority;
    int ret;
-   pthread_t thread;
    pthread_attr_t attr;
+   
+   if (thread == NULL) {
+       return -1;
+   }
+
    pthread_attr_init (&attr);
    pthread_attr_setstacksize (&attr, PTHREAD_STACK_MIN + stacksize);
-
-   ret = pthread_create (&thread, &attr, (void *)entry, arg);
+  
+   ret = pthread_create (thread, &attr, (void *)entry, arg);
    if (ret != 0){
        return (-ret);
    }
-   ret = pthread_detach(thread);
+   ret = pthread_detach(*thread);
    if (ret != 0){
        return (-ret);
    }
 
-   return thread;
+   return 0;
 }
 
 /****************************************************************************
@@ -654,7 +659,7 @@ void osal_trickle_timer_start(timerid_t timerid, uint32_t imin, uint32_t imax, t
     osal_sigprocmask(SIG_BLOCK, &set, NULL);
 
     osal_sem_create(&sem, 0);
-    timer_id_task = osal_task_create(NULL, 0, 0, osal_timer_thread, NULL);
+    osal_task_create(&timer_id_task, NULL, 0, 0, osal_timer_thread, NULL);
     m_timert_isrunning = true;
   }
 

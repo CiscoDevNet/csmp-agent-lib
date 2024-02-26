@@ -50,7 +50,8 @@ typedef long osal_basetype_t;
 typedef int osal_socket_handle_t;
 typedef AF_INET6 OSAL_AF_INET6;
 typedef SOCK_DGRAM OSAL_SOCK_DGRAM;
-osal_task_t osal_task_create(
+osal_basetype_t osal_task_create(
+   osal_task_t * thread,
    const char * name,
    uint32_t priority,
    size_t stacksize,

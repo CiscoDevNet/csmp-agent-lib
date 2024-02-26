@@ -81,7 +81,7 @@ int coapserver_listen(uint16_t sport, recv_handler_t recv_handler)
 
   m_sockfd = sockfd;
   m_server_opened = true;
-  recvt_id_task = osal_task_create(NULL, 0, 0, recv_thread, NULL);
+  osal_task_create(&recvt_id_task, NULL, 0, 0, recv_thread, NULL);
   return 0;
 }
 

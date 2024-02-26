@@ -51,7 +51,8 @@ typedef int osal_socket_handle_t;
 #define OSAL_AF_INET6 AF_INET6 
 #define OSAL_SOCK_DGRAM SOCK_DGRAM 
 void osal_print_formatted_ip(const osal_sockaddr *sockAdd);
-osal_task_t osal_task_create(
+osal_basetype_t osal_task_create(
+   osal_task_t * thread,
    const char * name,
    uint32_t priority,
    size_t stacksize,
