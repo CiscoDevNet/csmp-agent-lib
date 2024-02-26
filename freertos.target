@@ -15,8 +15,26 @@ LIBOBJ = $(patsubst %.c,%.o,$(LIBOBJ_nodir))
 
 LIB_OBJECT = csmp_agent_lib.a
 
-LIBSRC += osal/freertos/osal_common.c
-INC += osal/freertos/
+INC += \
+osal/freertos/ \
+osal/freertos/FreeRTOS-Kernel/include \
+osal/freertos/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/ \
+osal/freertos/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/utils/ \
+
+LIBSRC += \
+osal/freertos/osal_common.c \
+osal/freertos/FreeRTOS-Kernel/list.c \
+osal/freertos/FreeRTOS-Kernel/stream_buffer.c \
+osal/freertos/FreeRTOS-Kernel/queue.c \
+osal/freertos/FreeRTOS-Kernel/timers.c \
+osal/freertos/FreeRTOS-Kernel/tasks.c \
+osal/freertos/FreeRTOS-Kernel/event_groups.c \
+osal/freertos/FreeRTOS-Kernel/croutine.c \
+osal/freertos/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/utils/wait_for_event.c \
+osal/freertos/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/port.c \
+osal/freertos/FreeRTOS-Kernel/portable/MemMang/heap_3.c
+
+
 
 $(LIB_OBJECT):$(LIBOBJ)
 	$(AR) $@ $^
