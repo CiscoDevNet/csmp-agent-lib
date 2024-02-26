@@ -91,7 +91,7 @@ osal_task_t osal_task_create (
  * output parameters
  * @return   on success return 0 otherwise error value 
  *****************************************************************************/
-int osal_task_cancel(osal_task_t thread)
+osal_basetype_t osal_task_cancel(osal_task_t thread)
 {
     return (pthread_cancel(thread));
 }
@@ -108,7 +108,7 @@ int osal_task_cancel(osal_task_t thread)
  * output parameters
  * @return   on success return 0 otherwise error value 
  *****************************************************************************/
-int osal_task_setcanceltype(int type, int *oldtype){
+osal_basetype_t osal_task_setcanceltype(int type, int *oldtype){
     return (pthread_setcanceltype(type, oldtype));
 }
 
@@ -125,7 +125,7 @@ int osal_task_setcanceltype(int type, int *oldtype){
  * output parameters
  * @return   on success return 0 otherwise error value 
  *****************************************************************************/
-int osal_task_sigmask(int how, const sigset_t *set, sigset_t *oldset)
+osal_basetype_t osal_task_sigmask(int how, const sigset_t *set, sigset_t *oldset)
 {
     return (pthread_sigmask(how, set, oldset));
 }
@@ -142,7 +142,7 @@ int osal_task_sigmask(int how, const sigset_t *set, sigset_t *oldset)
  * output parameters
  * @return 0 on success; on error, -1 is returned 
  *****************************************************************************/
-int osal_sem_create (osal_sem * sem, uint16_t value)
+osal_basetype_t osal_sem_create (osal_sem * sem, uint16_t value)
 {
     return (sem_init(sem, 0, value));
 }
@@ -158,7 +158,7 @@ int osal_sem_create (osal_sem * sem, uint16_t value)
  * output parameters
  * @return 0 on success; on error, -1 is returned 
  *****************************************************************************/
-int osal_sem_post (osal_sem * sem)
+osal_basetype_t osal_sem_post (osal_sem * sem)
 {
     return (sem_post(sem));
 }
@@ -175,7 +175,7 @@ int osal_sem_post (osal_sem * sem)
  * output parameters
  * @return 0 on success; on error, -1 is returned 
  *****************************************************************************/
-int osal_sem_wait (osal_sem * sem, osal_time_t timeout)
+osal_basetype_t osal_sem_wait (osal_sem * sem, osal_time_t timeout)
 {
     /* Silence compiler warnings about unused parameters. */
     (void) timeout;
@@ -193,7 +193,7 @@ int osal_sem_wait (osal_sem * sem, osal_time_t timeout)
  * output parameters
  * @return 0 on success; on error, -1 is returned 
  *****************************************************************************/
-int osal_sem_destroy(osal_sem *sem)
+osal_basetype_t osal_sem_destroy(osal_sem *sem)
 {
     return (sem_destroy(sem)); 
 }
@@ -316,7 +316,7 @@ osal_ssize_t osal_sendto(osal_basetype_t sockfd, const void *buf, size_t len, in
  *           network address in the specified address family
  *        -1 if af does not contain a valid address family
  *****************************************************************************/
-int osal_inet_pton(int af, const char *src, void *dst)
+osal_basetype_t osal_inet_pton(int af, const char *src, void *dst)
 {
     return(inet_pton(af, src, dst));
 }
@@ -346,7 +346,7 @@ int osal_inet_pton(int af, const char *src, void *dst)
  *         0 if timeout expired  before any file descriptors became ready. 
  *        -1 on error
  *****************************************************************************/
-int osal_select(int nfds, fd_set *readfds, fd_set *writefds,
+osal_basetype_t osal_select(int nfds, fd_set *readfds, fd_set *writefds,
                   fd_set *exceptfds, struct timeval *timeout)
 {
     return(select(nfds, readfds, writefds, exceptfds, timeout));
@@ -413,7 +413,7 @@ void osal_fd_set(int fd, fd_set *set)
  * @return returns nonzero if the file  descriptor fd is present in set, 
  *         and zero if it is not 
  *****************************************************************************/
-int osal_fd_isset(int fd, fd_set *set)
+osal_basetype_t osal_fd_isset(int fd, fd_set *set)
 {
     return(FD_ISSET(fd, set));
 }
@@ -429,7 +429,7 @@ int osal_fd_isset(int fd, fd_set *set)
  * output parameters
  * @return 0 for success, or -1 for failure 
  *****************************************************************************/
-int osal_gettimeofday(struct timeval *tv, struct timezone *tz)
+osal_basetype_t osal_gettimeofday(struct timeval *tv, struct timezone *tz)
 {
     return(gettimeofday(tv, tz));
 }
@@ -445,7 +445,7 @@ int osal_gettimeofday(struct timeval *tv, struct timezone *tz)
  * output parameters
  * @return 0 for success, or -1 for failure 
  *****************************************************************************/
-int osal_settime(struct timeval *tv, struct timezone *tz)
+osal_basetype_t osal_settime(struct timeval *tv, struct timezone *tz)
 {
     return(settimeofday(tv, tz));
 }
@@ -478,7 +478,7 @@ osal_sighandler_t osal_signal(int signum, osal_sighandler_t handler)
  * output parameters
  * @return returns 0 on success and -1 on error 
  *****************************************************************************/
-int osal_sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
+osal_basetype_t osal_sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
 {
     return(sigprocmask(how, set, oldset));
 }
@@ -494,7 +494,7 @@ int osal_sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
  * output parameters
  * @return returns 0 on success and -1 on error 
  *****************************************************************************/
-int osal_sigemptyset(sigset_t *set)
+osal_basetype_t osal_sigemptyset(sigset_t *set)
 {
      return(sigemptyset(set));
 }
@@ -509,7 +509,7 @@ int osal_sigemptyset(sigset_t *set)
  * output parameters
  * @return returns 0 on success and -1 on error 
  *****************************************************************************/
-int osal_sigaddset(sigset_t *set, int signum)
+osal_basetype_t osal_sigaddset(sigset_t *set, int signum)
 {
     return(sigaddset(set, signum));
 }

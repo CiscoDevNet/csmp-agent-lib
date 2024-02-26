@@ -56,34 +56,34 @@ osal_task_t osal_task_create(
    size_t stacksize,
    void* (*entry) (void * arg),
    void * arg);
-int osal_task_cancel(osal_task_t thread);
-int osal_task_setcanceltype(int type, int *oldtype);
-int osal_task_sigmask(int how, const sigset_t *set, sigset_t *oldset);
-int osal_sem_create (osal_sem * sem, uint16_t value);
-int osal_sem_post (osal_sem * sem);
-int osal_sem_wait (osal_sem * sem, osal_time_t timeout);
-int osal_sem_destroy(osal_sem *sem);
+osal_basetype_t osal_task_cancel(osal_task_t thread);
+osal_basetype_t osal_task_setcanceltype(int type, int *oldtype);
+osal_basetype_t osal_task_sigmask(int how, const sigset_t *set, sigset_t *oldset);
+osal_basetype_t osal_sem_create (osal_sem * sem, uint16_t value);
+osal_basetype_t osal_sem_post (osal_sem * sem);
+osal_basetype_t osal_sem_wait (osal_sem * sem, osal_time_t timeout);
+osal_basetype_t osal_sem_destroy(osal_sem *sem);
 osal_socket_handle_t osal_socket(osal_basetype_t domain, osal_basetype_t type, osal_basetype_t protocol);
 int osal_recvfrom(int sockfd, void *buf, size_t len, int flags,
                         osal_sockaddr *src_addr, osal_socklen *addrlen);
 ssize_t osal_sendmsg(int sockfd, const struct msghdr msg, int flags);
-int osal_bind(int osal_sockfd, osal_sockaddr *osal_addr, 
+osal_basetype_t osal_bind(int osal_sockfd, osal_sockaddr *osal_addr, 
 	        osal_socklen addrlen);
 
 ssize_t osal_sendto(int sockfd, const void *buf, size_t len, int flags,
                       const osal_sockaddr *dest_addr, osal_socklen addrlen);
-int osal_inet_pton(int af, const char *src, void *dst);
-int osal_select(int nfds, fd_set *readfds, fd_set *writefds,
+osal_basetype_t osal_inet_pton(int af, const char *src, void *dst);
+osal_basetype_t osal_select(int nfds, fd_set *readfds, fd_set *writefds,
                   fd_set *exceptfds, struct timeval *timeout);
 void osal_fd_zero(fd_set *set);
 void osal_fd_set(int fd, fd_set *set);
-int osal_fd_isset(int fd, fd_set *set);
-int osal_gettimeofday(struct timeval *tv, struct timezone *tz);
-int osal_settime(struct timeval *tv, struct timezone *tz);
+osal_basetype_t osal_fd_isset(int fd, fd_set *set);
+osal_basetype_t osal_gettimeofday(struct timeval *tv, struct timezone *tz);
+osal_basetype_t osal_settime(struct timeval *tv, struct timezone *tz);
 osal_sighandler_t osal_signal(int signum, osal_sighandler_t handler);
-int osal_sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
-int osal_sigemptyset(sigset_t *set);
-int osal_sigaddset(sigset_t *set, int signum);
+osal_basetype_t osal_sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
+osal_basetype_t osal_sigemptyset(sigset_t *set);
+osal_basetype_t osal_sigaddset(sigset_t *set, int signum);
 
 void *osal_malloc(size_t size);
 void *osal_calloc(size_t num, size_t size);
