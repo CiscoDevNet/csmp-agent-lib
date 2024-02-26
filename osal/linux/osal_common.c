@@ -557,7 +557,7 @@ static void *osal_timer_thread(void* arg) {
   while(1) {
     osal_sem_wait(&sem, 0);  //Suspend thread until sem_post()
     if (m_remaining <= 0)
-      osal_alarm_fired(SIGALRM);
+      osal_alarm_fired();
     else {
       DPRINTF("trickle timer next fired time:%d sec\n", m_remaining);
       alarm(m_remaining);
