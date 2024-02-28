@@ -58,7 +58,7 @@ osal_basetype_t osal_task_create(osal_task_t * thread,
  * @return on success return 0 otherwise error value 
  *****************************************************************************/
 osal_basetype_t osal_task_cancel(osal_task_t thread);
-
+osal_basetype_t osal_task_setcanceltype(void);
 /****************************************************************************
  * @fn osal_task_setcanceltype
  *

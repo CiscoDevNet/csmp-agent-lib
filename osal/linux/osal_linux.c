@@ -78,7 +78,8 @@ osal_basetype_t osal_task_cancel(osal_task_t thread)
 }
 
 osal_basetype_t osal_task_setcanceltype(osal_basetype_t type, osal_basetype_t *oldtype){
-    return (pthread_setcanceltype(type, oldtype));
+osal_basetype_t osal_task_setcanceltype(){
+    return (pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL));
 }
 
 osal_basetype_t osal_task_sigmask(osal_basetype_t how, const osal_sigset_t *set, osal_sigset_t *oldset)

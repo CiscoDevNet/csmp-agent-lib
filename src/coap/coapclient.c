@@ -245,7 +245,7 @@ void *recv_fn(void* arg)
   uint8_t data[1024];
   osal_basetype_t len;
 
-  osal_task_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+  osal_task_setcanceltype();
 
   fd_set readset;
   fd_set tempset;

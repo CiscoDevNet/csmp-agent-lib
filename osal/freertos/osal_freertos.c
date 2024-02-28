@@ -39,10 +39,8 @@ osal_basetype_t osal_task_cancel(osal_task_t thread)
     return (0);
 }
 
-osal_basetype_t osal_task_setcanceltype(int type, int *oldtype)
+osal_basetype_t osal_task_setcanceltype()
 {
-    (void) type;
-    (void) oldtype;
     return (0);
 }
 
