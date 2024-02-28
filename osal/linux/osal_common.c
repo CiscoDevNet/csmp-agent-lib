@@ -144,7 +144,13 @@ int osal_task_sigmask(int how, const sigset_t *set, sigset_t *oldset)
  *****************************************************************************/
 int osal_sem_create (osal_sem * sem, uint16_t value)
 {
+#if defined(__APPLE__)
+    *sem = dispatch_semaphore_create(value);
+    return *sem == NULL ? -1 : 0;
+#else
     return (sem_init(sem, 0, value));
+#endif
+
 }
 
 /****************************************************************************
@@ -160,7 +166,12 @@ int osal_sem_create (osal_sem * sem, uint16_t value)
  *****************************************************************************/
 int osal_sem_post (osal_sem * sem)
 {
+#if defined(__APPLE__)
+    dispatch_semaphore_signal(*sem);
+    return 0;
+#else
     return (sem_post(sem));
+#endif
 }
 
 /****************************************************************************
@@ -177,9 +188,17 @@ int osal_sem_post (osal_sem * sem)
  *****************************************************************************/
 int osal_sem_wait (osal_sem * sem, osal_time_t timeout)
 {
+#if defined(__APPLE__)
+    if (timeout == 0) {
+        return dispatch_semaphore_wait(*sem, DISPATCH_TIME_FOREVER);
+    } else {
+        return dispatch_semaphore_wait(*sem, dispatch_time(DISPATCH_TIME_NOW, timeout * NSEC_PER_SEC));
+    }
+#else
     /* Silence compiler warnings about unused parameters. */
     (void) timeout;
     return(sem_wait(sem));
+#endif
 }
 
 /****************************************************************************
@@ -195,7 +214,12 @@ int osal_sem_wait (osal_sem * sem, osal_time_t timeout)
  *****************************************************************************/
 int osal_sem_destroy(osal_sem *sem)
 {
+  #if defined(__APPLE__)
+    (void) sem;
+    return 0;
+  #else
     return (sem_destroy(sem)); 
+  #endif
 }
 
 /****************************************************************************
@@ -655,6 +679,7 @@ void osal_trickle_timer_start(timerid_t timerid, uint32_t imin, uint32_t imax, t
 
     osal_sem_create(&sem, 0);
     timer_id_task = osal_task_create(NULL, 0, 0, osal_timer_thread, NULL);
+
     m_timert_isrunning = true;
   }
 

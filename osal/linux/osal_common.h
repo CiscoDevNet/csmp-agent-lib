@@ -27,7 +27,6 @@
 #include <arpa/inet.h>
 #include <stdint.h>
 #include <pthread.h>
-#include <semaphore.h>
 #include <signal.h>
 #include <sys/time.h>
 #include <sys/syscall.h>
@@ -36,12 +35,21 @@
 #include <sys/select.h>
 #include <netinet/in.h>
 #include <stdbool.h>
+#if defined(__APPLE__)
+   #include <dispatch/dispatch.h>
+#else
+   #include <semaphore.h>
+#endif
 #include "../../src/lib/debug.h"
 
 typedef void (*osal_sighandler_t)(int);
 
 typedef struct sockaddr_in6 osal_sockaddr;
+#if defined(__APPLE__)
+typedef dispatch_semaphore_t osal_sem;
+#else
 typedef sem_t osal_sem;
+#endif
 typedef socklen_t osal_socklen;
 typedef pthread_t osal_task_t;
 typedef uint64_t osal_time_t;
