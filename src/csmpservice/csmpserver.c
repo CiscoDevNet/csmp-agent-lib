@@ -34,10 +34,10 @@
 
 enum {
   URISEG_MAX_SIZE = 128,
-  OUTBUF_SIZE = 1048,
-  OUTBUF_MAX = 1024, // Provides margin to overflow
-  QRY_LIST_MAX = 20,
-  DEFAULT_DELAY = 30000, // 30 sec
+  OUTBUF_SIZE     = 2048,
+  OUTBUF_MAX      = 2096,   // Provides margin to overflow
+  QRY_LIST_MAX    = 20,
+  DEFAULT_DELAY   = 30000,  // 30 sec
 };
 
 static uint8_t m_RespBuf[OUTBUF_SIZE];

@@ -1177,6 +1177,411 @@ void   hardware_info__free_unpacked
   assert(message->base.descriptor == &hardware_info__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   transfer_request__init
+                     (TransferRequest         *message)
+{
+  static const TransferRequest init_value = TRANSFER_REQUEST__INIT;
+  *message = init_value;
+}
+size_t transfer_request__get_packed_size
+                     (const TransferRequest *message)
+{
+  assert(message->base.descriptor == &transfer_request__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t transfer_request__pack
+                     (const TransferRequest *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &transfer_request__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t transfer_request__pack_to_buffer
+                     (const TransferRequest *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &transfer_request__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+TransferRequest *
+       transfer_request__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (TransferRequest *)
+     protobuf_c_message_unpack (&transfer_request__descriptor,
+                                allocator, len, data);
+}
+void   transfer_request__free_unpacked
+                     (TransferRequest *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &transfer_request__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   image_block__init
+                     (ImageBlock         *message)
+{
+  static const ImageBlock init_value = IMAGE_BLOCK__INIT;
+  *message = init_value;
+}
+size_t image_block__get_packed_size
+                     (const ImageBlock *message)
+{
+  assert(message->base.descriptor == &image_block__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t image_block__pack
+                     (const ImageBlock *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &image_block__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t image_block__pack_to_buffer
+                     (const ImageBlock *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &image_block__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+ImageBlock *
+       image_block__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (ImageBlock *)
+     protobuf_c_message_unpack (&image_block__descriptor,
+                                allocator, len, data);
+}
+void   image_block__free_unpacked
+                     (ImageBlock *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &image_block__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   load_request__init
+                     (LoadRequest         *message)
+{
+  static const LoadRequest init_value = LOAD_REQUEST__INIT;
+  *message = init_value;
+}
+size_t load_request__get_packed_size
+                     (const LoadRequest *message)
+{
+  assert(message->base.descriptor == &load_request__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t load_request__pack
+                     (const LoadRequest *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &load_request__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t load_request__pack_to_buffer
+                     (const LoadRequest *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &load_request__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+LoadRequest *
+       load_request__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (LoadRequest *)
+     protobuf_c_message_unpack (&load_request__descriptor,
+                                allocator, len, data);
+}
+void   load_request__free_unpacked
+                     (LoadRequest *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &load_request__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   cancel_load_request__init
+                     (CancelLoadRequest         *message)
+{
+  static const CancelLoadRequest init_value = CANCEL_LOAD_REQUEST__INIT;
+  *message = init_value;
+}
+size_t cancel_load_request__get_packed_size
+                     (const CancelLoadRequest *message)
+{
+  assert(message->base.descriptor == &cancel_load_request__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t cancel_load_request__pack
+                     (const CancelLoadRequest *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &cancel_load_request__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t cancel_load_request__pack_to_buffer
+                     (const CancelLoadRequest *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &cancel_load_request__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+CancelLoadRequest *
+       cancel_load_request__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (CancelLoadRequest *)
+     protobuf_c_message_unpack (&cancel_load_request__descriptor,
+                                allocator, len, data);
+}
+void   cancel_load_request__free_unpacked
+                     (CancelLoadRequest *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &cancel_load_request__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   set_backup_request__init
+                     (SetBackupRequest         *message)
+{
+  static const SetBackupRequest init_value = SET_BACKUP_REQUEST__INIT;
+  *message = init_value;
+}
+size_t set_backup_request__get_packed_size
+                     (const SetBackupRequest *message)
+{
+  assert(message->base.descriptor == &set_backup_request__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t set_backup_request__pack
+                     (const SetBackupRequest *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &set_backup_request__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t set_backup_request__pack_to_buffer
+                     (const SetBackupRequest *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &set_backup_request__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+SetBackupRequest *
+       set_backup_request__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (SetBackupRequest *)
+     protobuf_c_message_unpack (&set_backup_request__descriptor,
+                                allocator, len, data);
+}
+void   set_backup_request__free_unpacked
+                     (SetBackupRequest *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &set_backup_request__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   transfer_response__init
+                     (TransferResponse         *message)
+{
+  static const TransferResponse init_value = TRANSFER_RESPONSE__INIT;
+  *message = init_value;
+}
+size_t transfer_response__get_packed_size
+                     (const TransferResponse *message)
+{
+  assert(message->base.descriptor == &transfer_response__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t transfer_response__pack
+                     (const TransferResponse *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &transfer_response__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t transfer_response__pack_to_buffer
+                     (const TransferResponse *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &transfer_response__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+TransferResponse *
+       transfer_response__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (TransferResponse *)
+     protobuf_c_message_unpack (&transfer_response__descriptor,
+                                allocator, len, data);
+}
+void   transfer_response__free_unpacked
+                     (TransferResponse *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &transfer_response__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   load_response__init
+                     (LoadResponse         *message)
+{
+  static const LoadResponse init_value = LOAD_RESPONSE__INIT;
+  *message = init_value;
+}
+size_t load_response__get_packed_size
+                     (const LoadResponse *message)
+{
+  assert(message->base.descriptor == &load_response__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t load_response__pack
+                     (const LoadResponse *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &load_response__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t load_response__pack_to_buffer
+                     (const LoadResponse *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &load_response__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+LoadResponse *
+       load_response__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (LoadResponse *)
+     protobuf_c_message_unpack (&load_response__descriptor,
+                                allocator, len, data);
+}
+void   load_response__free_unpacked
+                     (LoadResponse *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &load_response__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   cancel_load_response__init
+                     (CancelLoadResponse         *message)
+{
+  static const CancelLoadResponse init_value = CANCEL_LOAD_RESPONSE__INIT;
+  *message = init_value;
+}
+size_t cancel_load_response__get_packed_size
+                     (const CancelLoadResponse *message)
+{
+  assert(message->base.descriptor == &cancel_load_response__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t cancel_load_response__pack
+                     (const CancelLoadResponse *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &cancel_load_response__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t cancel_load_response__pack_to_buffer
+                     (const CancelLoadResponse *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &cancel_load_response__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+CancelLoadResponse *
+       cancel_load_response__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (CancelLoadResponse *)
+     protobuf_c_message_unpack (&cancel_load_response__descriptor,
+                                allocator, len, data);
+}
+void   cancel_load_response__free_unpacked
+                     (CancelLoadResponse *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &cancel_load_response__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   set_backup_response__init
+                     (SetBackupResponse         *message)
+{
+  static const SetBackupResponse init_value = SET_BACKUP_RESPONSE__INIT;
+  *message = init_value;
+}
+size_t set_backup_response__get_packed_size
+                     (const SetBackupResponse *message)
+{
+  assert(message->base.descriptor == &set_backup_response__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t set_backup_response__pack
+                     (const SetBackupResponse *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &set_backup_response__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t set_backup_response__pack_to_buffer
+                     (const SetBackupResponse *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &set_backup_response__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+SetBackupResponse *
+       set_backup_response__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (SetBackupResponse *)
+     protobuf_c_message_unpack (&set_backup_response__descriptor,
+                                allocator, len, data);
+}
+void   set_backup_response__free_unpacked
+                     (SetBackupResponse *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &set_backup_response__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 void   firmware_image_info__init
                      (FirmwareImageInfo         *message)
 {
@@ -3748,6 +4153,582 @@ const ProtobufCMessageDescriptor hardware_info__descriptor =
   hardware_info__field_indices_by_name,
   1,  hardware_info__number_ranges,
   (ProtobufCMessageInit) hardware_info__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor transfer_request__field_descriptors[11] =
+{
+  {
+    "hwInfo",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(TransferRequest, hwinfo),
+    &hardware_info__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "fileHash",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BYTES,
+    offsetof(TransferRequest, file_hash_present_case),
+    offsetof(TransferRequest, filehash),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "fileName",
+    3,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_STRING,
+    offsetof(TransferRequest, file_name_present_case),
+    offsetof(TransferRequest, filename),
+    NULL,
+    &protobuf_c_empty_string,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "version",
+    4,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_STRING,
+    offsetof(TransferRequest, version_present_case),
+    offsetof(TransferRequest, version),
+    NULL,
+    &protobuf_c_empty_string,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "fileSize",
+    5,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(TransferRequest, file_size_present_case),
+    offsetof(TransferRequest, filesize),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "blockSize",
+    6,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(TransferRequest, block_size_present_case),
+    offsetof(TransferRequest, blocksize),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "reportIntervalMin",
+    7,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(TransferRequest, report_interval_min_present_case),
+    offsetof(TransferRequest, reportintervalmin),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "reportIntervalMax",
+    8,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(TransferRequest, report_interval_max_present_case),
+    offsetof(TransferRequest, reportintervalmax),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "isPatch",
+    9,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(TransferRequest, is_patch_present_case),
+    offsetof(TransferRequest, ispatch),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "chopSize",
+    10,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(TransferRequest, chop_size_present_case),
+    offsetof(TransferRequest, chopsize),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "runVersion",
+    11,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_STRING,
+    offsetof(TransferRequest, run_version_present_case),
+    offsetof(TransferRequest, runversion),
+    NULL,
+    &protobuf_c_empty_string,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned transfer_request__field_indices_by_name[] = {
+  5,   /* field[5] = blockSize */
+  9,   /* field[9] = chopSize */
+  1,   /* field[1] = fileHash */
+  2,   /* field[2] = fileName */
+  4,   /* field[4] = fileSize */
+  0,   /* field[0] = hwInfo */
+  8,   /* field[8] = isPatch */
+  7,   /* field[7] = reportIntervalMax */
+  6,   /* field[6] = reportIntervalMin */
+  10,   /* field[10] = runVersion */
+  3,   /* field[3] = version */
+};
+static const ProtobufCIntRange transfer_request__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 11 }
+};
+const ProtobufCMessageDescriptor transfer_request__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "TransferRequest",
+  "TransferRequest",
+  "TransferRequest",
+  "",
+  sizeof(TransferRequest),
+  11,
+  transfer_request__field_descriptors,
+  transfer_request__field_indices_by_name,
+  1,  transfer_request__number_ranges,
+  (ProtobufCMessageInit) transfer_request__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor image_block__field_descriptors[3] =
+{
+  {
+    "fileHash",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BYTES,
+    offsetof(ImageBlock, file_hash_present_case),
+    offsetof(ImageBlock, filehash),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "blockNum",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(ImageBlock, block_num_present_case),
+    offsetof(ImageBlock, blocknum),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "blockData",
+    3,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BYTES,
+    offsetof(ImageBlock, block_data_present_case),
+    offsetof(ImageBlock, blockdata),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned image_block__field_indices_by_name[] = {
+  2,   /* field[2] = blockData */
+  1,   /* field[1] = blockNum */
+  0,   /* field[0] = fileHash */
+};
+static const ProtobufCIntRange image_block__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 3 }
+};
+const ProtobufCMessageDescriptor image_block__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "ImageBlock",
+  "ImageBlock",
+  "ImageBlock",
+  "",
+  sizeof(ImageBlock),
+  3,
+  image_block__field_descriptors,
+  image_block__field_indices_by_name,
+  1,  image_block__number_ranges,
+  (ProtobufCMessageInit) image_block__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor load_request__field_descriptors[2] =
+{
+  {
+    "fileHash",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BYTES,
+    offsetof(LoadRequest, file_hash_present_case),
+    offsetof(LoadRequest, filehash),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "loadTime",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(LoadRequest, load_time_present_case),
+    offsetof(LoadRequest, loadtime),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned load_request__field_indices_by_name[] = {
+  0,   /* field[0] = fileHash */
+  1,   /* field[1] = loadTime */
+};
+static const ProtobufCIntRange load_request__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor load_request__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "LoadRequest",
+  "LoadRequest",
+  "LoadRequest",
+  "",
+  sizeof(LoadRequest),
+  2,
+  load_request__field_descriptors,
+  load_request__field_indices_by_name,
+  1,  load_request__number_ranges,
+  (ProtobufCMessageInit) load_request__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor cancel_load_request__field_descriptors[1] =
+{
+  {
+    "fileHash",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BYTES,
+    offsetof(CancelLoadRequest, file_hash_present_case),
+    offsetof(CancelLoadRequest, filehash),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned cancel_load_request__field_indices_by_name[] = {
+  0,   /* field[0] = fileHash */
+};
+static const ProtobufCIntRange cancel_load_request__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 1 }
+};
+const ProtobufCMessageDescriptor cancel_load_request__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "CancelLoadRequest",
+  "CancelLoadRequest",
+  "CancelLoadRequest",
+  "",
+  sizeof(CancelLoadRequest),
+  1,
+  cancel_load_request__field_descriptors,
+  cancel_load_request__field_indices_by_name,
+  1,  cancel_load_request__number_ranges,
+  (ProtobufCMessageInit) cancel_load_request__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor set_backup_request__field_descriptors[1] =
+{
+  {
+    "fileHash",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BYTES,
+    offsetof(SetBackupRequest, file_hash_present_case),
+    offsetof(SetBackupRequest, filehash),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned set_backup_request__field_indices_by_name[] = {
+  0,   /* field[0] = fileHash */
+};
+static const ProtobufCIntRange set_backup_request__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 1 }
+};
+const ProtobufCMessageDescriptor set_backup_request__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "SetBackupRequest",
+  "SetBackupRequest",
+  "SetBackupRequest",
+  "",
+  sizeof(SetBackupRequest),
+  1,
+  set_backup_request__field_descriptors,
+  set_backup_request__field_indices_by_name,
+  1,  set_backup_request__number_ranges,
+  (ProtobufCMessageInit) set_backup_request__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor transfer_response__field_descriptors[2] =
+{
+  {
+    "fileHash",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BYTES,
+    offsetof(TransferResponse, file_hash_present_case),
+    offsetof(TransferResponse, filehash),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "response",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(TransferResponse, response_present_case),
+    offsetof(TransferResponse, response),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned transfer_response__field_indices_by_name[] = {
+  0,   /* field[0] = fileHash */
+  1,   /* field[1] = response */
+};
+static const ProtobufCIntRange transfer_response__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor transfer_response__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "TransferResponse",
+  "TransferResponse",
+  "TransferResponse",
+  "",
+  sizeof(TransferResponse),
+  2,
+  transfer_response__field_descriptors,
+  transfer_response__field_indices_by_name,
+  1,  transfer_response__number_ranges,
+  (ProtobufCMessageInit) transfer_response__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor load_response__field_descriptors[3] =
+{
+  {
+    "fileHash",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BYTES,
+    offsetof(LoadResponse, file_hash_present_case),
+    offsetof(LoadResponse, filehash),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "response",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(LoadResponse, response_present_case),
+    offsetof(LoadResponse, response),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "loadTime",
+    3,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(LoadResponse, load_time_present_case),
+    offsetof(LoadResponse, loadtime),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned load_response__field_indices_by_name[] = {
+  0,   /* field[0] = fileHash */
+  2,   /* field[2] = loadTime */
+  1,   /* field[1] = response */
+};
+static const ProtobufCIntRange load_response__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 3 }
+};
+const ProtobufCMessageDescriptor load_response__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "LoadResponse",
+  "LoadResponse",
+  "LoadResponse",
+  "",
+  sizeof(LoadResponse),
+  3,
+  load_response__field_descriptors,
+  load_response__field_indices_by_name,
+  1,  load_response__number_ranges,
+  (ProtobufCMessageInit) load_response__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor cancel_load_response__field_descriptors[2] =
+{
+  {
+    "fileHash",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BYTES,
+    offsetof(CancelLoadResponse, file_hash_present_case),
+    offsetof(CancelLoadResponse, filehash),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "response",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(CancelLoadResponse, response_present_case),
+    offsetof(CancelLoadResponse, response),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned cancel_load_response__field_indices_by_name[] = {
+  0,   /* field[0] = fileHash */
+  1,   /* field[1] = response */
+};
+static const ProtobufCIntRange cancel_load_response__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor cancel_load_response__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "CancelLoadResponse",
+  "CancelLoadResponse",
+  "CancelLoadResponse",
+  "",
+  sizeof(CancelLoadResponse),
+  2,
+  cancel_load_response__field_descriptors,
+  cancel_load_response__field_indices_by_name,
+  1,  cancel_load_response__number_ranges,
+  (ProtobufCMessageInit) cancel_load_response__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor set_backup_response__field_descriptors[2] =
+{
+  {
+    "fileHash",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BYTES,
+    offsetof(SetBackupResponse, file_hash_present_case),
+    offsetof(SetBackupResponse, filehash),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "response",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(SetBackupResponse, response_present_case),
+    offsetof(SetBackupResponse, response),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned set_backup_response__field_indices_by_name[] = {
+  0,   /* field[0] = fileHash */
+  1,   /* field[1] = response */
+};
+static const ProtobufCIntRange set_backup_response__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor set_backup_response__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "SetBackupResponse",
+  "SetBackupResponse",
+  "SetBackupResponse",
+  "",
+  sizeof(SetBackupResponse),
+  2,
+  set_backup_response__field_descriptors,
+  set_backup_response__field_indices_by_name,
+  1,  set_backup_response__number_ranges,
+  (ProtobufCMessageInit) set_backup_response__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
 static const ProtobufCFieldDescriptor firmware_image_info__field_descriptors[11] =

@@ -61,24 +61,114 @@ typedef struct _Interface_Metrics Interface_Metrics;   /**< data related to TLV 
 typedef struct _IPRoute_RPLMetrics IPRoute_RPLMetrics; /**< data related to TLV 25 */
 typedef struct _WPAN_Status WPAN_Status;               /**< data related to TLV 35 */
 typedef struct _RPL_Instance RPL_Instance;             /**< data related to TLV 53 */
+typedef struct _Transfer_Request Transfer_Request;       /**< data related to TLV 65 */
+typedef struct _Image_Block Image_Block;                 /**< data related to TLV 67 */
+typedef struct _Load_Request Load_Request;               /**< data related to TLV 68 */
+typedef struct _Cancel_Load_Request Cancel_Load_Request; /**< data related to TLV 69 */
+typedef struct _Set_Backup_Request Set_Backup_Request;   /**< data related to TLV 70 */
 typedef struct _Firmware_Image_Info Firmware_Image_Info; /**< data related to TLV 75 */
 typedef struct _Signature_Settings Signature_Settings; /**< data related to TLV 79 */
 typedef struct _Vendor_Tlv Vendor_Tlv;                 /**< data related to TLV 127 */
 
+typedef struct _Csmp_Slothdr Csmp_Slothdr;               /**< firmware image slot */
+
+// CSMP OP RETURN CODES
+#define CSMP_OP_TLV_RD_EMPTY   0
+#define CSMP_OP_TLV_RD_ERROR  -1
+#define CSMP_OP_TLV_WR_ERROR  -2
+#define CSMP_OP_UNSUPPORTED   -3
+#define CSMP_OP_FAILED        -4
+
+// CSMP RESPONSE CODES
+enum {
+  RESPONSE_OK = 0,
+  RESPONSE_INCOMPATIBLE_HW = 1,
+  RESPONSE_INCOMPLETE = 2,
+  RESPONSE_UNKNOWN_HASH = 3,
+  RESPONSE_FILE_SIZE_TOO_BIG = 4,
+  RESPONSE_SIGNATURE_FAILED = 5,
+  RESPONSE_INVALID_REQ = 6,
+  RESPONSE_INVALID_BLOCK_SIZE = 7,
+  RESPONSE_PENDING_REBOOT = 8,
+  RESPONSE_IMAGE_RUNNING = 9,
+  RESPONSE_NO_VOLUME = 10,
+  RESPONSE_DUP_XFER = 11,
+  RESPONSE_MATCH_RUN_XFER = 12,
+  RESPONSE_MATCH_BAK_XFER = 13
+};
+
+// SIZES
+#define SHA1_HASH_SIZE        20
+#define SHA256_HASH_SIZE      32
+#define FILE_NAME_SIZE        128
+#define VERSION_SIZE          32
+#define BITMAP_SIZE           32
+#define HWID_SIZE             32
+#define BLOCK_SIZE            1024
+
+// IMAGE SLOT INFO
+#define CSMP_FWMGMT_ACTIVE_SLOTS      3          // 0-RUN, 1-UPLOAD, 2-BACKUP
+#define CSMP_FWMGMT_SLOTIMG_SIZE      (650*1024) // ~650 Kb
+#define CSMP_FWMGMT_BLKMAP_CNT        (32)
+
+// IMAGE SLOT ID
+enum {
+  RUN_IMAGE = 0,
+  UPLOAD_IMAGE = 1,
+  BACKUP_IMAGE = 2,
+  BL_IMAGE = 3,
+  LMAC_IMAGE = 4,
+  BBU_IMAGE = 5,
+  PHY_IMAGE = 6,
+  PATCH_IMAGE = 7,
+  THIRDPARTY_IMAGE = 8,
+  NUMSLOTS = 9
+};
+
+// FIRMWARE DOWNLOAD STATUS
+enum {
+  FWHDR_STATUS_COMPLETE = 0,
+  FWHDR_STATUS_DOWNLOAD = 0xFFFFFFF0UL,
+  FWHDR_STATUS_BADIMAGE = 0xFFFFFF00UL,
+  FWHDR_STATUS_BADHASH  = 0xFFFFF000UL,
+  FWHDR_STATUS_UNKNOWN  = 0xFFFFFFFFUL,
+};
+
+// TRANSFER-REQUEST REPORT INTERVAL DEFAULTS
+// Atleast minimum interval of MIN_REPORT_MIN
+// Atleast maximum interval of MAX_REPORT_MIN
+enum {
+  MIN_REPORT_MIN = 600 * 1000,
+  MAX_REPORT_MIN = 1800 * 1000
+};
+
+enum {
+  MIN_HASH_COMPARE_LEN = 4,
+  MIN_LOAD_DELAY = 1000  // 1 sec
+};
+
 // HARDWARE_DESC
+enum {
+  FUNCTION_METER = 1,
+  FUNCTION_RE = 2,
+  FUNCTION_DAG = 3,
+  FUNCTION_IOT = 4,
+  FUNCTION_UNKNOWN = 99
+};
+
 typedef enum {
-  OTHERPHY = 1,
-  UNKNOWNPHY = 2,
-  CHASSIS= 3,
-  BACKPLANE = 4,
-  CONTAINER = 5,
-  POWRER_SUPPLY = 6,
-  FAN = 7,
-  SENSOR = 8,
-  MODULE = 9,
-  PORT = 10,
-  STACK = 11,
-  CPU = 12
+  CLASS_OTHER = 1,
+  CLASS_UNKNOWN = 2,
+  CLASS_CHASSIS = 3,
+  CLASS_BACKPLANE = 4,
+  CLASS_CONTAINER = 5,
+  CLASS_POWRERSUPPLY = 6,
+  CLASS_FAN = 7,
+  CLASS_SENSOR = 8,
+  CLASS_MODULE = 9,
+  CLASS_PORT = 10,
+  CLASS_STACK = 11,
+  CLASS_CPU = 12
 } physical_class_t;
 
 struct  _Hardware_Desc
@@ -429,24 +519,137 @@ struct  _RPL_Instance
 #define RPLINSTANCE_INIT \
  { 0,0, 0,0, 0,{0,{0}}, 0,0, 0,0, 0,0, 0,0 }
 
+// TLV 65 TRANSFER_REQUEST_TLVID
+// TLV 71 TRANSFER_RESPONSE_TLVID
+struct _Transfer_Request
+{
+  bool has_hwinfo;/* 'Y' */
+  struct {
+    bool has_hwid;
+    char hwid[HWID_SIZE];
+    bool has_vendorhwid;/* 'Y' */
+    char vendorhwid[HWID_SIZE];/* 'Y' */
+  } hwinfo;/* 'Y' */
+  bool has_filehash;/* 'Y' */
+  struct {
+    size_t len;
+    uint8_t data[SHA256_HASH_SIZE];
+  } filehash;/* 'Y' */
+  bool has_filename;/* 'Y' */
+  char filename[FILE_NAME_SIZE];/* 'Y' */
+  bool has_version;/* 'Y' */
+  char version[VERSION_SIZE];/* 'Y' */
+  bool has_filesize;/* 'Y' */
+  uint32_t filesize;/* 'Y' */
+  bool has_blocksize;
+  uint32_t blocksize;
+  bool has_report_int_min;/* 'Y' */
+  uint32_t report_int_min;/* 'Y' */
+  bool has_report_int_max;/* 'Y' */
+  uint32_t report_int_max;/* 'Y' */
+  bool has_status;/* 'Y' */
+  uint32_t status;/* 'Y' */
+  bool has_response;/* 'Y' */
+  uint32_t response;/* 'Y' */
+};
+#define TRANSFER_REQUEST_INIT \
+  { 0, {0, {0}, 0, {0}}, 0, {0, {0}}, 0, {0}, 0, {0}, 0, 0, 0, 0, 0, 0, 0, 0, \
+    0, 0, 0, 0 }
 
-struct  _Firmware_Image_Info
+// TLV 67 IMAGE_BLOCK_TLVID
+struct _Image_Block
+{
+  bool has_filehash;/* Y */
+  struct {
+    size_t len;
+    uint8_t data[SHA256_HASH_SIZE];
+  } filehash;/* Y */
+  bool retval;
+  bool has_blocknum;/* Y */
+  uint32_t blocknum;/* Y */
+  bool has_blockdata;/* Y */
+  struct {
+    size_t len;
+    uint8_t data[BLOCK_SIZE];
+  } blockdata;/* Y */
+};
+#define IMAGE_BLOCK_INIT \
+  { 0, {0, {0}}, 0, 0, 0, 0, {0, {0}} }
+
+
+// TLV 68 LOAD_REQUEST_TLVID
+// TLV 72 LOAD_RESPONSE_TLVID
+struct _Load_Request
+{
+  bool has_filehash;/* Y */
+  struct {
+    size_t len;
+    uint8_t data[SHA256_HASH_SIZE];
+  } filehash;/* 'Y' */
+  bool has_loadtime;/* Y */
+  uint32_t loadtime;/* Y */
+  bool has_response;/* 'Y' */
+  uint32_t response;/* 'Y' */
+};
+#define LOAD_REQUEST_INIT \
+  { 0, {0, {0}}, 0, 0, 0, 0 }
+
+
+// TLV 69 CANCEL_LOAD_REQUEST_TLVID
+// TLV 73 CANCEL_LOAD_RESPONSE_TLVID
+struct _Cancel_Load_Request
+{
+  bool has_filehash;/* Y */
+  struct {
+    size_t len;
+    uint8_t data[SHA256_HASH_SIZE];
+  } filehash;/* 'Y' */
+  bool has_loadtime;/* 'Y' */
+  uint32_t loadtime;/* 'Y' */
+  bool has_response;/* 'Y' */
+  uint32_t response;/* 'Y' */
+};
+#define CANCEL_LOAD_REQUEST_INIT \
+  { 0, {0, {0}}, 0, 0, 0, 0 }
+
+
+// TLV 70 SET_BACKUP_REQUEST_TLVID
+// TLV 74 SET_BACKUP_RESPONSE_TLVID
+struct _Set_Backup_Request
+{
+  bool has_filehash;/* 'Y' */
+  struct {
+    size_t len;
+    uint8_t data[SHA256_HASH_SIZE];
+  } filehash;/* 'Y' */
+  bool has_loadtime;/* 'Y' */
+  uint32_t loadtime;/* 'Y' */
+  bool has_response;/* 'Y' */
+  uint32_t response;/* 'Y' */
+};
+#define SET_BACKUP_REQUEST_INIT \
+  { 0, {0, {0}}, 0, 0, 0, 0 }
+
+
+// TLV 75 FIRMWARE_IMAGE_INFO_TLVID
+struct _Firmware_Image_Info
 {
   bool has_index;/* 'Y' */
   uint32_t index;/* 'Y' */
   bool has_filehash;/* 'Y' */
   struct {
     size_t len;
-    uint8_t data[32];
+    uint8_t data[SHA256_HASH_SIZE];
   } filehash;/* 'Y' */
   bool has_filename;/* 'Y' */
-  char filename[128];/* 'Y' */
+  char filename[FILE_NAME_SIZE];/* 'Y' */
   bool has_version;/* 'Y' */
-  char version[32];/* 'Y' */
+  char version[VERSION_SIZE];/* 'Y' */
   bool has_filesize;/* 'Y' */
   uint32_t filesize;/* 'Y' */
   bool has_blocksize;
   uint32_t blocksize;
+  uint32_t blockcnt;
   bool has_bitmap;
   struct {
     size_t len;
@@ -461,14 +664,62 @@ struct  _Firmware_Image_Info
   bool has_hwinfo;/* 'Y' */
   struct {
     bool has_hwid;
-    char hwid[32];
+    char hwid[HWID_SIZE];
     bool has_vendorhwid;/* 'Y' */
-    char vendorhwid[32];/* 'Y' */
+    char vendorhwid[HWID_SIZE];/* 'Y' */
   } hwinfo;/* 'Y' */
+  bool has_kernelversion;
+  char kernelversion[VERSION_SIZE];
+  bool has_subkernelversion;
+  char subkernelversion[VERSION_SIZE];
+  bool has_loaderrorcode;
+  uint32_t loaderrorcode;
+  bool has_subloaderrorcode;
+  uint32_t subloaderrorcode;
+  uint32_t status;
 };
 #define FIRMWARE_IMAGE_INFO_INIT \
-   { 0,0, 0,{0,{0}}, 0,{0}, 0,{0}, 0,0, 0,0, 0,{0,{0}}, 0,0, 0,0, 0,0, 0,{0,{0}, 0,{0}} }
+  { 0,0, 0,{0,{0}}, 0,{0}, 0,{0}, 0,0, 0,0, 0, 0,{0,{0}}, 0,0, 0,0, 0,0, 0,{0,{0}, \
+  0,{0}}, 0,{0}, 0,{0}, 0,0, 0,0, 0 }
 
+// Image slot header
+struct _Csmp_Slothdr
+{
+  // Image app header
+  struct {
+    uint32_t hdrversion;
+    uint32_t hdrlen;
+    uint32_t major;
+    uint32_t minor;
+    uint32_t build;
+    char name[FILE_NAME_SIZE];
+    char builddate[VERSION_SIZE];
+    char hwid[HWID_SIZE];
+  } apphdr;
+  // Image slot header
+  uint8_t filehash[SHA256_HASH_SIZE];
+  char filename[FILE_NAME_SIZE];
+  char version[VERSION_SIZE];
+  char hwid[HWID_SIZE];
+  uint32_t filesize;
+  uint32_t filesizelastblk;
+  uint32_t blockcnt;
+  uint32_t blocksize;
+  uint32_t reportintervalmin;
+  uint32_t reportintervalmax;
+  uint32_t status; // Boolean zero if image is complete
+  uint32_t nblkmap[CSMP_FWMGMT_BLKMAP_CNT]; // Inverted block completion map
+  uint32_t magicU;
+  uint32_t magicL;
+  // Image
+  uint8_t image[CSMP_FWMGMT_SLOTIMG_SIZE];
+};
+#define CSMP_SLOTHDR_INIT \
+  {{0, 0, 0, 0, 0, {0}, {0}, {0}}, {0}, {0}, {0}, {0}, 0, 0, 0, 0, 0, 0, 0, {0}, \
+    0, 0, {0}}
+
+
+// SIGNATURE_SETTINGS
 struct _Signature_Settings
 {
     bool has_reqsignedpost;
@@ -497,6 +748,7 @@ struct _Signature_Settings
 #define SIGNATURE_SETTINGS_INIT \
    { 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,{0,{0}} }
 
+
 // VENDOR TLV
 struct _Vendor_Tlv
 {
@@ -511,4 +763,4 @@ struct _Vendor_Tlv
 #define VENDOR_TLV_INIT \
    { 0,0, 0,{0,{0}} }
 
-#endif
+#endif // CSMP_INFO_H

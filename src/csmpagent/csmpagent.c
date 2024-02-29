@@ -57,6 +57,10 @@ int csmpagent_get(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
         return csmp_get_cgmsStats(tlvid, buf, len, tlvindex);
       case RPLINSTANCE_TLVID:
         return csmp_get_rplInstance(tlvid, buf, len, tlvindex);
+      case TRANSFER_REQUEST_TLVID:
+        return csmp_get_transferRequest(tlvid, buf, len, tlvindex);
+      case LOAD_REQUEST_TLVID:
+        return csmp_get_loadRequest(tlvid, buf, len, tlvindex);
       case FIRMWARE_IMAGE_INFO_TLVID:
         return csmp_get_firmwareImageInfo(tlvid, buf, len, tlvindex);
       case SIGNATURE_TLVID:
@@ -69,7 +73,7 @@ int csmpagent_get(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
         return csmp_get_vendorTlv(tlvid, buf, len, tlvindex);
 
       default:
-        DPRINTF("csmpagent_get: Doesn't support GET for tlv:%u.%u\n",tlvid.vendor,tlvid.type);
+        DPRINTF("csmpagent_get: GET un-supported for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
         return CSMP_OP_TLV_RD_EMPTY;
     }
 }
@@ -93,11 +97,21 @@ int csmpagent_post(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_b
         return csmp_put_groupMatch(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
       case REPORT_SUBSCRIBE_TLVID:
         return csmp_put_reportSubscribe(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case TRANSFER_REQUEST_TLVID:
+        return csmp_put_transferRequest(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case IMAGE_BLOCK_TLVID:
+        return csmp_put_imageBlock(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case LOAD_REQUEST_TLVID:
+        return csmp_put_loadRequest(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case CANCEL_LOAD_REQUEST_TLVID:
+        return csmp_put_cancelLoadRequest(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case SET_BACKUP_REQUEST_TLVID:
+        return csmp_put_setBackupRequest(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
       case VENDOR_TLVID:
         return csmp_put_vendorTlv(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
 
       default:
-        DPRINTF("csmpagent_post: Doesn't support POST for tlv:%u.%u\n",tlvid.vendor,tlvid.type);
+        DPRINTF("csmpagent_post: POST un-supported for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
         return CSMP_OP_TLV_RD_EMPTY;
     }
 }

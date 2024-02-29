@@ -95,11 +95,17 @@ void alarm_fired(void)
     if (timer->icur > timer->imax)
       timer->icur = timer->imax;
 
-    if(i == reg_timer) {
-      DPRINTF("register trickle timer fired\n");
-    }
-    else if(i == rpt_timer) {
-      DPRINTF("metrics report trickle timer fired\n");
+    switch (i) {
+      case reg_timer: DPRINTF("Register trickle timer fired\n");
+      break;
+
+      case rpt_timer: DPRINTF("Periodic metrics report trickle timer fired\n");
+      break;
+
+      case lrq_timer: DPRINTF("Firmware load request timer fired\n");
+      break;
+
+      default: DPRINTF("Error: Invalid trickle timer id\n");
     }
 
     timer_fired[i]();
@@ -153,11 +159,17 @@ void trickle_timer_start(timerid_t timerid, uint32_t imin, uint32_t imax, trickl
     m_timert_isrunning = true;
   }
 
-  if(timerid == reg_timer) {
-    DPRINTF("register trickle timer start\n");
-  }
-  else if(timerid == rpt_timer) {
-    DPRINTF("metrics report trickle timer start\n");
+  switch (timerid) {
+    case reg_timer: DPRINTF("Register trickle timer start\n");
+    break;
+
+    case rpt_timer: DPRINTF("Periodic metrics report trickle timer start\n");
+    break;
+
+    case lrq_timer: DPRINTF("Firmware load request timer start\n");
+    break;
+
+    default: DPRINTF("Error: Invalid trickle timer id\n");
   }
 
   gettimeofday(&tv, NULL);
@@ -181,12 +193,20 @@ void trickle_timer_stop(timerid_t timerid)
   sigset_t set;
 
   timers[timerid].is_running = false;
-  if(timerid == reg_timer) {
-    DPRINTF("register trickle timer stop\n");
+
+  switch (timerid) {
+    case reg_timer: DPRINTF("Register trickle timer stop\n");
+    break;
+
+    case rpt_timer: DPRINTF("Periodic metrics report trickle timer stop\n");
+    break;
+
+    case lrq_timer: DPRINTF("Firmware load request timer stop\n");
+    break;
+
+    default: DPRINTF("Error: Invalid trickle timer id\n");
   }
-  else if(timerid == rpt_timer) {
-    DPRINTF("metrics report trickle timer stop\n");
-  }
+
   for(i = 0; i < timer_num; i++) {
     if(timers[i].is_running)
       return;
