@@ -19,6 +19,7 @@
 
 #include "coap.h"
 
+#define OUTBUF_SIZE 2048
 
 /*! \file
  *

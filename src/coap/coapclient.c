@@ -95,7 +95,7 @@ int coapclient_request (const struct sockaddr_in6 *to,
   uint32_t opt_buf_used = 0;
   uint32_t version = 1;
   uint32_t option_count = 0;
-  uint8_t outbuf[1024];
+  uint8_t outbuf[OUTBUF_SIZE];
   uint8_t *outbufp = outbuf;
   int outbuf_len = 0;
   int rv;

@@ -36,7 +36,6 @@
 #include "trickle_timer.h"
 #include "../../include/iana_pen.h"
 
-#define OUTBUF_SIZE 1048
 static struct sockaddr_in6 NMS_addr;
 static uint8_t g_outbuf[OUTBUF_SIZE];
 
@@ -215,12 +214,27 @@ void process_reg(const uint8_t *buf,size_t len, bool preload_only) {
   return;
 }
 
+/*
+ * NMS Registration timer handler
+ *
+ * Desired list of TLVs to be sent to NMS during registration:
+ *
+ * DEVICE_ID_TLVID, SESSION_ID_TLVID, CURRENT_TIME_TLVID,
+ * HARDWARE_DESC_TLVID, INTERFACE_DESC_TLVID, IPADDRESS_TLVID
+ * CGMSSTATUS_TLVID, IEEE8021X_STATUS_TLVID, WPANSTATUS_TLVID,
+ * RPLSETTINGS_TLVID, GROUP_INFO_TLVID, REPORT_SUBSCRIBE_TLVID,
+ * OUTAGE_RECOVERY_TLVID
+ *
+ * Note: Additional TLVs sent during registration may not be
+ * processed by FND/NMS.
+ */
 void register_timer_fired() {
-  tlvid_t list[] = {{0,DEVICE_ID_TLVID},{0,CURRENT_TIME_TLVID},
+  tlvid_t list[] = {{0,DEVICE_ID_TLVID},{0,SESSION_ID_TLVID},{0,CURRENT_TIME_TLVID},
                     {0,HARDWARE_DESC_TLVID},{0,INTERFACE_DESC_TLVID},{0,IPADDRESS_TLVID},
                     {0,IPROUTE_TLVID},{0,INTERFACE_METRICS_TLVID},{0,IPROUTE_RPLMETRICS_TLVID},
-                    {0,WPANSTATUS_TLVID}, {0,RPLINSTANCE_TLVID}, {0,FIRMWARE_IMAGE_INFO_TLVID},
-                    {VENDOR_ID,VENDOR_TLVID}};
+                    {0,WPANSTATUS_TLVID},{0,GROUP_INFO_TLVID},{0,REPORT_SUBSCRIBE_TLVID},
+                    {0,FIRMWARE_IMAGE_INFO_TLVID},{VENDOR_ID,VENDOR_TLVID}};
+
   uint32_t list_cnt = sizeof(list)/sizeof(tlvid_t);
 
   g_csmplib_stats.reg_attempts++;

@@ -1,7 +1,8 @@
 #define your own gcc here if you need cross-compile the code
 CC = gcc -Wall -Wextra
 
-CFLAGS += -I ../include
+CFLAGS += -I ../include -I ../src/lib/trickle_timer/
+#CFLAGS += -DPRINTDEBUG
 LIBS += -lpthread
 
 #if the openssl lib is availabe, please uncomment the following four lines

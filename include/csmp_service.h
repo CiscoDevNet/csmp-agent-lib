@@ -38,19 +38,24 @@
  *
  */
 typedef enum {
-  HARDWARE_DESC_ID = 11,  /**< Hardware description request */
-  INTERFACE_DESC_ID = 12, /**< interface description request */
-  IPADDRESS_ID = 16,  /**< ip address request */
-  IPROUTE_ID = 17, /**< ip route request */
-  CURRENT_TIME_ID = 18, /**< current time request */
-  UPTIME_ID = 22, /**< uptime request */
-  INTERFACE_METRICS_ID = 23, /**< interface metrics request */
-  IPROUTE_RPLMETRICS_ID = 25, /**< rpl metrics request */
-  WPANSTATUS_ID = 35, /**< wpan status request */
-  RPLINSTANCE_ID = 53, /**< rpl instance info request */
+  HARDWARE_DESC_ID = 11,       /**< Hardware description request */
+  INTERFACE_DESC_ID = 12,      /**< interface description request */
+  IPADDRESS_ID = 16,           /**< ip address request */
+  IPROUTE_ID = 17,             /**< ip route request */
+  CURRENT_TIME_ID = 18,        /**< current time request */
+  UPTIME_ID = 22,              /**< uptime request */
+  INTERFACE_METRICS_ID = 23,   /**< interface metrics request */
+  IPROUTE_RPLMETRICS_ID = 25,  /**< rpl metrics request */
+  WPANSTATUS_ID = 35,          /**< wpan status request */
+  RPLINSTANCE_ID = 53,         /**< rpl instance info request */
+  TRANSFER_REQUEST_ID = 65,    /**< firmware transfer request */
+  IMAGE_BLOCK_ID = 67,         /**< firmware image block */
+  LOAD_REQUEST_ID = 68,        /**< firmware load request */
+  CANCEL_LOAD_REQUEST_ID = 69, /**< firmware cancel load request */
+  SET_BACKUP_REQUEST_ID = 70,  /**< firmware set backup request */
   FIRMWARE_IMAGE_INFO_ID = 75, /**< firmware info request */
-  SIGNATURE_SETTINGS_ID = 79, /**< signature settings request */
-  VENDOR_TLV_ID = 127 /**< vendor tlv */
+  SIGNATURE_SETTINGS_ID = 79,  /**< signature settings request */
+  VENDOR_TLV_ID = 127          /**< vendor tlv */
 } tlv_type_t;
 
 /**

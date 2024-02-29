@@ -31,19 +31,25 @@
 /** tlvs enumeration
  */
 typedef enum {
-  HARDWARE_DESC_ID = 11,   /**< Hardware description */
-  INTERFACE_DESC_ID = 12,  /**< Interface description */
-  IPADDRESS_ID = 16,        /**< Ip address info */
-  IPROUTE_ID = 17,        /**< ip route info */
-  CURRENT_TIME_ID = 18,   /**< current time */
-  UPTIME_ID = 22,         /**< up time */
-  INTERFACE_METRICS_ID = 23,  /**< interface metrics info */
-  IPROUTE_RPLMETRICS_ID = 25, /**< ip route rpl info */
-  WPANSTATUS_ID = 35,       /**< wan status info */
-  NEIGHBOR802154_G_ID = 52, /**< neighbor info */
-  RPLINSTANCE_ID = 53,    /**< rpl instance info */
-  SIGNATURE_SETTINGS_ID = 79, /**< signature settings request */
-  VENDOR_TLV_ID = 127 /**< vendor tlv */
+  HARDWARE_DESC_ID = 11,       /**< Hardware description */
+  INTERFACE_DESC_ID = 12,      /**< Interface description */
+  IPADDRESS_ID = 16,           /**< Ip address info */
+  IPROUTE_ID = 17,             /**< ip route info */
+  CURRENT_TIME_ID = 18,        /**< current time */
+  UPTIME_ID = 22,              /**< up time */
+  INTERFACE_METRICS_ID = 23,   /**< interface metrics info */
+  IPROUTE_RPLMETRICS_ID = 25,  /**< ip route rpl info */
+  WPANSTATUS_ID = 35,          /**< wan status info */
+  NEIGHBOR802154_G_ID = 52,    /**< neighbor info */
+  RPLINSTANCE_ID = 53,         /**< rpl instance info */
+  TRANSFER_REQUEST_ID = 65,    /**< firmware transfer request */
+  IMAGE_BLOCK_ID = 67,         /**< firmware image block */
+  LOAD_REQUEST_ID = 68,        /**< firmware load request */
+  CANCEL_LOAD_REQUEST_ID = 69, /**< firmware cancel load request */
+  SET_BACKUP_REQUEST_ID = 70,  /**< firmware set backup request */
+  FIRMWARE_IMAGE_INFO_ID = 75, /**< firmware info request */
+  SIGNATURE_SETTINGS_ID = 79,  /**< signature settings request */
+  VENDOR_TLV_ID = 127          /**< vendor tlv */
 } tlv_type_t;
 
 /**

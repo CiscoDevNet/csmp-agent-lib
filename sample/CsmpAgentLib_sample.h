@@ -17,8 +17,27 @@
 #ifndef _SAMPLE_H
 #define _SAMPLE_H
 
+#include <stdio.h>
+#include <stdbool.h>
+#include <sys/time.h>
+#include <stdlib.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <string.h>
+#include <ifaddrs.h>
+#include <unistd.h>
+
+#include "csmp_service.h"
 #include "csmp_info.h"
+#include "signature_verify.h"
+#include "trickle_timer.h"
 #include "iana_pen.h"
+
+#ifdef PRINTDEBUG
+  #define DPRINTF printf
+#else
+  #define DPRINTF(format, ...)
+#endif
 
 /*! \file
  *
@@ -114,8 +133,50 @@ uint8_t g_eui64[8] = {0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb2};
 #define interface_max_num 2
 /** \brief max number of ip addresses*/
 #define ipaddress_max_num 3
-/** \brief max number of neighbor*/
+/** \brief max number of neighbors*/
 #define neighbor_max_num 2
+
+#define nexthop_IP "fe80::a00:27ff:fe3b:2ab1"
+
+#define DEVICE_TYPE CSMP_AGENT
+enum {
+  GENERIC_HW = 0,
+  CSMP_AGENT = 1,
+  CISCO_IR510 = 2,
+  ITRON_METER = 3
+};
+
+char *SSID = "CISCO";
+char vendorhwid[32] = "Vendor Hardware-ID";
+uint32_t g_init_time;
+uint8_t neighbor_eui64[2][8] = {{0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb1},
+                             {0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb0}};
+dev_config_t g_devconfig;
+csmp_handle_t g_csmp_handle;
+
+// Firmware upgrade globals
+bool g_downloadbusy       = false;  // Track ongoing download
+bool g_initxfer           = false;  // Track transfer request
+bool g_initload           = false;  // Track load request
+uint32_t g_curloadtime    = 0;      // Track current loadtime
+uint32_t g_curloadslot    = 0xFFU;  // Track current load slot
+uint32_t g_curbackupslot  = 0xFFU;  // Track current backup slot
+
+// Firmware image slots (Slot-id: 0-RUN, 1-UPLOAD, 2-BACKUP)
+Csmp_Slothdr g_slothdr[CSMP_FWMGMT_ACTIVE_SLOTS] = {CSMP_SLOTHDR_INIT};
+
+/* public key */
+//new key
+static const char pubkey[PUBLIC_KEY_LEN] = {
+  0x04, 0x23, 0xD2, 0x83, 0x45, 0xE8, 0xD5, 0xDF, 0x86, 0x9D,
+  0x6E, 0xE7, 0x58, 0x0D, 0xC1, 0x8F, 0x35, 0x9D, 0x57, 0xB1,
+  0x3D, 0x50, 0x4A, 0x16, 0x01, 0x15, 0xC4, 0x81, 0x19, 0xB0,
+  0xE6, 0x60, 0xB8, 0x64, 0x14, 0x01, 0x5D, 0x56, 0x83, 0xBE,
+  0xE1, 0x85, 0x98, 0xCB, 0x90, 0xE1, 0xF7, 0x9B, 0xF4, 0x33,
+  0x5A, 0x4B, 0x29, 0xAD, 0x35, 0x69, 0x9B, 0x4F, 0xDC, 0x42,
+  0x7F, 0xEB, 0xC2, 0x99, 0xA5
+};
+
 
 /** \brief the hardware information */
 Hardware_Desc g_hardwareDesc = HARDWARE_DESC_INIT;
@@ -147,8 +208,23 @@ WPAN_Status g_wpanStatus = WPANSTATUS_INIT;
 /** \brief the rpl data */
 RPL_Instance g_rplInstance = RPLINSTANCE_INIT;
 
+/** \brief the transfer requst data */
+Transfer_Request g_transferRequest = TRANSFER_REQUEST_INIT;
+
+/** \brief the image block data */
+Image_Block g_imageBlock = IMAGE_BLOCK_INIT;
+
+/** \brief the load request data */
+Load_Request g_loadRequest = LOAD_REQUEST_INIT;
+
+/** \brief the cancel load request data */
+Cancel_Load_Request g_cancelLoadRequest = CANCEL_LOAD_REQUEST_INIT;
+
+/** \brief the set backup request data */
+Set_Backup_Request setBackupRequest = SET_BACKUP_REQUEST_INIT;
+
 /** \brief the firmware info data */
-Firmware_Image_Info g_firmwareImageInfo = FIRMWARE_IMAGE_INFO_INIT;
+Firmware_Image_Info g_firmwareImageInfo[CSMP_FWMGMT_ACTIVE_SLOTS] = {FIRMWARE_IMAGE_INFO_INIT};
 
 /** \brief the signature settings data */
 Signature_Settings g_SignatureSettings = SIGNATURE_SETTINGS_INIT;

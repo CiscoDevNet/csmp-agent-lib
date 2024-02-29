@@ -41,6 +41,15 @@ typedef struct _IPRouteRPLMetrics IPRouteRPLMetrics;
 typedef struct _WPANStatus WPANStatus;
 typedef struct _RPLInstance RPLInstance;
 typedef struct _HardwareInfo HardwareInfo;
+typedef struct _TransferRequest TransferRequest;
+typedef struct _ImageBlock ImageBlock;
+typedef struct _LoadRequest LoadRequest;
+typedef struct _CancelLoadRequest CancelLoadRequest;
+typedef struct _SetBackupRequest SetBackupRequest;
+typedef struct _TransferResponse TransferResponse;
+typedef struct _LoadResponse LoadResponse;
+typedef struct _CancelLoadResponse CancelLoadResponse;
+typedef struct _SetBackupResponse SetBackupResponse;
 typedef struct _FirmwareImageInfo FirmwareImageInfo;
 typedef struct _VendorTlv VendorTlv;
 
@@ -1759,6 +1768,375 @@ struct  _HardwareInfo
 
 
 typedef enum {
+  TRANSFER_REQUEST__FILE_HASH_PRESENT__NOT_SET = 0,
+  TRANSFER_REQUEST__FILE_HASH_PRESENT_FILE_HASH = 2
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(TRANSFER_REQUEST__FILE_HASH_PRESENT)
+} TransferRequest__FileHashPresentCase;
+
+typedef enum {
+  TRANSFER_REQUEST__FILE_NAME_PRESENT__NOT_SET = 0,
+  TRANSFER_REQUEST__FILE_NAME_PRESENT_FILE_NAME = 3
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(TRANSFER_REQUEST__FILE_NAME_PRESENT)
+} TransferRequest__FileNamePresentCase;
+
+typedef enum {
+  TRANSFER_REQUEST__VERSION_PRESENT__NOT_SET = 0,
+  TRANSFER_REQUEST__VERSION_PRESENT_VERSION = 4
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(TRANSFER_REQUEST__VERSION_PRESENT)
+} TransferRequest__VersionPresentCase;
+
+typedef enum {
+  TRANSFER_REQUEST__FILE_SIZE_PRESENT__NOT_SET = 0,
+  TRANSFER_REQUEST__FILE_SIZE_PRESENT_FILE_SIZE = 5
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(TRANSFER_REQUEST__FILE_SIZE_PRESENT)
+} TransferRequest__FileSizePresentCase;
+
+typedef enum {
+  TRANSFER_REQUEST__BLOCK_SIZE_PRESENT__NOT_SET = 0,
+  TRANSFER_REQUEST__BLOCK_SIZE_PRESENT_BLOCK_SIZE = 6
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(TRANSFER_REQUEST__BLOCK_SIZE_PRESENT)
+} TransferRequest__BlockSizePresentCase;
+
+typedef enum {
+  TRANSFER_REQUEST__REPORT_INTERVAL_MIN_PRESENT__NOT_SET = 0,
+  TRANSFER_REQUEST__REPORT_INTERVAL_MIN_PRESENT_REPORT_INTERVAL_MIN = 7
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(TRANSFER_REQUEST__REPORT_INTERVAL_MIN_PRESENT)
+} TransferRequest__ReportIntervalMinPresentCase;
+
+typedef enum {
+  TRANSFER_REQUEST__REPORT_INTERVAL_MAX_PRESENT__NOT_SET = 0,
+  TRANSFER_REQUEST__REPORT_INTERVAL_MAX_PRESENT_REPORT_INTERVAL_MAX = 8
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(TRANSFER_REQUEST__REPORT_INTERVAL_MAX_PRESENT)
+} TransferRequest__ReportIntervalMaxPresentCase;
+
+typedef enum {
+  TRANSFER_REQUEST__IS_PATCH_PRESENT__NOT_SET = 0,
+  TRANSFER_REQUEST__IS_PATCH_PRESENT_IS_PATCH = 9
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(TRANSFER_REQUEST__IS_PATCH_PRESENT)
+} TransferRequest__IsPatchPresentCase;
+
+typedef enum {
+  TRANSFER_REQUEST__CHOP_SIZE_PRESENT__NOT_SET = 0,
+  TRANSFER_REQUEST__CHOP_SIZE_PRESENT_CHOP_SIZE = 10
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(TRANSFER_REQUEST__CHOP_SIZE_PRESENT)
+} TransferRequest__ChopSizePresentCase;
+
+typedef enum {
+  TRANSFER_REQUEST__RUN_VERSION_PRESENT__NOT_SET = 0,
+  TRANSFER_REQUEST__RUN_VERSION_PRESENT_RUN_VERSION = 11
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(TRANSFER_REQUEST__RUN_VERSION_PRESENT)
+} TransferRequest__RunVersionPresentCase;
+
+/*
+ * TLV 65 TRANSFER_REQUEST_TLVID
+ */
+struct  _TransferRequest
+{
+  ProtobufCMessage base;
+  HardwareInfo *hwinfo;
+  TransferRequest__FileHashPresentCase file_hash_present_case;
+  union {
+    ProtobufCBinaryData filehash;
+  };
+  TransferRequest__FileNamePresentCase file_name_present_case;
+  union {
+    char *filename;
+  };
+  TransferRequest__VersionPresentCase version_present_case;
+  union {
+    char *version;
+  };
+  TransferRequest__FileSizePresentCase file_size_present_case;
+  union {
+    uint32_t filesize;
+  };
+  TransferRequest__BlockSizePresentCase block_size_present_case;
+  union {
+    uint32_t blocksize;
+  };
+  TransferRequest__ReportIntervalMinPresentCase report_interval_min_present_case;
+  union {
+    uint32_t reportintervalmin;
+  };
+  TransferRequest__ReportIntervalMaxPresentCase report_interval_max_present_case;
+  union {
+    uint32_t reportintervalmax;
+  };
+  TransferRequest__IsPatchPresentCase is_patch_present_case;
+  union {
+    uint32_t ispatch;
+  };
+  TransferRequest__ChopSizePresentCase chop_size_present_case;
+  union {
+    uint32_t chopsize;
+  };
+  TransferRequest__RunVersionPresentCase run_version_present_case;
+  union {
+    char *runversion;
+  };
+};
+#define TRANSFER_REQUEST__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&transfer_request__descriptor) \
+    , NULL, TRANSFER_REQUEST__FILE_HASH_PRESENT__NOT_SET, {0}, TRANSFER_REQUEST__FILE_NAME_PRESENT__NOT_SET, {0}, TRANSFER_REQUEST__VERSION_PRESENT__NOT_SET, {0}, TRANSFER_REQUEST__FILE_SIZE_PRESENT__NOT_SET, {0}, TRANSFER_REQUEST__BLOCK_SIZE_PRESENT__NOT_SET, {0}, TRANSFER_REQUEST__REPORT_INTERVAL_MIN_PRESENT__NOT_SET, {0}, TRANSFER_REQUEST__REPORT_INTERVAL_MAX_PRESENT__NOT_SET, {0}, TRANSFER_REQUEST__IS_PATCH_PRESENT__NOT_SET, {0}, TRANSFER_REQUEST__CHOP_SIZE_PRESENT__NOT_SET, {0}, TRANSFER_REQUEST__RUN_VERSION_PRESENT__NOT_SET, {0} }
+
+
+typedef enum {
+  IMAGE_BLOCK__FILE_HASH_PRESENT__NOT_SET = 0,
+  IMAGE_BLOCK__FILE_HASH_PRESENT_FILE_HASH = 1
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(IMAGE_BLOCK__FILE_HASH_PRESENT)
+} ImageBlock__FileHashPresentCase;
+
+typedef enum {
+  IMAGE_BLOCK__BLOCK_NUM_PRESENT__NOT_SET = 0,
+  IMAGE_BLOCK__BLOCK_NUM_PRESENT_BLOCK_NUM = 2
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(IMAGE_BLOCK__BLOCK_NUM_PRESENT)
+} ImageBlock__BlockNumPresentCase;
+
+typedef enum {
+  IMAGE_BLOCK__BLOCK_DATA_PRESENT__NOT_SET = 0,
+  IMAGE_BLOCK__BLOCK_DATA_PRESENT_BLOCK_DATA = 3
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(IMAGE_BLOCK__BLOCK_DATA_PRESENT)
+} ImageBlock__BlockDataPresentCase;
+
+/*
+ * TLV 67 IMAGE_BLOCK_TLVID
+ */
+struct  _ImageBlock
+{
+  ProtobufCMessage base;
+  ImageBlock__FileHashPresentCase file_hash_present_case;
+  union {
+    ProtobufCBinaryData filehash;
+  };
+  ImageBlock__BlockNumPresentCase block_num_present_case;
+  union {
+    uint32_t blocknum;
+  };
+  ImageBlock__BlockDataPresentCase block_data_present_case;
+  union {
+    ProtobufCBinaryData blockdata;
+  };
+};
+#define IMAGE_BLOCK__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&image_block__descriptor) \
+    , IMAGE_BLOCK__FILE_HASH_PRESENT__NOT_SET, {0}, IMAGE_BLOCK__BLOCK_NUM_PRESENT__NOT_SET, {0}, IMAGE_BLOCK__BLOCK_DATA_PRESENT__NOT_SET, {0} }
+
+
+typedef enum {
+  LOAD_REQUEST__FILE_HASH_PRESENT__NOT_SET = 0,
+  LOAD_REQUEST__FILE_HASH_PRESENT_FILE_HASH = 1
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(LOAD_REQUEST__FILE_HASH_PRESENT)
+} LoadRequest__FileHashPresentCase;
+
+typedef enum {
+  LOAD_REQUEST__LOAD_TIME_PRESENT__NOT_SET = 0,
+  LOAD_REQUEST__LOAD_TIME_PRESENT_LOAD_TIME = 2
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(LOAD_REQUEST__LOAD_TIME_PRESENT)
+} LoadRequest__LoadTimePresentCase;
+
+/*
+ * TLV 68 LOAD_REQUEST_TLVID
+ */
+struct  _LoadRequest
+{
+  ProtobufCMessage base;
+  LoadRequest__FileHashPresentCase file_hash_present_case;
+  union {
+    ProtobufCBinaryData filehash;
+  };
+  LoadRequest__LoadTimePresentCase load_time_present_case;
+  union {
+    uint32_t loadtime;
+  };
+};
+#define LOAD_REQUEST__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&load_request__descriptor) \
+    , LOAD_REQUEST__FILE_HASH_PRESENT__NOT_SET, {0}, LOAD_REQUEST__LOAD_TIME_PRESENT__NOT_SET, {0} }
+
+
+typedef enum {
+  CANCEL_LOAD_REQUEST__FILE_HASH_PRESENT__NOT_SET = 0,
+  CANCEL_LOAD_REQUEST__FILE_HASH_PRESENT_FILE_HASH = 1
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(CANCEL_LOAD_REQUEST__FILE_HASH_PRESENT)
+} CancelLoadRequest__FileHashPresentCase;
+
+/*
+ * TLV 69 CANCEL_LOAD_REQUEST_TLVID
+ */
+struct  _CancelLoadRequest
+{
+  ProtobufCMessage base;
+  CancelLoadRequest__FileHashPresentCase file_hash_present_case;
+  union {
+    ProtobufCBinaryData filehash;
+  };
+};
+#define CANCEL_LOAD_REQUEST__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&cancel_load_request__descriptor) \
+    , CANCEL_LOAD_REQUEST__FILE_HASH_PRESENT__NOT_SET, {0} }
+
+
+typedef enum {
+  SET_BACKUP_REQUEST__FILE_HASH_PRESENT__NOT_SET = 0,
+  SET_BACKUP_REQUEST__FILE_HASH_PRESENT_FILE_HASH = 1
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(SET_BACKUP_REQUEST__FILE_HASH_PRESENT)
+} SetBackupRequest__FileHashPresentCase;
+
+/*
+ * TLV 70 SET_BACKUP_REQUEST_TLVID
+ */
+struct  _SetBackupRequest
+{
+  ProtobufCMessage base;
+  SetBackupRequest__FileHashPresentCase file_hash_present_case;
+  union {
+    ProtobufCBinaryData filehash;
+  };
+};
+#define SET_BACKUP_REQUEST__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&set_backup_request__descriptor) \
+    , SET_BACKUP_REQUEST__FILE_HASH_PRESENT__NOT_SET, {0} }
+
+
+typedef enum {
+  TRANSFER_RESPONSE__FILE_HASH_PRESENT__NOT_SET = 0,
+  TRANSFER_RESPONSE__FILE_HASH_PRESENT_FILE_HASH = 1
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(TRANSFER_RESPONSE__FILE_HASH_PRESENT)
+} TransferResponse__FileHashPresentCase;
+
+typedef enum {
+  TRANSFER_RESPONSE__RESPONSE_PRESENT__NOT_SET = 0,
+  TRANSFER_RESPONSE__RESPONSE_PRESENT_RESPONSE = 2
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(TRANSFER_RESPONSE__RESPONSE_PRESENT)
+} TransferResponse__ResponsePresentCase;
+
+/*
+ * TLV 71 TRANSFER_RESPONSE_TLVID
+ */
+struct  _TransferResponse
+{
+  ProtobufCMessage base;
+  TransferResponse__FileHashPresentCase file_hash_present_case;
+  union {
+    ProtobufCBinaryData filehash;
+  };
+  TransferResponse__ResponsePresentCase response_present_case;
+  union {
+    uint32_t response;
+  };
+};
+#define TRANSFER_RESPONSE__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&transfer_response__descriptor) \
+    , TRANSFER_RESPONSE__FILE_HASH_PRESENT__NOT_SET, {0}, TRANSFER_RESPONSE__RESPONSE_PRESENT__NOT_SET, {0} }
+
+
+typedef enum {
+  LOAD_RESPONSE__FILE_HASH_PRESENT__NOT_SET = 0,
+  LOAD_RESPONSE__FILE_HASH_PRESENT_FILE_HASH = 1
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(LOAD_RESPONSE__FILE_HASH_PRESENT)
+} LoadResponse__FileHashPresentCase;
+
+typedef enum {
+  LOAD_RESPONSE__RESPONSE_PRESENT__NOT_SET = 0,
+  LOAD_RESPONSE__RESPONSE_PRESENT_RESPONSE = 2
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(LOAD_RESPONSE__RESPONSE_PRESENT)
+} LoadResponse__ResponsePresentCase;
+
+typedef enum {
+  LOAD_RESPONSE__LOAD_TIME_PRESENT__NOT_SET = 0,
+  LOAD_RESPONSE__LOAD_TIME_PRESENT_LOAD_TIME = 3
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(LOAD_RESPONSE__LOAD_TIME_PRESENT)
+} LoadResponse__LoadTimePresentCase;
+
+/*
+ * TLV 72 LOAD_RESPONSE_TLVID
+ */
+struct  _LoadResponse
+{
+  ProtobufCMessage base;
+  LoadResponse__FileHashPresentCase file_hash_present_case;
+  union {
+    ProtobufCBinaryData filehash;
+  };
+  LoadResponse__ResponsePresentCase response_present_case;
+  union {
+    uint32_t response;
+  };
+  LoadResponse__LoadTimePresentCase load_time_present_case;
+  union {
+    uint32_t loadtime;
+  };
+};
+#define LOAD_RESPONSE__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&load_response__descriptor) \
+    , LOAD_RESPONSE__FILE_HASH_PRESENT__NOT_SET, {0}, LOAD_RESPONSE__RESPONSE_PRESENT__NOT_SET, {0}, LOAD_RESPONSE__LOAD_TIME_PRESENT__NOT_SET, {0} }
+
+
+typedef enum {
+  CANCEL_LOAD_RESPONSE__FILE_HASH_PRESENT__NOT_SET = 0,
+  CANCEL_LOAD_RESPONSE__FILE_HASH_PRESENT_FILE_HASH = 1
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(CANCEL_LOAD_RESPONSE__FILE_HASH_PRESENT)
+} CancelLoadResponse__FileHashPresentCase;
+
+typedef enum {
+  CANCEL_LOAD_RESPONSE__RESPONSE_PRESENT__NOT_SET = 0,
+  CANCEL_LOAD_RESPONSE__RESPONSE_PRESENT_RESPONSE = 2
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(CANCEL_LOAD_RESPONSE__RESPONSE_PRESENT)
+} CancelLoadResponse__ResponsePresentCase;
+
+/*
+ * TLV 73 CANCEL_LOAD_RESPONSE_TLVID
+ */
+struct  _CancelLoadResponse
+{
+  ProtobufCMessage base;
+  CancelLoadResponse__FileHashPresentCase file_hash_present_case;
+  union {
+    ProtobufCBinaryData filehash;
+  };
+  CancelLoadResponse__ResponsePresentCase response_present_case;
+  union {
+    uint32_t response;
+  };
+};
+#define CANCEL_LOAD_RESPONSE__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&cancel_load_response__descriptor) \
+    , CANCEL_LOAD_RESPONSE__FILE_HASH_PRESENT__NOT_SET, {0}, CANCEL_LOAD_RESPONSE__RESPONSE_PRESENT__NOT_SET, {0} }
+
+
+typedef enum {
+  SET_BACKUP_RESPONSE__FILE_HASH_PRESENT__NOT_SET = 0,
+  SET_BACKUP_RESPONSE__FILE_HASH_PRESENT_FILE_HASH = 1
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(SET_BACKUP_RESPONSE__FILE_HASH_PRESENT)
+} SetBackupResponse__FileHashPresentCase;
+
+typedef enum {
+  SET_BACKUP_RESPONSE__RESPONSE_PRESENT__NOT_SET = 0,
+  SET_BACKUP_RESPONSE__RESPONSE_PRESENT_RESPONSE = 2
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(SET_BACKUP_RESPONSE__RESPONSE_PRESENT)
+} SetBackupResponse__ResponsePresentCase;
+
+/*
+ * TLV 74 SET_BACKUP_RESPONSE_TLVID
+ */
+struct  _SetBackupResponse
+{
+  ProtobufCMessage base;
+  SetBackupResponse__FileHashPresentCase file_hash_present_case;
+  union {
+    ProtobufCBinaryData filehash;
+  };
+  SetBackupResponse__ResponsePresentCase response_present_case;
+  union {
+    uint32_t response;
+  };
+};
+#define SET_BACKUP_RESPONSE__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&set_backup_response__descriptor) \
+    , SET_BACKUP_RESPONSE__FILE_HASH_PRESENT__NOT_SET, {0}, SET_BACKUP_RESPONSE__RESPONSE_PRESENT__NOT_SET, {0} }
+
+
+typedef enum {
   FIRMWARE_IMAGE_INFO__INDEX_PRESENT__NOT_SET = 0,
   FIRMWARE_IMAGE_INFO__INDEX_PRESENT_INDEX = 1
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(FIRMWARE_IMAGE_INFO__INDEX_PRESENT)
@@ -1819,11 +2197,31 @@ typedef enum {
 } FirmwareImageInfo__LoadTimePresentCase;
 
 /*
- * TLV 75
+ * TLV 75 FIRMWARE_IMAGE_INFO_TLVID
  */
 struct  _FirmwareImageInfo
 {
   ProtobufCMessage base;
+  /*
+   * oneof bitmapOffset_present {
+   * uint32 bitmapOffset = 12;
+   * }
+   *oneof kernelVersion_present {
+   *string kernelVersion = 13;
+   *}
+   *oneof subKernelVersion_present {
+   *string subKernelVersion = 14;
+   *}
+   *oneof isPatch_present {
+   *uint32 isPatch = 15;
+   *}
+   *oneof loadErrorCode_present {
+   *uint32 loadErrorCode = 16;
+   *}
+   *oneof subLoadErrorCode_present {
+   *uint32 subLoadErrorCode = 17;
+   *}
+   */
   HardwareInfo *hwinfo;
   FirmwareImageInfo__IndexPresentCase index_present_case;
   union {
@@ -1884,7 +2282,7 @@ typedef enum {
 } VendorTlv__ValuePresentCase;
 
 /*
- * TLV 127
+ * TLV 127 VENDOR_TLVID
  */
 struct  _VendorTlv
 {
@@ -2397,6 +2795,177 @@ HardwareInfo *
 void   hardware_info__free_unpacked
                      (HardwareInfo *message,
                       ProtobufCAllocator *allocator);
+/* TransferRequest methods */
+void   transfer_request__init
+                     (TransferRequest         *message);
+size_t transfer_request__get_packed_size
+                     (const TransferRequest   *message);
+size_t transfer_request__pack
+                     (const TransferRequest   *message,
+                      uint8_t             *out);
+size_t transfer_request__pack_to_buffer
+                     (const TransferRequest   *message,
+                      ProtobufCBuffer     *buffer);
+TransferRequest *
+       transfer_request__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   transfer_request__free_unpacked
+                     (TransferRequest *message,
+                      ProtobufCAllocator *allocator);
+/* ImageBlock methods */
+void   image_block__init
+                     (ImageBlock         *message);
+size_t image_block__get_packed_size
+                     (const ImageBlock   *message);
+size_t image_block__pack
+                     (const ImageBlock   *message,
+                      uint8_t             *out);
+size_t image_block__pack_to_buffer
+                     (const ImageBlock   *message,
+                      ProtobufCBuffer     *buffer);
+ImageBlock *
+       image_block__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   image_block__free_unpacked
+                     (ImageBlock *message,
+                      ProtobufCAllocator *allocator);
+/* LoadRequest methods */
+void   load_request__init
+                     (LoadRequest         *message);
+size_t load_request__get_packed_size
+                     (const LoadRequest   *message);
+size_t load_request__pack
+                     (const LoadRequest   *message,
+                      uint8_t             *out);
+size_t load_request__pack_to_buffer
+                     (const LoadRequest   *message,
+                      ProtobufCBuffer     *buffer);
+LoadRequest *
+       load_request__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   load_request__free_unpacked
+                     (LoadRequest *message,
+                      ProtobufCAllocator *allocator);
+/* CancelLoadRequest methods */
+void   cancel_load_request__init
+                     (CancelLoadRequest         *message);
+size_t cancel_load_request__get_packed_size
+                     (const CancelLoadRequest   *message);
+size_t cancel_load_request__pack
+                     (const CancelLoadRequest   *message,
+                      uint8_t             *out);
+size_t cancel_load_request__pack_to_buffer
+                     (const CancelLoadRequest   *message,
+                      ProtobufCBuffer     *buffer);
+CancelLoadRequest *
+       cancel_load_request__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   cancel_load_request__free_unpacked
+                     (CancelLoadRequest *message,
+                      ProtobufCAllocator *allocator);
+/* SetBackupRequest methods */
+void   set_backup_request__init
+                     (SetBackupRequest         *message);
+size_t set_backup_request__get_packed_size
+                     (const SetBackupRequest   *message);
+size_t set_backup_request__pack
+                     (const SetBackupRequest   *message,
+                      uint8_t             *out);
+size_t set_backup_request__pack_to_buffer
+                     (const SetBackupRequest   *message,
+                      ProtobufCBuffer     *buffer);
+SetBackupRequest *
+       set_backup_request__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   set_backup_request__free_unpacked
+                     (SetBackupRequest *message,
+                      ProtobufCAllocator *allocator);
+/* TransferResponse methods */
+void   transfer_response__init
+                     (TransferResponse         *message);
+size_t transfer_response__get_packed_size
+                     (const TransferResponse   *message);
+size_t transfer_response__pack
+                     (const TransferResponse   *message,
+                      uint8_t             *out);
+size_t transfer_response__pack_to_buffer
+                     (const TransferResponse   *message,
+                      ProtobufCBuffer     *buffer);
+TransferResponse *
+       transfer_response__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   transfer_response__free_unpacked
+                     (TransferResponse *message,
+                      ProtobufCAllocator *allocator);
+/* LoadResponse methods */
+void   load_response__init
+                     (LoadResponse         *message);
+size_t load_response__get_packed_size
+                     (const LoadResponse   *message);
+size_t load_response__pack
+                     (const LoadResponse   *message,
+                      uint8_t             *out);
+size_t load_response__pack_to_buffer
+                     (const LoadResponse   *message,
+                      ProtobufCBuffer     *buffer);
+LoadResponse *
+       load_response__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   load_response__free_unpacked
+                     (LoadResponse *message,
+                      ProtobufCAllocator *allocator);
+/* CancelLoadResponse methods */
+void   cancel_load_response__init
+                     (CancelLoadResponse         *message);
+size_t cancel_load_response__get_packed_size
+                     (const CancelLoadResponse   *message);
+size_t cancel_load_response__pack
+                     (const CancelLoadResponse   *message,
+                      uint8_t             *out);
+size_t cancel_load_response__pack_to_buffer
+                     (const CancelLoadResponse   *message,
+                      ProtobufCBuffer     *buffer);
+CancelLoadResponse *
+       cancel_load_response__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   cancel_load_response__free_unpacked
+                     (CancelLoadResponse *message,
+                      ProtobufCAllocator *allocator);
+/* SetBackupResponse methods */
+void   set_backup_response__init
+                     (SetBackupResponse         *message);
+size_t set_backup_response__get_packed_size
+                     (const SetBackupResponse   *message);
+size_t set_backup_response__pack
+                     (const SetBackupResponse   *message,
+                      uint8_t             *out);
+size_t set_backup_response__pack_to_buffer
+                     (const SetBackupResponse   *message,
+                      ProtobufCBuffer     *buffer);
+SetBackupResponse *
+       set_backup_response__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   set_backup_response__free_unpacked
+                     (SetBackupResponse *message,
+                      ProtobufCAllocator *allocator);
 /* FirmwareImageInfo methods */
 void   firmware_image_info__init
                      (FirmwareImageInfo         *message);
@@ -2515,6 +3084,33 @@ typedef void (*RPLInstance_Closure)
 typedef void (*HardwareInfo_Closure)
                  (const HardwareInfo *message,
                   void *closure_data);
+typedef void (*TransferRequest_Closure)
+                 (const TransferRequest *message,
+                  void *closure_data);
+typedef void (*ImageBlock_Closure)
+                 (const ImageBlock *message,
+                  void *closure_data);
+typedef void (*LoadRequest_Closure)
+                 (const LoadRequest *message,
+                  void *closure_data);
+typedef void (*CancelLoadRequest_Closure)
+                 (const CancelLoadRequest *message,
+                  void *closure_data);
+typedef void (*SetBackupRequest_Closure)
+                 (const SetBackupRequest *message,
+                  void *closure_data);
+typedef void (*TransferResponse_Closure)
+                 (const TransferResponse *message,
+                  void *closure_data);
+typedef void (*LoadResponse_Closure)
+                 (const LoadResponse *message,
+                  void *closure_data);
+typedef void (*CancelLoadResponse_Closure)
+                 (const CancelLoadResponse *message,
+                  void *closure_data);
+typedef void (*SetBackupResponse_Closure)
+                 (const SetBackupResponse *message,
+                  void *closure_data);
 typedef void (*FirmwareImageInfo_Closure)
                  (const FirmwareImageInfo *message,
                   void *closure_data);
@@ -2553,6 +3149,15 @@ extern const ProtobufCMessageDescriptor iproute_rplmetrics__descriptor;
 extern const ProtobufCMessageDescriptor wpanstatus__descriptor;
 extern const ProtobufCMessageDescriptor rplinstance__descriptor;
 extern const ProtobufCMessageDescriptor hardware_info__descriptor;
+extern const ProtobufCMessageDescriptor transfer_request__descriptor;
+extern const ProtobufCMessageDescriptor image_block__descriptor;
+extern const ProtobufCMessageDescriptor load_request__descriptor;
+extern const ProtobufCMessageDescriptor cancel_load_request__descriptor;
+extern const ProtobufCMessageDescriptor set_backup_request__descriptor;
+extern const ProtobufCMessageDescriptor transfer_response__descriptor;
+extern const ProtobufCMessageDescriptor load_response__descriptor;
+extern const ProtobufCMessageDescriptor cancel_load_response__descriptor;
+extern const ProtobufCMessageDescriptor set_backup_response__descriptor;
 extern const ProtobufCMessageDescriptor firmware_image_info__descriptor;
 extern const ProtobufCMessageDescriptor vendor_tlv__descriptor;
 

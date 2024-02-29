@@ -534,7 +534,122 @@ message HardwareInfo {
   }
 }
 
-// TLV 75
+// TLV 65 TRANSFER_REQUEST_TLVID
+message TransferRequest {
+  HardwareInfo hwInfo = 1;
+  oneof fileHash_present {
+  bytes fileHash = 2;
+  }
+  oneof fileName_present {
+  string fileName = 3;
+  }
+  oneof version_present {
+  string version = 4;
+  }
+  oneof fileSize_present {
+  uint32 fileSize = 5;
+  }
+  oneof blockSize_present {
+  uint32 blockSize = 6;
+  }
+  oneof reportIntervalMin_present {
+  uint32 reportIntervalMin = 7;
+  }
+  oneof reportIntervalMax_present {
+  uint32 reportIntervalMax = 8;
+  }
+  oneof isPatch_present {
+  uint32 isPatch = 9;
+  }
+  oneof chopSize_present {
+  uint32 chopSize = 10;
+  }
+  oneof runVersion_present {
+  string runVersion = 11;
+  }
+}
+
+// TLV 67 IMAGE_BLOCK_TLVID
+message ImageBlock {
+  oneof fileHash_present {
+  bytes fileHash = 1;
+  }
+  oneof blockNum_present {
+  uint32 blockNum = 2;
+  }
+  oneof blockData_present {
+  bytes blockData = 3;
+  }
+}
+
+// TLV 68 LOAD_REQUEST_TLVID
+message LoadRequest {
+  oneof fileHash_present {
+  bytes fileHash = 1;
+  }
+  oneof loadTime_present {
+  uint32 loadTime = 2;
+  }
+}
+
+// TLV 69 CANCEL_LOAD_REQUEST_TLVID
+message CancelLoadRequest {
+  oneof fileHash_present {
+    bytes fileHash = 1;
+  }
+}
+
+// TLV 70 SET_BACKUP_REQUEST_TLVID
+message SetBackupRequest {
+  oneof fileHash_present {
+  bytes fileHash = 1;
+  }
+}
+
+// TLV 71 TRANSFER_RESPONSE_TLVID
+message TransferResponse {
+  oneof fileHash_present {
+  bytes fileHash = 1;
+  }
+  oneof response_present {
+  uint32 response = 2;
+  }
+}
+
+// TLV 72 LOAD_RESPONSE_TLVID
+message LoadResponse {
+  oneof fileHash_present {
+  bytes fileHash = 1;
+  }
+  oneof response_present {
+  uint32 response = 2;
+  }
+  oneof loadTime_present {
+  uint32 loadTime = 3;
+  }
+}
+
+// TLV 73 CANCEL_LOAD_RESPONSE_TLVID
+message CancelLoadResponse {
+  oneof fileHash_present {
+  bytes fileHash = 1;
+  }
+  oneof response_present {
+  uint32 response = 2;
+  }
+}
+
+// TLV 74 SET_BACKUP_RESPONSE_TLVID
+message SetBackupResponse {
+  oneof fileHash_present {
+  bytes fileHash = 1;
+  }
+  oneof response_present {
+  uint32 response = 2;
+  }
+}
+
+// TLV 75 FIRMWARE_IMAGE_INFO_TLVID
 message FirmwareImageInfo {
   oneof index_present {
   uint32 index = 1;
@@ -567,9 +682,27 @@ message FirmwareImageInfo {
   uint32 loadTime = 10;
   }
   HardwareInfo hwInfo = 11;
+  // oneof bitmapOffset_present {
+  // uint32 bitmapOffset = 12;
+  // }
+  //oneof kernelVersion_present {
+  //string kernelVersion = 13;
+  //}
+  //oneof subKernelVersion_present {
+  //string subKernelVersion = 14;
+  //}
+  //oneof isPatch_present {
+  //uint32 isPatch = 15;
+  //}
+  //oneof loadErrorCode_present {
+  //uint32 loadErrorCode = 16;
+  //}
+  //oneof subLoadErrorCode_present {
+  //uint32 subLoadErrorCode = 17;
+  //}
 }
 
-// TLV 127
+// TLV 127 VENDOR_TLVID
 message VendorTlv {
   oneof subType_present {
   uint32 subType = 1;

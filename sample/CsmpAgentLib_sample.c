@@ -14,42 +14,7 @@
  *  limitations under the License.
  */
 
-#include <stdio.h>
-#include <stdbool.h>
-#include <sys/time.h>
-#include <stdlib.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <string.h>
-#include <ifaddrs.h>
-#include <unistd.h>
-
-#include "csmp_service.h"
-#include "csmp_info.h"
 #include "CsmpAgentLib_sample.h"
-#include "signature_verify.h"
-
-#define nexthop_IP "fe80::a00:27ff:fe3b:2ab1"
-
-char *SSID = "Cisco";
-char vendorhwid[32] = "Vendor Hardware-ID";
-uint32_t g_init_time;
-uint8_t neighbor_eui64[2][8] = {{0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb1},
-                             {0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb0}};
-dev_config_t g_devconfig;
-csmp_handle_t g_csmp_handle;
-
-/* public key */
-//new key
-static const char pubkey[PUBLIC_KEY_LEN] = {
-  0x04, 0x23, 0xD2, 0x83, 0x45, 0xE8, 0xD5, 0xDF, 0x86, 0x9D,
-  0x6E, 0xE7, 0x58, 0x0D, 0xC1, 0x8F, 0x35, 0x9D, 0x57, 0xB1,
-  0x3D, 0x50, 0x4A, 0x16, 0x01, 0x15, 0xC4, 0x81, 0x19, 0xB0,
-  0xE6, 0x60, 0xB8, 0x64, 0x14, 0x01, 0x5D, 0x56, 0x83, 0xBE,
-  0xE1, 0x85, 0x98, 0xCB, 0x90, 0xE1, 0xF7, 0x9B, 0xF4, 0x33,
-  0x5A, 0x4B, 0x29, 0xAD, 0x35, 0x69, 0x9B, 0x4F, 0xDC, 0x42,
-  0x7F, 0xEB, 0xC2, 0x99, 0xA5
-};
 
 /**
  * @brief pubkey_get
@@ -67,8 +32,11 @@ void pubkey_get(char *key) {
  * @param num amount of instances (array index) of hardware Descriptions
  * @return void* pointer to global variable g_hardwareDesc
  */
-void* hardware_desc_get(uint32_t *num) {
+void* hardware_desc_get(tlvid_t tlvid, uint32_t *num) {
+  (void)tlvid;
   *num = 1;
+  DPRINTF("## sample_hw_desc: GET for TLV %d.\n", tlvid.type);
+
   g_hardwareDesc.has_entphysicalindex = true;
   g_hardwareDesc.has_entphysicaldescr = true;
   g_hardwareDesc.has_entphysicalclass = true;
@@ -80,20 +48,61 @@ void* hardware_desc_get(uint32_t *num) {
   g_hardwareDesc.has_entphysicalmodelname = true;
   g_hardwareDesc.has_entphysicalfunction = true;
 
-  g_hardwareDesc.entphysicalindex = 1;
-  sprintf(g_hardwareDesc.entphysicaldescr,"CSMP Agent Lib test node");
-  g_hardwareDesc.entphysicalclass = MODULE;
-  sprintf(g_hardwareDesc.entphysicalname,"lowpan");
-  sprintf(g_hardwareDesc.entphysicalhardwarerev,"1.0");
-  sprintf(g_hardwareDesc.entphysicalfirmwarerev,"1.0.0");
-  snprintf(g_hardwareDesc.entphysicalserialnum,sizeof(g_hardwareDesc.entphysicalserialnum),
+    switch (DEVICE_TYPE) {
+    case CSMP_AGENT:
+    DPRINTF("sample_hw_desc: DEVICE_TYPE = CSMP_AGENT\n");
+    g_hardwareDesc.entphysicalindex = 1;
+    sprintf(g_hardwareDesc.entphysicaldescr,"CSMP-Agent Library");
+    g_hardwareDesc.entphysicalclass = CLASS_MODULE;
+    sprintf(g_hardwareDesc.entphysicalname,"lowpan");
+    sprintf(g_hardwareDesc.entphysicalhardwarerev,"1.0");
+    sprintf(g_hardwareDesc.entphysicalfirmwarerev,"1.0.0");
+    snprintf(g_hardwareDesc.entphysicalserialnum,sizeof(g_hardwareDesc.entphysicalserialnum),
              "%02X%02X%02X%02X%02X%02X%02X%02X",
              g_eui64[0],g_eui64[1],g_eui64[2],g_eui64[3],
              g_eui64[4],g_eui64[5],g_eui64[6],g_eui64[7]);
-  sprintf(g_hardwareDesc.entphysicalmfgname,"IOTG CRDC");
-  sprintf(g_hardwareDesc.entphysicalmodelname,"CSMP AGENT LIB");
-  g_hardwareDesc.entphysicalfunction = 1;
+    sprintf(g_hardwareDesc.entphysicalmfgname,"Cisco IoTG");
+    sprintf(g_hardwareDesc.entphysicalmodelname,"CSMP_AGENT");
+    g_hardwareDesc.entphysicalfunction = FUNCTION_METER; // Meter
+    break;
 
+    case CISCO_IR510:
+    DPRINTF("sample_hw_desc: DEVICE_TYPE = CISCO_IR510\n");
+    g_hardwareDesc.entphysicalindex = 1;
+    sprintf(g_hardwareDesc.entphysicaldescr,"Cisco IR510 Gateway");
+    g_hardwareDesc.entphysicalclass = CLASS_MODULE;
+    sprintf(g_hardwareDesc.entphysicalname,"lowpan");
+    sprintf(g_hardwareDesc.entphysicalhardwarerev,"1.0");
+    sprintf(g_hardwareDesc.entphysicalfirmwarerev,"6.5(6.5.9)");
+    snprintf(g_hardwareDesc.entphysicalserialnum,sizeof(g_hardwareDesc.entphysicalserialnum),
+             "%02X%02X%02X%02X%02X%02X%02X%02X",
+             g_eui64[0],g_eui64[1],g_eui64[2],g_eui64[3],
+             g_eui64[4],g_eui64[5],g_eui64[6],g_eui64[7]);
+        sprintf(g_hardwareDesc.entphysicalmfgname,"Cisco IoTG");
+    sprintf(g_hardwareDesc.entphysicalmodelname,"CISCO_IR510");
+    g_hardwareDesc.entphysicalfunction = FUNCTION_DAG; // Gateway
+    break;
+
+    case ITRON_METER:
+    DPRINTF("sample_hw_desc: DEVICE_TYPE = ITRON_METER\n");
+    g_hardwareDesc.entphysicalindex = 1;
+    sprintf(g_hardwareDesc.entphysicaldescr,"Itron OWCM");
+    g_hardwareDesc.entphysicalclass = CLASS_MODULE;
+    sprintf(g_hardwareDesc.entphysicalname,"lowpan");
+    sprintf(g_hardwareDesc.entphysicalhardwarerev,"3.1");
+    sprintf(g_hardwareDesc.entphysicalfirmwarerev,"6.2(6.2.33)");
+    snprintf(g_hardwareDesc.entphysicalserialnum,sizeof(g_hardwareDesc.entphysicalserialnum),
+             "%02X%02X%02X%02X%02X%02X%02X%02X",
+             g_eui64[0],g_eui64[1],g_eui64[2],g_eui64[3],
+             g_eui64[4],g_eui64[5],g_eui64[6],g_eui64[7]);
+    sprintf(g_hardwareDesc.entphysicalmfgname,"Itron");
+    sprintf(g_hardwareDesc.entphysicalmodelname,"ITRON_METER");
+    g_hardwareDesc.entphysicalfunction = FUNCTION_METER; // Meter
+    break;
+
+    default: // GENERIC_HW: 3rd party generic hardware
+    DPRINTF("sample_hw_desc: DEVICE_TYPE = GENERIC_HW\n");
+  }
   return &g_hardwareDesc;
 }
 
@@ -422,40 +431,643 @@ void* rplinstance_get(uint32_t *num) {
 }
 
 /**
- * @brief firmware information
- *
- * @param num amount of instances of g_firmwareImageInfo
- * @return void* pointer to global g_firmwareImageInfo
+ * @brief   GET TLV65 TRANSFER_REQUEST_TLVID
+ * @param   tlvid tlvid structure
+ * @param   num amount of instances of g_firmwareImageInfo
+ * @return  void* pointer to global g_transferRequest
  */
-void* firmware_image_info_get(uint32_t *num) {
-  *num = 1;
+void* sample_get_transferRequest(tlvid_t tlvid, uint32_t *num) {
+  (void)tlvid;
+  (void)num;
+  DPRINTF("## sample_firmwaremgmt: GET for TLV %d.\n", tlvid.type);
 
-  g_firmwareImageInfo.has_index = true;
-  g_firmwareImageInfo.has_filehash = true;
-  g_firmwareImageInfo.has_filename = true;
-  g_firmwareImageInfo.has_version = true;
-  g_firmwareImageInfo.has_filesize = true;
-  g_firmwareImageInfo.has_isdefault = true;
-  g_firmwareImageInfo.has_isrunning = true;
-  g_firmwareImageInfo.has_hwinfo = true;
-  g_firmwareImageInfo.hwinfo.has_hwid = true;
-  g_firmwareImageInfo.hwinfo.has_vendorhwid = true;
+  // Check upload slot download status
+  if (g_slothdr[UPLOAD_IMAGE].status != FWHDR_STATUS_DOWNLOAD) {
+    g_transferRequest.status = g_slothdr[UPLOAD_IMAGE].status;
+    DPRINTF("sample_firmwaremgmt: Transfer request download status = %u\n",
+           g_transferRequest.status);
+    return &g_transferRequest;
+  }
+  // Udpate g_transferRequest fields
+  memcpy(g_transferRequest.filehash.data, g_slothdr[UPLOAD_IMAGE].filehash, SHA256_HASH_SIZE);
+  strncpy(g_transferRequest.filename, g_slothdr[UPLOAD_IMAGE].filename, FILE_NAME_SIZE);
+  strncpy(g_transferRequest.version, g_slothdr[UPLOAD_IMAGE].version, VERSION_SIZE);
+  strncpy(g_transferRequest.hwinfo.hwid, g_slothdr[UPLOAD_IMAGE].hwid, HWID_SIZE);
+  g_transferRequest.filesize = g_slothdr[UPLOAD_IMAGE].filesize;
+  g_transferRequest.blocksize = g_slothdr[UPLOAD_IMAGE].blocksize;
+  g_transferRequest.report_int_min = g_slothdr[UPLOAD_IMAGE].reportintervalmin;
+  g_transferRequest.report_int_max = g_slothdr[UPLOAD_IMAGE].reportintervalmax;
+  g_transferRequest.status = g_slothdr[UPLOAD_IMAGE].status;
 
-  g_firmwareImageInfo.index = 1;
-  g_firmwareImageInfo.filehash.len = 32;
-  sprintf((char *)g_firmwareImageInfo.filehash.data, "12345");
-  sprintf(g_firmwareImageInfo.filename, "vendor firmware");
-  sprintf(g_firmwareImageInfo.version, "1.0.0");
-  g_firmwareImageInfo.filesize = 246272;
-  g_firmwareImageInfo.isdefault = true;
-  g_firmwareImageInfo.isrunning = true;
-  memcpy(g_firmwareImageInfo.hwinfo.vendorhwid, vendorhwid, strlen(vendorhwid));
+  DPRINTF("## sample_firmwaremgmt: GET for TLV %d done.\n", tlvid.type);
+  return &g_transferRequest;
+}
 
+/**
+ * @brief   POST TLV65 TRANSFER_REQUEST_TLVID
+ *
+ * @param   tlvid tlvid structure
+ * @param   tlv Transfer_Request structure
+ * @return  void
+ */
+void sample_put_transferRequest(tlvid_t tlvid, Transfer_Request *tlv) {
+  (void)tlvid;
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %d.\n", tlvid.type);
+
+  if (!tlv) {
+    DPRINTF("sample_firmwaremgmt: Transfer request tlv context is NULL\n");
+    return;
+  }
+
+  uint32_t tmin = tlv->report_int_min * 1000;
+  uint32_t tmax = tlv->report_int_max * 1000;
+
+  // Check hardware id
+  if (!(tlv->hwinfo.has_hwid)) {
+    tlv->response = RESPONSE_INCOMPATIBLE_HW;
+    DPRINTF("sample_firmwaremgmt: Invalid hardware id: %s\n", tlv->hwinfo.hwid);
+    return;
+  }
+  // Check filehash len
+  if (tlv->filehash.len != SHA256_HASH_SIZE) {
+    tlv->response = RESPONSE_INVALID_REQ;
+    DPRINTF("sample_firmwaremgmt: Invalid filehash size: %lu\n", tlv->filehash.len);
+    return;
+  }
+  // Check filesize
+  if (tlv->filesize == 0 ||
+      tlv->filesize > CSMP_FWMGMT_SLOTIMG_SIZE) {
+    tlv->response = RESPONSE_FILE_SIZE_TOO_BIG;
+    DPRINTF("sample_firmwaremgmt: Invalid file size: %u\n", tlv->filesize);
+    return;
+  }
+  // blocksize should be smaller than csmp's MTU (1024)
+  // blocksize should be larger than filesize/1024 since there is only 1024 bitmaps
+  if (tlv->blocksize == 0 ||
+      tlv->blocksize > BLOCK_SIZE ||
+      tlv->blocksize < tlv->filesize/(CSMP_FWMGMT_BLKMAP_CNT * 32)) {
+    tlv->response = RESPONSE_INVALID_BLOCK_SIZE;
+    DPRINTF("sample_firmwaremgmt: Invalid block size: %u\n", tlv->blocksize);
+    return;
+  }
+  // Check pending reboot
+  if (g_initload && (g_curloadslot == UPLOAD_IMAGE)) {
+    tlv->response = RESPONSE_PENDING_REBOOT;
+    DPRINTF("sample_firmwaremgmt: Pending reboot for upload image\n");
+    return;
+  }
+  // Check duplicate request on Upload slot
+  if ((memcmp(tlv->filehash.data, g_slothdr[UPLOAD_IMAGE].filehash, tlv->filehash.len)) == 0) {
+    tlv->response = RESPONSE_DUP_XFER;
+    DPRINTF("sample_firmwaremgmt: Duplicate transfer request\n");
+    return;
+  }
+  // Check duplicate request on Run slot
+  if ((memcmp(tlv->filehash.data, g_slothdr[RUN_IMAGE].filehash, tlv->filehash.len)) == 0) {
+    tlv->response = RESPONSE_MATCH_RUN_XFER;
+    DPRINTF("sample_firmwaremgmt: Transfer request matches Run image\n");
+    return;
+  }
+  // Check duplicate request on Backup slot
+  if ((memcmp(tlv->filehash.data, g_slothdr[BACKUP_IMAGE].filehash, tlv->filehash.len)) == 0) {
+    tlv->response = RESPONSE_MATCH_BAK_XFER;
+    DPRINTF("sample_firmwaremgmt: Transfer request matches Backup image\n");
+    return;
+  }
+
+  // Initiliase new transfer - start
+  tlv->response = RESPONSE_OK;
+  memcpy(&g_transferRequest, tlv, sizeof(g_transferRequest));
+  if (!g_initxfer) {
+    g_initxfer = true;
+  }
+
+  // Init report intervals
+  tmin = (tmin >= MIN_REPORT_MIN) ? tmin : MIN_REPORT_MIN;
+  tmax = (tmax >= MAX_REPORT_MIN) ? tmax : MAX_REPORT_MIN;
+  tmax = (tmax < tmin) ? tmin : tmax;
+
+  // Erase upload slot
+  memset(&g_slothdr[UPLOAD_IMAGE], 0xFF, sizeof(g_slothdr[UPLOAD_IMAGE]));
+
+  // Init upload slot from tlv context
+  memcpy(g_slothdr[UPLOAD_IMAGE].filehash, tlv->filehash.data, SHA256_HASH_SIZE);
+  strncpy(g_slothdr[UPLOAD_IMAGE].filename, tlv->filename, sizeof(g_slothdr[UPLOAD_IMAGE].filename));
+  strncpy(g_slothdr[UPLOAD_IMAGE].version, tlv->version, sizeof(g_slothdr[UPLOAD_IMAGE].version));
+  strncpy(g_slothdr[UPLOAD_IMAGE].hwid, tlv->hwinfo.hwid, sizeof(g_slothdr[UPLOAD_IMAGE].hwid));
+  g_slothdr[UPLOAD_IMAGE].filesize = tlv->filesize;
+  g_slothdr[UPLOAD_IMAGE].blocksize = tlv->blocksize;
+  g_slothdr[UPLOAD_IMAGE].filesizelastblk = g_slothdr[UPLOAD_IMAGE].filesize %
+                                            g_slothdr[UPLOAD_IMAGE].blocksize;
+  if (g_slothdr[UPLOAD_IMAGE].filesizelastblk == 0) {
+      g_slothdr[UPLOAD_IMAGE].filesizelastblk = g_slothdr[UPLOAD_IMAGE].blocksize;
+  }
+  g_slothdr[UPLOAD_IMAGE].blockcnt = (g_slothdr[UPLOAD_IMAGE].filesize +
+                                     (g_slothdr[UPLOAD_IMAGE].blocksize - 1)) /
+                                      g_slothdr[UPLOAD_IMAGE].blocksize;
+  g_slothdr[UPLOAD_IMAGE].reportintervalmin = tmin;
+  g_slothdr[UPLOAD_IMAGE].reportintervalmax = tmax;
+  g_slothdr[UPLOAD_IMAGE].status = FWHDR_STATUS_DOWNLOAD;
+  // g_slothdr[UPLOAD_IMAGE].magicU = CSMP_FWMGMT_SLOTMAGIC_U;
+  // g_slothdr[UPLOAD_IMAGE].magicL = CSMP_FWMGMT_SLOTMAGIC_L;
+
+  // Initiliase new transfer - done
+  g_initxfer = false;
+
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
+}
+
+/**
+ * @brief   POST TLV67 IMAGE_BLOCK_TLVID
+ *
+ * @param   tlvid tlvid structure
+ * @param   tlv Image_Block structure
+ * @return  void
+ */
+void sample_put_imageBlock(tlvid_t tlvid, Image_Block *tlv) {
+  (void)tlvid;
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %d.\n", tlvid.type);
+
+  if (!tlv) {
+    DPRINTF("sample_firmwaremgmt: Image block tlv context is NULL\n");
+    return;
+  }
+
+  // Update g_imageBlock structure from tlv context
+  memcpy(&g_imageBlock, tlv, sizeof(g_imageBlock));
+
+  // Check filehash.len, filehash.data, blockdata.len with upload slot
+  if ((g_imageBlock.filehash.len >= MIN_HASH_COMPARE_LEN) &&
+      (g_imageBlock.filehash.len <= sizeof(g_slothdr[UPLOAD_IMAGE].filehash)) &&
+      (memcmp(g_imageBlock.filehash.data, g_slothdr[UPLOAD_IMAGE].filehash,
+              g_imageBlock.filehash.len) == 0) &&
+      (g_imageBlock.blockdata.len <= g_slothdr[UPLOAD_IMAGE].blocksize)) {
+    tlv->retval = true;
+    // Write image block to upload slot
+    DPRINTF("sample_firmwaremgmt: Writing image block to upload slot\n");
+
+    uint32_t bytes = 0;
+    (void)bytes; // Suppress unused param warning.
+    uint32_t word = g_imageBlock.blocknum >> 5;
+    uint32_t bit = 31 - (g_imageBlock.blocknum & 31);
+    uint32_t mapval = 0xFFFFFFFFUL;
+    uint32_t offset = (g_imageBlock.blocknum - 1) * g_slothdr[UPLOAD_IMAGE].blocksize;
+    DPRINTF("sample_firmwaremgmt: Image block blocknum=%u offset=%u [word=%x bit=%x]\n",
+           g_imageBlock.blocknum, offset, word, bit);
+
+    // Check Transfer Request intialised
+    if (g_initxfer) {
+      DPRINTF("sample_firmwaremgmt: Transfer still initializing... (Image block %u)\n",
+             g_imageBlock.blocknum);
+      g_downloadbusy = false;
+      return;
+    }
+    // Check blocknum exceeds bitmap
+    if (word >= CSMP_FWMGMT_BLKMAP_CNT) {
+      DPRINTF("sample_firmwaremgmt: Image block %u exceeds bitmap length\n",
+             g_imageBlock.blocknum);
+      g_downloadbusy = false;
+      return;
+    }
+
+    mapval = g_slothdr[UPLOAD_IMAGE].nblkmap[word];
+    DPRINTF("sample_firmwaremgmt: Image block mapval=0x%x\n", mapval);
+
+    if ((mapval & (1 << bit)) == 0) {
+      DPRINTF("sample_firmwaremgmt: Image block %u already written\n",
+             g_imageBlock.blocknum);
+      // Check for transfer completion
+      // Check slot header bitmap for download completion
+      uint32_t blk_i = 0, blk_j = 0, shift = 31;
+      uint32_t blk_whole_cnt;
+      uint32_t last_mapval;
+
+      blk_whole_cnt = g_slothdr[UPLOAD_IMAGE].blockcnt & ~0x1F;
+      while ((blk_i < (CSMP_FWMGMT_BLKMAP_CNT - 1)) &&
+            (blk_j < blk_whole_cnt)) {
+        if (g_slothdr[UPLOAD_IMAGE].nblkmap[blk_i] != 0) {
+          DPRINTF("sample_firmwaremgmt: Image block transfer still not complete\n");
+          g_downloadbusy = false;
+          return;
+        }
+        blk_i++;
+        blk_j += 32;
+      }
+      last_mapval = g_slothdr[UPLOAD_IMAGE].nblkmap[blk_i];
+      while (blk_j < g_slothdr[UPLOAD_IMAGE].blockcnt) {
+        if (last_mapval & (1 << shift)) {
+          DPRINTF("sample_firmwaremgmt: Last image block transfer still not complete\n");
+          g_downloadbusy = false;
+          return;
+        }
+        blk_j++;
+        shift--;
+      }
+
+      // Set slot status as complete else bad image
+      DPRINTF("sample_firmwaremgmt: Image block transfer complete, filehash matched!\n");
+      g_slothdr[UPLOAD_IMAGE].status = FWHDR_STATUS_COMPLETE;
+      g_downloadbusy = false;
+      return;
+    }
+    // Write image block to slot at valid offset
+    if (offset < CSMP_FWMGMT_SLOTIMG_SIZE &&
+       ((offset + g_imageBlock.blockdata.len) < CSMP_FWMGMT_SLOTIMG_SIZE)) {
+      DPRINTF("sample_firmwaremgmt: Valid image block %u write offset=%u\n",
+             g_imageBlock.blocknum, offset);
+      memcpy(&g_slothdr[UPLOAD_IMAGE].image[offset], g_imageBlock.blockdata.data,
+                   g_imageBlock.blockdata.len);
+
+      mapval ^= (1 << bit);
+      g_slothdr[UPLOAD_IMAGE].nblkmap[word] = mapval;
+
+      DPRINTF("sample_firmwaremgmt: Write image block %u (len=%lu offset=%u) \
+             success! [mapval=0x%x word=0x%x bit=0x%x]\n",
+             g_imageBlock.blocknum, g_imageBlock.blockdata.len, offset, mapval, word, bit);
+    } else {
+      // Invalid write offset
+      DPRINTF("sample_firmwaremgmt: Invalid image block %u write offset=%u\n",
+             g_imageBlock.blocknum, offset);
+    }
+  } else {
+    tlv->retval = false;
+    DPRINTF("sample_firmwaremgmt: Image block POST failed!\n");
+  }
+
+  g_downloadbusy = false;
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
+}
+
+/**
+ * @brief   GET TLV68 LOAD_REQUEST_TLVID
+ *
+ * @param   tlvid tlvid structure
+ * @param   num amount of instances of g_firmwareImageInfo
+ * @return  void* pointer to global g_loadRequest
+ */
+void* sample_get_loadRequest(tlvid_t tlvid, uint32_t *num) {
+  (void)tlvid;
+  (void)num;
+  DPRINTF("## sample_firmwaremgmt: GET for TLV %d.\n", tlvid.type);
+
+  // Check for pending active load requests
+  if (!g_initload) {
+    DPRINTF("sample_firmwaremgmt: No active load requests pending\n");
+    return NULL;
+  }
+
+  // Check for valid current load slot
+  switch (g_curloadslot) {
+  case UPLOAD_IMAGE:
+    memcpy(g_loadRequest.filehash.data, g_slothdr[UPLOAD_IMAGE].filehash,
+           SHA256_HASH_SIZE);
+  break;
+  case BACKUP_IMAGE:
+    memcpy(g_loadRequest.filehash.data, g_slothdr[BACKUP_IMAGE].filehash,
+           SHA256_HASH_SIZE);
+  break;
+  default:
+    DPRINTF("sample_firmwaremgmt: Current load slot invalid\n");
+    return NULL;
+  }
+  g_loadRequest.filehash.len = SHA256_HASH_SIZE;
+  g_loadRequest.loadtime = g_curloadtime;
+
+  DPRINTF("## sample_firmwaremgmt: GET for TLV %d done.\n", tlvid.type);
+  return &g_loadRequest;
+}
+
+/**
+ * @brief   LOAD REQUEST TIMER HANDLER
+ */
+void loadreq_timer_fired() {
+  DPRINTF("sample_firmwaremgmt: Load request timer fired for slot=%d with delay=%u\n",
+         g_curloadslot, g_curloadtime);
+
+  memcpy(&g_slothdr[RUN_IMAGE], &g_slothdr[g_curloadslot],
+         sizeof(g_slothdr[RUN_IMAGE]));
+}
+
+/**
+ * @brief   POST TLV68 LOAD_REQUEST_TLVID
+ *
+ * @param   tlvid tlvid structure
+ * @param   tlv Load_Request structure
+ * @return  void
+ */
+void sample_put_loadRequest(tlvid_t tlvid, Load_Request *tlv) {
+  (void)tlvid;
+  uint32_t newloadslot;
+  uint32_t delay = MIN_LOAD_DELAY; // 1 sec
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %d.\n", tlvid.type);
+
+  if (!tlv) {
+    DPRINTF("sample_firmwaremgmt: Load request tlv context is NULL\n");
+    return;
+  }
+
+  // Reference g_loadRequest via tlv context
+  g_loadRequest = *tlv;
+
+  // Check if filehash matches UPLOAD image
+  if (memcmp(g_loadRequest.filehash.data, g_slothdr[UPLOAD_IMAGE].filehash,
+             g_loadRequest.filehash.len) == 0) {
+    switch (g_slothdr[UPLOAD_IMAGE].status) {
+      case FWHDR_STATUS_COMPLETE:
+        DPRINTF("sample_firmwaremgmt: Load request ok for upload slot image\n");
+        tlv->response = RESPONSE_OK;
+        break;
+      case FWHDR_STATUS_BADHASH:
+      case FWHDR_STATUS_BADIMAGE:
+        DPRINTF("sample_firmwaremgmt: Load request on bad upload slot image\n");
+        tlv->response = RESPONSE_SIGNATURE_FAILED;
+        break;
+      default:
+        DPRINTF("sample_firmwaremgmt: Load request incomplete\n");
+        tlv->response = RESPONSE_INCOMPLETE;
+        break;
+    }
+    if (tlv->response != RESPONSE_OK) {
+      DPRINTF("sample_firmwaremgmt: Load request failed\n");
+      return;
+    }
+    newloadslot = UPLOAD_IMAGE;
+  } // Check if filehash matches RUN image
+  else if (memcmp(g_loadRequest.filehash.data, g_slothdr[RUN_IMAGE].filehash,
+           g_loadRequest.filehash.len) == 0) {
+    DPRINTF("sample_firmwaremgmt: Load request on running image\n");
+    tlv->response = RESPONSE_IMAGE_RUNNING;
+    return;
+  } // Check if filehash matches BACKUP image
+  else if (memcmp(g_loadRequest.filehash.data, g_slothdr[BACKUP_IMAGE].filehash,
+             g_loadRequest.filehash.len) == 0) {
+    newloadslot = BACKUP_IMAGE;
+  } // Load request for unknown filehash
+  else {
+    DPRINTF("sample_firmwaremgmt: Load request with unknown filehash\n");
+    tlv->response = RESPONSE_UNKNOWN_HASH;
+    return;
+  }
+  // Check for redundant load request
+  if (g_initload && (newloadslot == g_curloadslot) &&
+      (g_loadRequest.loadtime == g_curloadtime)) {
+    DPRINTF("sample_firmwaremgmt: Redundant load request\n");
+    return;
+  }
+
+  // Cancel any previous/pending load request timer
+  trickle_timer_stop(lrq_timer);
+  g_curloadslot = newloadslot;
+  g_curloadtime = 0;
+  g_initload = true;
+
+  if (g_loadRequest.loadtime != 0) {
+    // Get current time to calculate timer delay for load request
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    if (g_loadRequest.loadtime > tv.tv_sec) {
+      delay = (g_loadRequest.loadtime - tv.tv_sec) * 1000;
+    } else {
+      DPRINTF("sample_firmwaremgmt: Load request valid, local clock invalid\n");
+      tlv->response = RESPONSE_INVALID_REQ;
+      g_initload = false;
+      return;
+    }
+  }
+
+  // Upon success update g_loadRequest structure from tlv context
+  memcpy(&g_loadRequest, tlv, sizeof(g_loadRequest));
+
+  // Stop previous/pending load timers
+  trickle_timer_stop(lrq_timer);
+  // Start new timer delay
+  g_curloadtime = g_loadRequest.loadtime;
+  trickle_timer_start(lrq_timer, delay, delay,
+                      (trickle_timer_fired_t)loadreq_timer_fired);
+  DPRINTF("sample_firmwaremgmt: Load request timer started for slot=%d with delay=%u\n",
+         g_curloadslot, g_curloadtime);
+
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
+}
+
+/**
+ * @brief   POST TLV69 CANCEL_LOAD_REQUEST_TLVID
+ *
+ * @param   tlvid tlvid structure
+ * @param   tlv Cancel_Load_Request structure
+ * @return  void
+ */
+void sample_put_cancelLoadRequest(tlvid_t tlvid, Cancel_Load_Request *tlv) {
+  (void)tlvid;
+  const uint8_t *filehash = NULL;
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %d.\n", tlvid.type);
+
+  if (!tlv) {
+    DPRINTF("sample_firmwaremgmt: Cancel load request tlv context is NULL\n");
+    return;
+  }
+
+  switch (g_curloadslot) {
+    case RUN_IMAGE:
+    DPRINTF("sample_firmwaremgmt: Received cancel load request for RUN_IMAGE (%u)\n",
+           g_curloadslot);
+    filehash = g_slothdr[RUN_IMAGE].filehash;
+    break;
+    case UPLOAD_IMAGE:
+    DPRINTF("sample_firmwaremgmt: Received cancel load request for UPLOAD_IMAGE (%u)\n",
+           g_curloadslot);
+    filehash = g_slothdr[UPLOAD_IMAGE].filehash;
+    break;
+    case BACKUP_IMAGE:
+    DPRINTF("sample_firmwaremgmt: Received cancel load request for BACKUP_IMAGE (%u)\n",
+           g_curloadslot);
+    filehash = g_slothdr[BACKUP_IMAGE].filehash;
+    break;
+    default:
+    DPRINTF("sample_firmwaremgmt: Received cancel load request for invalid slot (%u)\n",
+           g_curloadslot);
+    tlv->response = RESPONSE_INVALID_REQ;
+    return;
+  }
+
+  if ((filehash != NULL) &&
+    memcmp(tlv->filehash.data, filehash, SHA256_HASH_SIZE) == 0) {
+    DPRINTF("sample_firmwaremgmt: Cancel load request valid, cancelling current load request\n");
+
+    // Cancel current load request
+    trickle_timer_stop(lrq_timer);
+    g_initload = false;
+    g_curloadtime = 0;
+    g_curloadslot = 0xFFU;
+  }
+
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
+}
+
+/**
+ * @brief   POST TLV70 SET_BACKUP_REQUEST_TLVID
+ *
+ * @param   tlvid tlvid structure
+ * @param   tlv Set_Backup_Request structure
+ * @return  void
+ */
+void sample_put_setBackupRequest(tlvid_t tlvid, Set_Backup_Request *tlv) {
+  (void)tlvid;
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %d.\n", tlvid.type);
+
+  if (!tlv) {
+    DPRINTF("sample_firmwaremgmt: Cancel load request tlv context is NULL\n");
+    return;
+  }
+
+  // Check for upload image status
+  if (memcmp(tlv->filehash.data, g_slothdr[UPLOAD_IMAGE].filehash,
+             tlv->filehash.len) == 0) {
+    if (g_slothdr[UPLOAD_IMAGE].status != FWHDR_STATUS_COMPLETE) {
+      DPRINTF("sample_firmwaremgmt: Set backup request for imcomplete upload image\n");
+      tlv->response = RESPONSE_INCOMPLETE;
+      return;
+    }
+    DPRINTF("sample_firmwaremgmt: Set backup request for upload image\n");
+    g_curbackupslot = UPLOAD_IMAGE;
+  } // Check for run image status
+  else if (memcmp(tlv->filehash.data, g_slothdr[RUN_IMAGE].filehash,
+                  tlv->filehash.len) == 0) {
+    DPRINTF("sample_firmwaremgmt: Set backup request for run image\n");
+    g_curbackupslot = RUN_IMAGE;
+  } // Backup request for unknon filehash
+  else {
+    DPRINTF("sample_firmwaremgmt: Set backup request for unknown filehash\n");
+    tlv->response = RESPONSE_UNKNOWN_HASH;
+    return;
+  }
+
+  // Check for pending load requests on backup image
+  if (g_initload && (g_curloadslot = BACKUP_IMAGE)) {
+    DPRINTF("sample_firmwaremgmt: Active load request on backup image\n");
+    tlv->response = RESPONSE_PENDING_REBOOT;
+    return;
+  }
+  // Erase backup slot
+  if (g_curbackupslot == RUN_IMAGE || g_curbackupslot == UPLOAD_IMAGE) {
+    memset(&g_slothdr[BACKUP_IMAGE], 0xFF, sizeof(g_slothdr[BACKUP_IMAGE]));
+  }
+  // Copy target image to backup slot
+  switch (g_curbackupslot) {
+    case RUN_IMAGE:
+      DPRINTF("sample_firmwaremgmt: Backing-up run image to backup slot\n");
+      memcpy(&g_slothdr[BACKUP_IMAGE], &g_slothdr[RUN_IMAGE],
+             sizeof(g_slothdr[BACKUP_IMAGE]));
+      g_slothdr[BACKUP_IMAGE].status = FWHDR_STATUS_COMPLETE;
+      break;
+    case UPLOAD_IMAGE:
+      DPRINTF("sample_firmwaremgmt: Backing-up upload image to backup slot\n");
+      memcpy(&g_slothdr[BACKUP_IMAGE], &g_slothdr[UPLOAD_IMAGE],
+             sizeof(g_slothdr[BACKUP_IMAGE]));
+      g_slothdr[BACKUP_IMAGE].status = FWHDR_STATUS_COMPLETE;
+      break;
+    default:
+      DPRINTF("sample_firmwaremgmt: Set backup request from invalid backup slot (%u)\n",
+             g_curbackupslot);
+      tlv->response = RESPONSE_INVALID_REQ;
+      return;
+  }
+  g_curbackupslot = 0xFFU;
+
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
+}
+
+/**
+ * @brief   GET TLV75 FIRMWARE_IMAGE_INFO_TLVID
+ *
+ * @param   tlvid tlvid structure
+ * @param   num number of instances of g_firmwareImageInfo
+ * @return  void* pointer to global g_firmwareImageInfo
+ */
+void* sample_get_firmwareImageInfo(tlvid_t tlvid, uint32_t *num) {
+  (void)tlvid;
+  *num = 0;
+  DPRINTF("## sample_firmwaremgmt: GET for TLV %d.\n", tlvid.type);
+
+  // Enumerate all active slots
+  // Active slots: 0-RUN_IMAGE, 1-UPLOAD_IMAGE, 2-BACKUP_IMAGE
+  for (uint32_t idx = 0; idx < CSMP_FWMGMT_ACTIVE_SLOTS; idx++) {
+      // Reset g_firmwareImageInfo[slotid] structure
+      memset(&g_firmwareImageInfo[idx], 0, sizeof(g_firmwareImageInfo[idx]));
+
+    // Check for image download status
+    if (g_slothdr[idx].status == FWHDR_STATUS_COMPLETE) {
+      // Track number of inuse active slots
+      (*num)++;
+      DPRINTF("sample_firmwaremgmt: Reading firmware image info for slot id:%d\n", idx);
+
+      // Index
+      g_firmwareImageInfo[idx].has_index = true;
+      g_firmwareImageInfo[idx].index = idx + 1;
+      // Filehash
+      g_firmwareImageInfo[idx].has_filehash = true;
+      g_firmwareImageInfo[idx].filehash.len = sizeof(g_slothdr[idx].filehash);
+      memcpy(g_firmwareImageInfo[idx].filehash.data, g_slothdr[idx].filehash,
+             sizeof(g_slothdr[idx].filehash));
+      // Filename
+      g_firmwareImageInfo[idx].has_filename = true;
+      strncpy(g_firmwareImageInfo[idx].filename, g_slothdr[idx].filename,
+              FILE_NAME_SIZE);
+      // Version
+      g_firmwareImageInfo[idx].has_version = true;
+      strncpy(g_firmwareImageInfo[idx].version, g_slothdr[idx].version,
+              VERSION_SIZE);
+      // Filesize
+      g_firmwareImageInfo[idx].has_filesize = true;
+      g_firmwareImageInfo[idx].filesize = g_slothdr[idx].filesize;
+      // Blocksize
+      g_firmwareImageInfo[idx].has_blocksize = true;
+      g_firmwareImageInfo[idx].blocksize = g_slothdr[idx].blocksize;
+      // Blockcount
+      g_firmwareImageInfo[idx].blockcnt = g_slothdr[idx].blockcnt;
+      // Bitmap
+      g_firmwareImageInfo[idx].has_bitmap = true;
+      g_firmwareImageInfo[idx].bitmap.len = sizeof(g_slothdr[idx].nblkmap);
+      memcpy(g_firmwareImageInfo[idx].bitmap.data, g_slothdr[idx].nblkmap,
+             sizeof(g_slothdr[idx].nblkmap));
+      // Default image?
+      g_firmwareImageInfo[idx].has_isdefault = (idx == BACKUP_IMAGE) ? true : false;
+      g_firmwareImageInfo[idx].isdefault = g_firmwareImageInfo[idx].has_isdefault;
+      // Running image?
+      g_firmwareImageInfo[idx].has_isrunning = (idx == RUN_IMAGE) ? true : false;
+      g_firmwareImageInfo[idx].isrunning = g_firmwareImageInfo[idx].has_isrunning;
+      // Loadtime
+      if (g_curloadtime != 0 && g_curloadslot == idx) {
+        g_firmwareImageInfo[idx].has_loadtime = true;
+        g_firmwareImageInfo[idx].loadtime = g_curloadtime;
+      }
+      // Hardware Id
+      g_firmwareImageInfo[idx].has_hwinfo = true;
+      g_firmwareImageInfo[idx].hwinfo.has_hwid = true;
+      strncpy(g_firmwareImageInfo[idx].hwinfo.hwid, g_slothdr[idx].hwid, HWID_SIZE);
+      // Vendor Hardware Id
+      g_firmwareImageInfo[idx].hwinfo.has_vendorhwid = false;
+      // Kernel version
+      g_firmwareImageInfo[idx].has_kernelversion =  false;
+      // Subkernel version
+      g_firmwareImageInfo[idx].has_subkernelversion = false;
+      // Loader error
+      g_firmwareImageInfo[idx].has_loaderrorcode = false;
+      // Subloader error
+      g_firmwareImageInfo[idx].has_subloaderrorcode = false;
+
+      // Download status
+      g_firmwareImageInfo[idx].status = g_slothdr[idx].status;
+    }
+  }
+
+  DPRINTF("## sample_firmwaremgmt: GET for TLV %d done.\n", tlvid.type);
   return &g_firmwareImageInfo;
 }
 
 /**
- * @brief get up the signature settings
+ * @brief get the signature settings
  *
  * @param num amount of instances
  * @return void* pointer to global g_SignatureSettings
@@ -509,18 +1121,18 @@ void signature_settings_post(Signature_Settings *tlv) {
  * @return  void* pointer to global g_vendorTlv
  */
 void* sample_get_vendorTlv(tlvid_t tlvid, uint32_t *num) {
-  printf("## sample_vendorTlv: GET for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
+  DPRINTF("## sample_vendorTlv: GET for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
 
   // Vendor-ID validation
   // Received Vendor-ID to match device's VENDOR_ID
   if (tlvid.vendor != VENDOR_ID) {
-    printf("sample_vendorTlv: csmptlv %d vendor-id mismatch (Expected:%d, Received:%d)\n", tlvid.type, VENDOR_ID, tlvid.vendor);
+    DPRINTF("sample_vendorTlv: csmptlv %d vendor-id mismatch (Expected:%d, Received:%d)\n", tlvid.type, VENDOR_ID, tlvid.vendor);
     return NULL;
   }
   // Max support subtypes by the vendor
   *num = VENDOR_MAX_SUBTYPES;
 
-  printf("## sample_vendorTlv: GET for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
+  DPRINTF("## sample_vendorTlv: GET for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
   return &g_vendorTlv;
 }
 
@@ -532,14 +1144,14 @@ void* sample_get_vendorTlv(tlvid_t tlvid, uint32_t *num) {
  * @return  void
  */
 void sample_put_vendorTlv(tlvid_t tlvid, Vendor_Tlv *tlv) {
-  printf("## sample_vendorTlv: POST for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
+  DPRINTF("## sample_vendorTlv: POST for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
 
   int idx;
 
   // Vendor-ID validation
   // Received Vendor-ID to match device's VENDOR_ID
   if (tlvid.vendor != VENDOR_ID) {
-    printf("sample_vendorTlv: csmptlv %d vendor-id mismatch (Expected:%d, Received:%d)\n", tlvid.type, VENDOR_ID, tlvid.vendor);
+    DPRINTF("sample_vendorTlv: csmptlv %d vendor-id mismatch (Expected:%d, Received:%d)\n", tlvid.type, VENDOR_ID, tlvid.vendor);
     return;
   }
   // Lookup and update subtype
@@ -547,8 +1159,8 @@ void sample_put_vendorTlv(tlvid_t tlvid, Vendor_Tlv *tlv) {
     if (tlv->subtype == g_vendorTlv[idx].subtype) {
       g_vendorTlv[idx].value.len = tlv->value.len;
       memcpy(g_vendorTlv[idx].value.data, tlv->value.data, g_vendorTlv[idx].value.len);
-      printf("sample_vendorTlv: Updated vendor subtype:%u\n", g_vendorTlv[idx].subtype);
-      printf("## sample_vendorTlv: POST for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
+      DPRINTF("sample_vendorTlv: Updated vendor subtype:%u\n", g_vendorTlv[idx].subtype);
+      DPRINTF("## sample_vendorTlv: POST for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
       return;
     }
   }
@@ -556,22 +1168,22 @@ void sample_put_vendorTlv(tlvid_t tlvid, Vendor_Tlv *tlv) {
   g_vendorTlv[0].subtype = tlv->subtype;
   g_vendorTlv[0].value.len = tlv->value.len;
   memcpy(g_vendorTlv[0].value.data, tlv->value.data, g_vendorTlv[0].value.len);
-  printf("sample_vendorTlv: Added vendor subtype:%u\n", g_vendorTlv[0].subtype);
+  DPRINTF("sample_vendorTlv: Added vendor subtype:%u\n", g_vendorTlv[0].subtype);
 
-  printf("## sample_vendorTlv: POST for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
+  DPRINTF("## sample_vendorTlv: POST for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
 }
 
 /**
- * @brief csmp get TLV request
+ * @brief  csmp get TLV request
  *
- * @param tlvid the tlvid to handle
- * @param num returned amount of instances
+ * @param  tlvid the tlvid to handle
+ * @param  num returned amount of instances
  * @return void* pointer to the global variable containing the return data
  */
 void* csmptlvs_get(tlvid_t tlvid, uint32_t *num) {
   switch(tlvid.type) {
     case HARDWARE_DESC_ID:
-      return hardware_desc_get(num);
+      return hardware_desc_get(tlvid, num);
     case INTERFACE_DESC_ID:
       return interface_desc_get(num);
     case IPADDRESS_ID:
@@ -590,13 +1202,19 @@ void* csmptlvs_get(tlvid_t tlvid, uint32_t *num) {
       return wpanstatus_get(num);
     case RPLINSTANCE_ID:
       return rplinstance_get(num);
+    case TRANSFER_REQUEST_ID:
+      return sample_get_transferRequest(tlvid, num);
+    case LOAD_REQUEST_ID:
+      return sample_get_loadRequest(tlvid, num);
     case FIRMWARE_IMAGE_INFO_ID:
-      return firmware_image_info_get(num);
+      return sample_get_firmwareImageInfo(tlvid, num);
     case SIGNATURE_SETTINGS_ID:
       return signature_settings_get(num);
+    case VENDOR_TLV_ID:
+      return sample_get_vendorTlv(tlvid, num);
 
     default:
-      printf("sample_csmptlvs_get: GET un-supported for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
+      printf("sample_get: GET un-supported for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
       break;
   }
   return NULL;
@@ -613,11 +1231,25 @@ void csmptlvs_post(tlvid_t tlvid, void *tlv) {
     case CURRENT_TIME_ID:
       currenttime_post((Current_Time*)tlv);
       break;
+    case TRANSFER_REQUEST_ID:
+      return sample_put_transferRequest(tlvid, (Transfer_Request*)tlv);
+    case IMAGE_BLOCK_ID:
+      return sample_put_imageBlock(tlvid, (Image_Block*)tlv);
+    case LOAD_REQUEST_ID:
+      return sample_put_loadRequest(tlvid, (Load_Request*)tlv);
+    case CANCEL_LOAD_REQUEST_ID:
+      return sample_put_cancelLoadRequest(tlvid, (Cancel_Load_Request*)tlv);
+    case SET_BACKUP_REQUEST_ID:
+      return sample_put_setBackupRequest(tlvid, (Set_Backup_Request*)tlv);
     case SIGNATURE_SETTINGS_ID:
       signature_settings_post((Signature_Settings*)tlv);
       break;
+    case VENDOR_TLV_ID:
+      sample_put_vendorTlv(tlvid, (Vendor_Tlv*)tlv);
+      break;
+
     default:
-      printf("sample_csmptlvs_post: POST un-supported for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
+      printf("sample_post: POST un-supported for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
       break;
   }
 }
@@ -658,13 +1290,13 @@ int str2addr(char *str, uint8_t *addr) {
 }
 
 /**
- * @brief Initialize sample data before CSMP service start
+ * @brief  Initialize sample data before CSMP service start
  *
- * @param void
+ * @param  void
  * @return void
  */
 void sample_data_init() {
-  printf("sample_data_init: Initialize sample data\n");
+  DPRINTF("sample_data_init: Initialize sample data\n");
 
   int idx;
 
@@ -746,7 +1378,7 @@ int main(int argc, char **argv)
       if (++i >= argc)
         goto start_error;
       if (strcmp(argv[i], "true") == 0) {
-        printf("setting signature settings to TRUE\n");
+        printf("Setting signature settings to TRUE\n");
         sigFlag = true;
       }
     }
@@ -782,7 +1414,7 @@ int main(int argc, char **argv)
   if (g_devconfig.reginterval_max < g_devconfig.reginterval_min
       || g_devconfig.reginterval_min == 0
       || g_devconfig.reginterval_max > 36000) {
-    printf("reg interval error\n");
+    printf("Reg interval error!\n");
 
     goto start_error;
   }
@@ -797,15 +1429,19 @@ int main(int argc, char **argv)
   g_csmp_handle.csmptlvs_post = (csmptlvs_post_t)csmptlvs_post;
   g_csmp_handle.signature_verify = (signature_verify_t)signature_verify;
 
+  // Initialize sample data: Sample app variables to be initialized
+  // with default/sample data will be done here
+  sample_data_init();
+
   // start csmp agent lib service
   ret = csmp_service_start(&g_devconfig, &g_csmp_handle);
   if(ret < 0)
-    printf("start csmp agent service: fail!\n");
+    printf("CSMP-Agent service start: failed!\n");
   else
-    printf("start csmp agent service: success!\n");
+    printf("CSMP-Agent service start: success!\n");
 
   // get the regmin and regmax
-  printf("min : %d, max = %d\n",g_devconfig.reginterval_min, g_devconfig.reginterval_max);
+  printf("Reg intervals: min : %d, max = %d\n",g_devconfig.reginterval_min, g_devconfig.reginterval_max);
 
   while(1) {
     sleep(g_devconfig.reginterval_min);
@@ -827,19 +1463,19 @@ int main(int argc, char **argv)
         stats_ptr->reg_fails_stats.error_process,stats_ptr->metrics_reports,\
         stats_ptr->csmp_get_succeed,stats_ptr->csmp_post_succeed,stats_ptr->sig_ok,\
         stats_ptr->sig_no_signature,stats_ptr->sig_bad_auth,stats_ptr->sig_bad_validity);
-    printf("------------------ end -------------------\n");
+    printf("------------------ end -------------------\n\n");
   }
 
   //stop csmp agent service
   ret = csmp_service_stop();
   if(ret)
-    printf("stop csmp agent service: success!\n");
+    printf("CSMP-Agent service stop: success!\n");
   else
-    printf("stop csmp agent service: fail!\n");
+    printf("CSMP-Agent service stop: failed!\n");
 
   return 0;
 
 start_error:
-  printf("start csmp agent service: fail!\n");
+  printf("CSMP-Agent service start: failed!\n");
 }
 
