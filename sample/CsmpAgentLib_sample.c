@@ -18,6 +18,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <string.h>
+#include <assert.h>
 #include "CsmpAgentLib_sample.h"
 #include "CsmpAgentLib_sample_util.h"
 #include "osal_common.h"
@@ -205,7 +206,7 @@ int main(int argc, char **argv)
 {
   static osal_task_t app_task = { 0 };
   thread_argument_t *args = NULL;
-
+  osal_basetype_t ret = 0;
 // Initialize thread arguments
 #if defined(OSAL_FREERTOS_LINUX) || defined(OSAL_LINUX)
   thread_argument_t linux_arg = {
@@ -220,18 +221,23 @@ int main(int argc, char **argv)
 #endif
 
 // Create Sample application task
-  osal_task_create(&app_task, 
-                   NULL, 
-                   0, 
-                   0, 
-                   csmp_sample_app_thr_fnc, 
-                   args);
-                   
+  ret = osal_task_create(&app_task, 
+                         NULL, 
+                         0, 
+                         0, 
+                         csmp_sample_app_thr_fnc, 
+                         args);
+  assert(ret == 0);
+
 // Start Kernel
   osal_kernel_start();
 
   for(;;){
-
+#if defined(OSAL_LINUX)
+  sleep(1);
+#else
+  assert(0);
+#endif
   }
 
   return 0;
