@@ -20,20 +20,24 @@
 #include <string.h>
 #include "CsmpAgentLib_sample.h"
 #include "CsmpAgentLib_sample_util.h"
+#include "osal_common.h"
 #include "csmp_service.h"
 #include "csmp_info.h"
 #include "signature_verify.h"
 #include "osal.h"
 
-/**************************************************************
-  usage: ./CsmpAgentLib_sample
-          [-d NMS_ipv6_address]
-          [-min reginterval_min]
-          [-max reginterval_max]
-          [-eid ieee_eui64]
-***************************************************************/
-int main(int argc, char **argv)
+typedef struct thread_argument {
+  int argc;
+  char **argv;
+} thread_argument_t;
+
+
+static void *csmp_sample_app_thr_fnc(void *arg)
 {
+  thread_argument_t *thread_arg = (thread_argument_t *)arg;
+  int argc = thread_arg->argc;
+  char **argv = thread_arg->argv;
+
   struct timeval tv = {0};
   csmp_service_status_t status;
   csmp_service_stats_t *stats_ptr;
@@ -186,5 +190,50 @@ int main(int argc, char **argv)
 
 start_error:
   printf("start csmp agent service: fail!\n");
+
+  return NULL;
+}
+
+/**************************************************************
+  usage: ./CsmpAgentLib_sample
+          [-d NMS_ipv6_address]
+          [-min reginterval_min]
+          [-max reginterval_max]
+          [-eid ieee_eui64]
+***************************************************************/
+int main(int argc, char **argv)
+{
+  static osal_task_t app_task = { 0 };
+  thread_argument_t *args = NULL;
+
+// Initialize thread arguments
+#if defined(OSAL_FREERTOS_LINUX) || defined(OSAL_LINUX)
+  thread_argument_t linux_arg = {
+    .argc = argc,
+    .argv = argv
+  };
+  args = &linux_arg;
+#else
+  (void) argc;
+  (void) argv;
+  args = NULL;
+#endif
+
+// Create Sample application task
+  osal_task_create(&app_task, 
+                   NULL, 
+                   0, 
+                   0, 
+                   csmp_sample_app_thr_fnc, 
+                   args);
+                   
+// Start Kernel
+  osal_kernel_start();
+
+  for(;;){
+
+  }
+
+  return 0;
 }
 

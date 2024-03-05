@@ -39,6 +39,15 @@ static void osal_update_timer();
 static void osal_alarm_fired();
 
 osal_basetype_t osal_task_create(osal_task_t * thread,
+ * @fn        osal_kernel_start
+ * @brief     start the kernel
+*****************************************************************************/
+void osal_kernel_start(void)
+{
+  (void) 0;
+}
+
+/****************************************************************************
                                  const char * name,
                                  uint32_t priority,
                                  size_t stacksize,

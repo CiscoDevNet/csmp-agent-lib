@@ -2,6 +2,7 @@
 CC = gcc -Wall -Wextra
 
 CFLAGS += -I ../include -I ../osal/linux/
+CFLAGS += -DOSAL_LINUX
 LIBS += -lpthread
 
 #if the openssl lib is availabe, please uncomment the following four lines

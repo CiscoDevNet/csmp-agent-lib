@@ -16,6 +16,11 @@
 
 #include "osal.h"
 
+void osal_kernel_start(void)
+{
+  (void) 0;
+}
+
 osal_basetype_t osal_task_create (
    osal_task_t * thread,
    const char * name,
