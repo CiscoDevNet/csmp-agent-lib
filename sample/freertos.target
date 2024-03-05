@@ -1,9 +1,9 @@
 #define your own gcc here if you need cross-compile the code
 CC = gcc -Wall -Wextra
 
-CFLAGS += -I ../include -I ../osal/linux/
+CFLAGS += -I ../include
 
-OBJ = CsmpAgentLib_sample.o signature_verify.o
+OBJ = CsmpAgentLib_sample.o CsmpAgentLib_sample_util.o signature_verify.o
 
 LIB_OBJECT = csmp_agent_lib.a
 OBJECT = CsmpAgentLib_sample
@@ -13,6 +13,3 @@ CFLAGS += -DOSAL_FREERTOS_LINUX
 
 $(OBJECT):$(OBJ)
 	$(CC) -o $@ $^ $(LIB_OBJECT) $(LIBS)
-
-.c.o:
-	$(CC) -c $< $(CFLAGS)
