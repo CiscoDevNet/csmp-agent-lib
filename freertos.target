@@ -8,6 +8,7 @@ DIRs += $(shell find ./src -maxdepth 3 -type d)
 
 #CFLAGS += -DPRINTDEBUG
 CFLAGS += $(foreach dir, $(DIRs), -I $(dir))
+CFLAGS += -DOSAL_FREERTOS_LINUX
 
 LIBSRC = $(foreach dir, $(DIRs), $(wildcard $(dir)/*.c))
 LIBOBJ_nodir = $(notdir $(LIBSRC))
