@@ -16,6 +16,10 @@
 
 #include "osal.h"
 
+
+#define __ret_freertos2posix(ret) \
+    (ret == pdPASS ? 0 : -1)
+
 void osal_kernel_start(void)
 {
   vTaskStartScheduler();
@@ -37,7 +41,7 @@ osal_basetype_t osal_task_create (
                       priority, 
                       thread);
 
-    return ret == pdPASS ? 0 : -1;
+    return __ret_freertos2posix(ret);
 }
 
 osal_basetype_t osal_task_cancel(osal_task_t thread)
@@ -62,32 +66,51 @@ osal_basetype_t osal_task_sigmask(int how, const osal_sigset_t *set, osal_sigset
 //sem_init
 osal_basetype_t osal_sem_create(osal_sem_t * sem, uint16_t value)
 {
-    (void) sem;
-    (void) value;
-    return (0);
+    if (sem == NULL) {
+        return -1;
+    }
+
+    *sem = xSemaphoreCreateCounting(0xFFFF, value);
+
+    return *sem == NULL ? -1 : 0;
 }
 
 //sem_post
 osal_basetype_t osal_sem_post(osal_sem_t * sem)
 {
-    (void) sem;
-    return (0);
+    osal_basetype_t ret = 0;
+
+    if (sem == NULL) {
+        return -1;
+    }
+    ret = xSemaphoreGive(*sem);
+
+    return __ret_freertos2posix(ret);
 }
 
 //sem_wait
 osal_basetype_t osal_sem_wait(osal_sem_t * sem, osal_time_t timeout)
 {
-    (void) sem;
-    (void) timeout;
-    return (0);
+    osal_basetype_t ret = 0;
+    if (sem == NULL) {
+        return -1;
+    }
+
+    ret = xSemaphoreTake(*sem, timeout);
+
+    return __ret_freertos2posix(ret);
 }
 
 //sem_destroy
 osal_basetype_t osal_sem_destroy(osal_sem_t *sem)
 {
-    (void) sem;
-    return (0);
+    if (sem == NULL) {
+        return -1;
+    }
+    vSemaphoreDelete(*sem);
+    return 0;
 }
+
 //Socket
 osal_socket_handle_t osal_socket(osal_basetype_t domain, osal_basetype_t type, osal_basetype_t protocol)
 {
