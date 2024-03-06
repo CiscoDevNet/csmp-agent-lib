@@ -29,13 +29,15 @@ osal_basetype_t osal_task_create (
    void *(*entry) (void * arg),
    void * arg)
 {
-    (void) thread;
-    (void) name;
-    (void) priority;
-    (void) stacksize;
-    (void) entry;
-    (void) arg;
-    return (0);
+    osal_basetype_t ret = 0;
+    ret = xTaskCreate((TaskFunction_t)entry, 
+                      name, 
+                      ((PTHREAD_STACK_MIN / sizeof(size_t)) + stacksize), 
+                      arg, 
+                      priority, 
+                      thread);
+                      
+    return ret == pdPASS ? 0 : -1;
 }
 
 osal_basetype_t osal_task_cancel(osal_task_t thread)
@@ -251,8 +253,11 @@ void *osal_malloc(size_t size)
     (void) size;
     return (NULL);
 }
-
-void osal_free(void *ptr)
+void vApplicationStackOverflowHook( TaskHandle_t xTask,
+                                    char * pcTaskName )
 {
-    /* FreeRtos implementation */
+    ( void ) xTask;
+    ( void ) pcTaskName;
+    printf("Stack overflow: %s\n", pcTaskName);
+    for( ;; );
 }
