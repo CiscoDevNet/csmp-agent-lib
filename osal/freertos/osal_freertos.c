@@ -18,7 +18,7 @@
 
 void osal_kernel_start(void)
 {
-  (void) 0;
+  vTaskStartScheduler();
 }
 
 osal_basetype_t osal_task_create (
@@ -36,7 +36,7 @@ osal_basetype_t osal_task_create (
                       arg, 
                       priority, 
                       thread);
-                      
+
     return ret == pdPASS ? 0 : -1;
 }
 
