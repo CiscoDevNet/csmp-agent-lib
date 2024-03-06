@@ -42,6 +42,8 @@
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
+#include <limits.h>
+
 /******************************************************************************/
 /* Hardware description related definitions. **********************************/
 /******************************************************************************/
@@ -112,7 +114,7 @@
  * (in words, not in bytes!).  The kernel does not use this constant for any other
  * purpose.  Demo applications use the constant to make the demos somewhat portable
  * across hardware architectures. */
-#define configMINIMAL_STACK_SIZE                   2024
+#define configMINIMAL_STACK_SIZE                   (PTHREAD_STACK_MIN / sizeof(size_t))
 
 /* configMAX_TASK_NAME_LEN sets the maximum length (in characters) of a task's
  * human readable name.  Includes the NULL terminator. */
