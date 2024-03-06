@@ -15,7 +15,7 @@
  */
 
 #include "osal.h"
-
+#include "../../src/lib/debug.h"
 
 #define __ret_freertos2posix(ret) \
     (ret == pdPASS ? 0 : -1)
@@ -114,94 +114,69 @@ osal_basetype_t osal_sem_destroy(osal_sem_t *sem)
 //Socket
 osal_socket_handle_t osal_socket(osal_basetype_t domain, osal_basetype_t type, osal_basetype_t protocol)
 {
-    (void) domain;
-    (void) type;
-    (void) protocol;
-    return (0);
+    return socket(domain, type, protocol);
 }
 
 //bind
 osal_basetype_t osal_bind(osal_socket_handle_t sockd, osal_sockaddr_t *addr, 
                             osal_socklen_t addrlen)
 {
-    (void) osal_sockfd;
-    (void) osal_addr;
-    (void) addrlen;
-    return (0);
+    return bind(osal_sockfd, (const struct sockaddr *)(osal_addr), addrlen);
 }
 
 //recvfrom
 osal_ssize_t osal_recvfrom(int sockd, void *buf, size_t len, int flags,
                     osal_sockaddr_t *src_addr, osal_socklen_t *addrlen)
 {
-    (void) sockfd;
-    (void) buf;
-    (void) len;
-    (void) flags;
-    (void) src_addr;
-    (void) addrlen;
-    return (0);
+    return recvfrom(sockfd, buf, len, flags, (struct sockaddr*)(src_addr), addrlen);
 }
 
 //sendmsg
 ssize_t osal_sendmsg(int sockd, const struct msghdr msg, int flags){
-    (void) sockfd;
-    (void) msg;
-    (void) flags;
-    return (0);
+    return sendmsg(sockfd, &msg, flags);
 }
 
 //sendto
 ssize_t osal_sendto(int sockd, const void *buf, size_t len, int flags,
                       const osal_sockaddr_t *dest_addr, osal_socklen_t addrlen)
 {
-    (void) sockfd;
-    (void) buf;
-    (void) len;
-    (void) flags;
-    (void) dest_addr;
-    (void) addrlen;
-    return (0);
+    return sendto(sockfd, buf, len, flags, (struct sockaddr*)(dest_addr), addrlen);
 }
 
 //inet_pton
 
 osal_basetype_t osal_inet_pton(int af, const char *src, void *dst)
 {
-    (void) af;
-    (void) src;
-    (void) dst;
-    return (0);
+    return inet_pton(af, src, dst);
 }
 
 //select
 osal_basetype_t osal_select(int nsds, osal_sd_set_t *readsds, osal_sd_set_t *writesds,
                   osal_sd_set_t *exceptsds, struct timeval *timeout)
 {
-    (void) nfds;
-    (void) readfds;
-    (void) writefds;
-    (void) exceptfds;
-    (void) timeout;
-    return (0);
+    return select(nfds, readfds, writefds, exceptfds, timeout);
+}
+
+void osal_update_sockaddr(osal_sockaddr *listen_addr, uint16_t sport)
+{
+    listen_addr->sin6_family = AF_INET6;
+    listen_addr->sin6_addr = in6addr_any;
+    listen_addr->sin6_port = htons(sport);
 }
 
 void osal_sd_zero(osal_sd_set_t *set)
 {
-    (void) set;
+    FD_ZERO(set);
 }
 
 void osal_sd_set(int sd, osal_sd_set_t *set)
 {
-    (void) fd;
-    (void) set;
+    FD_SET(fd, set);
 }
 
 osal_basetype_t osal_sd_isset(int sd, osal_sd_set_t *set)
 {
-    (void) fd;
-    (void) set;
-    return (0);
+    return(FD_ISSET(fd, set));
 }
 
 //gettimeofday
@@ -261,14 +236,19 @@ void osal_trickle_timer_stop(timerid_t timerid)
     (void) timerid;
 }
 
-void osal_print_formatted_ip(const osal_sockaddr *sockAdd)
+void osal_print_formatted_ip(const osal_sockaddr *sockadd)
 {
-    (void) sockAdd;
-}
-void osal_update_sockaddr(osal_sockaddr *listen_addr, uint16_t sport)
-{
-    (void) listen_addr;
-    (void) sport;
+    (void) sockadd;
+    DPRINTF("[%x:%x:%x:%x:%x:%x:%x:%x]:%hu\n",
+      ((uint16_t)sockadd->sin6_addr.s6_addr[0] << 8) | sockadd->sin6_addr.s6_addr[1],
+      ((uint16_t)sockadd->sin6_addr.s6_addr[2] << 8) | sockadd->sin6_addr.s6_addr[3],
+      ((uint16_t)sockadd->sin6_addr.s6_addr[4] << 8) | sockadd->sin6_addr.s6_addr[5],
+      ((uint16_t)sockadd->sin6_addr.s6_addr[6] << 8) | sockadd->sin6_addr.s6_addr[7],
+      ((uint16_t)sockadd->sin6_addr.s6_addr[8] << 8) | sockadd->sin6_addr.s6_addr[9],
+      ((uint16_t)sockadd->sin6_addr.s6_addr[10] << 8) |  sockadd->sin6_addr.s6_addr[11],
+      ((uint16_t)sockadd->sin6_addr.s6_addr[12] << 8) |  sockadd->sin6_addr.s6_addr[13],
+      ((uint16_t)sockadd->sin6_addr.s6_addr[14] << 8) |  sockadd->sin6_addr.s6_addr[15],
+      ntohs(sockadd->sin6_port));
 }
 
 void *osal_malloc(size_t size)
