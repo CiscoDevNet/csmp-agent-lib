@@ -7,7 +7,12 @@ OBJ = CsmpAgentLib_sample.o CsmpAgentLib_sample_util.o signature_verify.o
 
 LIB_OBJECT = csmp_agent_lib.a
 OBJECT = CsmpAgentLib_sample
-CFLAGS += -I ../osal/freertos/
+CFLAGS +=  \
+-I ../osal/freertos/ \
+-I ../osal/freertos/FreeRTOS-Kernel/include \
+-I ../osal/freertos/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/ \
+-I ../osal/freertos/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/utils/
+
 CFLAGS += -DOSAL_FREERTOS_LINUX
 
 

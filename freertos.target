@@ -20,7 +20,7 @@ INC += \
 -Iosal/freertos/ \
 -Iosal/freertos/FreeRTOS-Kernel/include \
 -Iosal/freertos/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/ \
--Iosal/freertos/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/utils/ \
+-Iosal/freertos/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/utils/
 
 LIBSRC += \
 osal/freertos/osal_common.c \
