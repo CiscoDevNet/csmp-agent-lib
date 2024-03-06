@@ -273,8 +273,11 @@ void osal_update_sockaddr(osal_sockaddr *listen_addr, uint16_t sport)
 
 void *osal_malloc(size_t size)
 {
-    (void) size;
-    return (NULL);
+  return malloc(size);
+}
+void osal_free(void *ptr)
+{
+  free(ptr);
 }
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     char * pcTaskName )
