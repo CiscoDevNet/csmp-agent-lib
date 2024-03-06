@@ -42,8 +42,8 @@ osal_basetype_t osal_task_create (
 
 osal_basetype_t osal_task_cancel(osal_task_t thread)
 {
-    (void) thread;
-    return (0);
+    vTaskDelete(thread);
+    return 0;
 }
 
 osal_basetype_t osal_task_setcanceltype()
