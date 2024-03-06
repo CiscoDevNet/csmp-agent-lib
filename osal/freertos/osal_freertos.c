@@ -182,17 +182,13 @@ osal_basetype_t osal_sd_isset(int sd, osal_sd_set_t *set)
 //gettimeofday
 osal_basetype_t osal_gettime(struct timeval *tv, struct timezone *tz)
 {
-    (void) tv;
-    (void) tz;
-    return (0);
+    return gettimeofday(tv, tz);
 }
 
 //settime
 osal_basetype_t osal_settime(struct timeval *tv, struct timezone *tz)
 {
-    (void) tv;
-    (void) tz;
-    return (0);
+    return settimeofday(tv, tz);
 }
 
 osal_sighandler_t osal_signal(int signum, osal_sighandler_t handler)
