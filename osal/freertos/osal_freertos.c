@@ -17,12 +17,45 @@
 #include "osal.h"
 #include "../../src/lib/debug.h"
 
+
+struct trickle_timer {
+  uint32_t t0;
+  uint32_t tfire;
+  uint32_t icur;
+  uint32_t imin;
+  uint32_t imax;
+  uint8_t is_running :1;
+  TimerHandle_t timer;
+};
+
 #define __ret_freertos2posix(ret) \
     (ret == pdPASS ? 0 : -1)
 
+extern uint8_t g_csmplib_eui64[8];
+
+/// Vars for trickle timers
+static struct trickle_timer timers[timer_num];
+static trickle_timer_fired_t timer_fired[timer_num];
+static int32_t m_remaining = ((1UL << 31) - 1) / 1000; /* max int32_t */
+static bool m_timert_isrunning = false;
+
+static void osal_update_timer();
+static void osal_alarm_fired(TimerHandle_t xTimer);
+
 void osal_kernel_start(void)
 {
-  vTaskStartScheduler();
+    for (BaseType_t i = 0; i < timer_num; i++) {
+        timers[i].is_running = false;
+        timers[i].timer = xTimerCreate("trickle_timer", 
+                                       pdMS_TO_TICKS(m_remaining * 1000), 
+                                       pdTRUE, 
+                                       (void *)i, 
+                                       osal_alarm_fired);
+        assert(timers[i].timer != NULL);
+        xTimerStop(timers[i].timer, 0);
+
+    }
+    vTaskStartScheduler();
 }
 
 osal_basetype_t osal_task_create (
@@ -219,19 +252,6 @@ osal_basetype_t osal_sigaddset(osal_sigset_t *set, int signum)
     return (0);
 }
 
-void osal_trickle_timer_start(timerid_t timerid, uint32_t imin, uint32_t imax, trickle_timer_fired_t trickle_time_fired)
-{
-    (void) timerid;
-    (void) imin;
-    (void) imax;
-    (void) trickle_time_fired;
-
-}
-void osal_trickle_timer_stop(timerid_t timerid)
-{
-    (void) timerid;
-}
-
 void osal_print_formatted_ip(const osal_sockaddr *sockadd)
 {
     (void) sockadd;
@@ -245,6 +265,82 @@ void osal_print_formatted_ip(const osal_sockaddr *sockadd)
       ((uint16_t)sockadd->sin6_addr.s6_addr[12] << 8) |  sockadd->sin6_addr.s6_addr[13],
       ((uint16_t)sockadd->sin6_addr.s6_addr[14] << 8) |  sockadd->sin6_addr.s6_addr[15],
       ntohs(sockadd->sin6_port));
+}
+
+
+/****************************************************************************
+ * @fn   osal_trickle_timer_start
+ *
+ * @brief starts trickle timer
+ *
+ * input parameters
+ *  @param[in] timerid timer identification value
+ *  @param[in] imin minimum timer value
+ *  @param[in] imax maximum timer value
+ *  @param[in] trickle_timer_fired  timer fired 
+ * output parameters
+ * @return none 
+ *****************************************************************************/
+void osal_trickle_timer_start(timerid_t timerid, uint32_t imin, uint32_t imax, trickle_timer_fired_t trickle_timer_fired)
+{
+  uint32_t min;
+  struct timeval tv = {0};
+  uint32_t seed = 0;
+
+  if(!m_timert_isrunning) {
+    m_timert_isrunning = true;
+  }
+
+  if(timerid == reg_timer) {
+    DPRINTF("register trickle timer start\n");
+  }
+  else if(timerid == rpt_timer) {
+    DPRINTF("metrics report trickle timer start\n");
+  }
+
+  osal_gettimeofday(&tv, NULL);
+
+  seed = (((uint16_t)g_csmplib_eui64[6] << 8) | g_csmplib_eui64[7]);
+  srand(seed);
+  timers[timerid].t0 = tv.tv_sec + (random()%imin);
+  timers[timerid].icur = imin;
+  timers[timerid].imin = imin;
+  timers[timerid].imax = imax;
+  timers[timerid].is_running = true;
+  timer_fired[timerid] = trickle_timer_fired;
+  min = timers[timerid].icur >> 1;
+  timers[timerid].tfire = timers[timerid].t0 + min + (random() % (timers[timerid].icur - min));
+  xTimerStart(timers[timerid].timer, 0);
+  osal_update_timer();
+}
+
+/****************************************************************************
+ * @fn   osal_trickle_timer_stop
+ *
+ * @brief stop trickle timer
+ *
+ * input parameters
+ *  @param[in] timerid timer identification value
+ * output parameters
+ * @return none 
+ *****************************************************************************/
+void osal_trickle_timer_stop(timerid_t timerid)
+{
+  uint8_t i;
+
+  timers[timerid].is_running = false;
+  if(timerid == reg_timer) {
+    DPRINTF("register trickle timer stop\n");
+  }
+  else if(timerid == rpt_timer) {
+    DPRINTF("metrics report trickle timer stop\n");
+  }
+  for(i = 0; i < timer_num; i++) {
+    if(timers[i].is_running)
+      return;
+  }
+  m_timert_isrunning = false;
+  xTimerStop(timers[timerid].timer, 0);
 }
 
 void *osal_malloc(size_t size)
@@ -263,3 +359,81 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask,
     printf("Stack overflow: %s\n", pcTaskName);
     for( ;; );
 }
+
+static void osal_update_timer() {
+  uint32_t now;
+  struct timeval tv = {0};
+  uint8_t i;
+//   bool flag = false;
+
+  m_remaining = (1UL << 31) - 1; /* max int32_t */
+  osal_gettimeofday(&tv, NULL);
+  now = tv.tv_sec;
+
+  for (i = 0; i < timer_num; i++) {
+    struct trickle_timer *timer = &timers[i];
+    int32_t remaining;
+
+    if (timer->is_running == false)
+      continue;
+    remaining = timer->tfire - now;
+    if (remaining < m_remaining) {
+      m_remaining = remaining;
+    //   flag = true;
+      if (m_remaining <= 0) {
+        xTimerPendFunctionCall((PendedFunction_t)osal_alarm_fired, 
+                               NULL, 
+                               0, 
+                               pdFALSE);
+      } else {
+        xTimerChangePeriod(timers[i].timer, pdMS_TO_TICKS(m_remaining * 1000), 0);
+      }
+    }
+  }
+//   if(flag)
+//     osal_sem_post(&sem);
+}
+
+static void osal_alarm_fired(TimerHandle_t xTimer)
+{
+  uint32_t min;
+  uint8_t i;
+
+  (void) xTimer;
+
+  for (i = 0; i < timer_num; i++) {
+    struct trickle_timer *timer = &timers[i];
+    uint32_t now;
+    struct timeval tv = {0};
+
+    osal_gettimeofday(&tv, NULL);
+    now = tv.tv_sec;
+
+    if (timer->is_running == false)
+      continue;
+
+    if ((int32_t)(timer->tfire - now) > 0)
+      continue;
+
+    // update t0 to next interval
+    timer->t0 += timer->icur;
+
+    // double interval size
+    timer->icur <<= 1;
+    if (timer->icur > timer->imax)
+      timer->icur = timer->imax;
+
+    if(i == reg_timer) {
+      DPRINTF("register trickle timer fired\n");
+    }
+    else if(i == rpt_timer) {
+      DPRINTF("metrics report trickle timer fired\n");
+    }
+
+    timer_fired[i]();
+    min = timer->icur >> 1;
+    timer->tfire = timer->t0 + min + (random() % (timer->icur - min));
+  }
+  osal_update_timer();
+}
+
