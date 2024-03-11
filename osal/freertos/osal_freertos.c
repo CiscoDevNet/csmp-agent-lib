@@ -351,6 +351,12 @@ void osal_free(void *ptr)
 {
   free(ptr);
 }
+void osal_sleep_ms(uint64_t ms)
+{
+  vTaskDelay(pdMS_TO_TICKS(ms));
+}
+
+
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     char * pcTaskName )
 {
@@ -436,4 +442,5 @@ static void osal_alarm_fired(TimerHandle_t xTimer)
   }
   osal_update_timer();
 }
+
 

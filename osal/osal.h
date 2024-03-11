@@ -482,4 +482,5 @@ void *osal_malloc(size_t size);
  *****************************************************************************/
 void osal_free(void *ptr); 
 
+void osal_sleep_ms(uint64_t ms);
 #endif

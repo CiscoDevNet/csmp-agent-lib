@@ -159,7 +159,7 @@ static void *csmp_sample_app_thr_fnc(void *arg)
   printf("min : %d, max = %d\n",g_devconfig.reginterval_min, g_devconfig.reginterval_max);
 
   while(1) {
-    sleep(g_devconfig.reginterval_min);
+    osal_sleep_ms(g_devconfig.reginterval_min * 1000UL);
 
     // get the service status
     status = csmp_service_status();
@@ -234,7 +234,7 @@ int main(int argc, char **argv)
 
   for(;;){
 #if defined(OSAL_LINUX)
-  sleep(1);
+  osal_sleep_ms(1000);
 #else
   assert(0);
 #endif

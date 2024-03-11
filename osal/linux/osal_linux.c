@@ -392,3 +392,8 @@ void osal_free(void *ptr)
 {
   free(ptr);
 }
+
+void osal_sleep_ms(uint64_t ms)
+{
+  usleep(ms * 1000);
+}
