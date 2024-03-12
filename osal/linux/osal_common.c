@@ -652,6 +652,7 @@ void osal_trickle_timer_start(timerid_t timerid, uint32_t imin, uint32_t imax, t
   struct timeval tv = {0};
   uint32_t seed = 0;
   sigset_t set;
+  osal_basetype_t ret = 0;
 
   if(!m_timert_isrunning) {
     osal_sigemptyset(&set);
@@ -660,6 +661,9 @@ void osal_trickle_timer_start(timerid_t timerid, uint32_t imin, uint32_t imax, t
 
     osal_sem_create(&sem, 0);
     osal_task_create(&timer_id_task, NULL, 0, 0, osal_timer_thread, NULL);
+    ret = osal_task_create(&timer_id_task, NULL, 0, 0, osal_timer_thread, NULL);
+    assert(ret == 0);
+    
     m_timert_isrunning = true;
   }
 
