@@ -49,6 +49,7 @@ int coapclient_stop()
 int coapclient_open(response_handler_t response_handler)
 {
   osal_socket_handle_t sockfd;
+  osal_basetype_t ret = 0;
 
   if (m_client_opened) {
     DPRINTF("coaplient was already opened!\n");
@@ -68,7 +69,9 @@ int coapclient_open(response_handler_t response_handler)
 
   m_sock = sockfd;
   m_client_opened = true;
-  osal_task_create(&recvt_id_task, NULL, 0, 0, recv_fn, NULL);
+  ret = osal_task_create(&recvt_id_task, NULL, 0, 0, recv_fn, NULL);
+  assert(ret == 0);
+  
   return 0;
 }
 
