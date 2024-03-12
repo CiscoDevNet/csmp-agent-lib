@@ -320,6 +320,9 @@ void osal_trickle_timer_start(osal_timerid_t timerid, uint32_t imin, uint32_t im
     ret = osal_task_create(&timer_id_task, NULL, 0, 0, osal_timer_thread, NULL);
     assert(ret == OSAL_SUCCESS);
     
+    ret = osal_task_create(&timer_id_task, NULL, 0, 0, osal_timer_thread, NULL);
+    assert(ret == 0);
+    
     m_timert_isrunning = true;
   }
 
