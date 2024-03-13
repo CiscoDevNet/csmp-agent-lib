@@ -53,7 +53,7 @@ static void osal_alarm_fired();
  * output parameters
  * @return    osal_basetype_t on success return 0 otherwise error value
  *****************************************************************************/
-osal_basetype_t osal_task_create (
+osal_basetype_t osal_task_create(
    osal_task_t * thread,
    const char * name,
    uint32_t priority,
@@ -71,10 +71,10 @@ osal_basetype_t osal_task_create (
        return -1;
    }
 
-   pthread_attr_init (&attr);
-   pthread_attr_setstacksize (&attr, PTHREAD_STACK_MIN + stacksize);
+   pthread_attr_init(&attr);
+   pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN + stacksize);
   
-   ret = pthread_create (thread, &attr, (void *)entry, arg);
+   ret = pthread_create(thread, &attr, (void *)entry, arg);
    if (ret != 0){
        return (-ret);
    }
@@ -147,7 +147,7 @@ osal_basetype_t osal_task_sigmask(int how, const sigset_t *set, sigset_t *oldset
  * output parameters
  * @return 0 on success; on error, -1 is returned 
  *****************************************************************************/
-osal_basetype_t osal_sem_create (osal_sem * sem, uint16_t value)
+osal_basetype_t osal_sem_create(osal_sem * sem, uint16_t value)
 {
     return (sem_init(sem, 0, value));
 }
@@ -163,7 +163,7 @@ osal_basetype_t osal_sem_create (osal_sem * sem, uint16_t value)
  * output parameters
  * @return 0 on success; on error, -1 is returned 
  *****************************************************************************/
-osal_basetype_t osal_sem_post (osal_sem * sem)
+osal_basetype_t osal_sem_post(osal_sem * sem)
 {
     return (sem_post(sem));
 }
@@ -180,7 +180,7 @@ osal_basetype_t osal_sem_post (osal_sem * sem)
  * output parameters
  * @return 0 on success; on error, -1 is returned 
  *****************************************************************************/
-osal_basetype_t osal_sem_wait (osal_sem * sem, osal_time_t timeout)
+osal_basetype_t osal_sem_wait(osal_sem * sem, osal_time_t timeout)
 {
     /* Silence compiler warnings about unused parameters. */
     (void) timeout;
