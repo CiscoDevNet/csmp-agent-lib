@@ -383,16 +383,68 @@ void osal_trickle_timer_stop(osal_timerid_t timerid)
   m_timert_isrunning = false;
 }
 
+/****************************************************************************
+ * @fn   osal_malloc
+ *
+ * @brief allocate memory
+ *
+ * input parameters
+ *  @param[in] size size of memory to be allocated
+ * output parameters
+ * @return pointer to allocated memory on success, NULL on failure
+ *****************************************************************************/
 void *osal_malloc(size_t size)
 {
   return malloc(size);
 }
+/****************************************************************************
+ * @fn   osal_calloc
+ *
+ * @brief allocate memory and set to zero
+ *
+ * input parameters
+ *  @param[in] num number of elements
+ *  @param[in] size size of memory to be allocated
+ * output parameters
+ * @return pointer to allocated memory on success, NULL on failure
+ *****************************************************************************/
+/****************************************************************************
+ * @fn   osal_realloc
+ *
+ * @brief reallocate memory
+ *
+ * input parameters
+ *  @param[in] ptr pointer to memory to be reallocated
+ *  @param[in] size size of memory to be allocated
+ * output parameters
+ * @return pointer to allocated memory on success, NULL on failure
+ *****************************************************************************/
 
+/****************************************************************************
+ * @fn   osal_free
+ *
+ * @brief free memory
+ *
+ * input parameters
+ *  @param[in] ptr pointer to memory to be freed
+ * output parameters
+ * @return none
+ *****************************************************************************/
 void osal_free(void *ptr)
 {
   free(ptr);
 }
 
+/****************************************************************************
+ * @fn   osal_sleep_ms
+ *
+ * @brief sleep for given time
+ *
+ * input parameters
+ *  @param[in] ms time in milliseconds to sleep
+ * output parameters
+ * @return none
+ *****************************************************************************/
 void osal_sleep_ms(uint64_t ms)
 {
   usleep(ms * 1000);
