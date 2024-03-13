@@ -79,7 +79,7 @@ osal_basetype_t osal_bind(osal_socket_handle_t osal_sockfd, osal_sockaddr *osal_
 }
 
 //recvfrom
-osal_basetype_t osal_recvfrom(int sockfd, void *buf, size_t len, int flags,
+osal_ssize_t osal_recvfrom(int sockfd, void *buf, size_t len, int flags,
                     osal_sockaddr *src_addr, osal_socklen *addrlen)
 {
     /* FreeRtos implementation */

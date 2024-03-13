@@ -257,7 +257,7 @@ osal_basetype_t osal_bind(osal_socket_handle_t osal_sockfd, osal_sockaddr *osal_
  * output parameters
  * @return On success 0 is returned.  On error, -1 is returned 
  *****************************************************************************/
-osal_basetype_t osal_recvfrom(osal_socket_handle_t sockfd, void *buf, size_t len, osal_basetype_t flags,
+osal_ssize_t osal_recvfrom(osal_socket_handle_t sockfd, void *buf, size_t len, osal_basetype_t flags,
                         osal_sockaddr *src_addr, osal_socklen *addrlen)
 {
     return (recvfrom(sockfd, buf, len, flags, (struct sockaddr*)(src_addr), addrlen));
