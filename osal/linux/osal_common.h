@@ -66,7 +66,7 @@ osal_basetype_t osal_sem_post (osal_sem * sem);
 osal_basetype_t osal_sem_wait (osal_sem * sem, osal_time_t timeout);
 osal_basetype_t osal_sem_destroy(osal_sem *sem);
 osal_socket_handle_t osal_socket(osal_basetype_t domain, osal_basetype_t type, osal_basetype_t protocol);
-osal_basetype_t osal_recvfrom(osal_socket_handle_t sockfd, void *buf, size_t len, osal_basetype_t flags,
+osal_ssize_t osal_recvfrom(osal_socket_handle_t sockfd, void *buf, size_t len, osal_basetype_t flags,
                         osal_sockaddr *src_addr, osal_socklen *addrlen);
 osal_ssize_t osal_sendmsg(int sockfd, const struct msghdr msg, int flags);
 osal_basetype_t osal_bind(int osal_sockfd, osal_sockaddr *osal_addr, 
