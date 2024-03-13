@@ -42,6 +42,10 @@ static bool m_timert_isrunning = false;
 static void osal_update_timer();
 static void osal_alarm_fired(TimerHandle_t xTimer);
 
+/****************************************************************************
+ * @fn        osal_kernel_start
+ * @brief     start the kernel
+*****************************************************************************/
 void osal_kernel_start(void)
 {
     for (BaseType_t i = 0; i < timer_num; i++) {
@@ -58,6 +62,21 @@ void osal_kernel_start(void)
     vTaskStartScheduler();
 }
 
+/****************************************************************************
+ * @fn        osal_task_create
+ *
+ * @brief     create new task/thread. 
+ * input parameters
+ *  @param[in] thread address to store thread ID
+ *  @param[in] name name of the task
+ *  @param[in] priotiy of task 
+ *  @param[in] stacksize size of the thread stack.
+ *  @param[in] entry the task is created executing entry 
+ *  @param[in] arg entry routine arguments 
+ *
+ * output parameters
+ * @return    osal_basetype_t on success return 0 otherwise error value
+ *****************************************************************************/
 osal_basetype_t osal_task_create (
    osal_task_t * thread,
    const char * name,
@@ -77,27 +96,69 @@ osal_basetype_t osal_task_create (
     return __ret_freertos2posix(ret);
 }
 
+/****************************************************************************
+ * @fn        osal_task_cancel
+ *
+ * @brief     function requests that thread be canceled. 
+ * input parameters
+ *  @param[in] thread thread ID to be canceled
+ *
+ * output parameters
+ * @return   on success return 0 otherwise error value 
+ *****************************************************************************/
 osal_basetype_t osal_task_cancel(osal_task_t thread)
 {
     vTaskDelete(thread);
     return 0;
 }
 
+/****************************************************************************
+ * @fn        osal_task_setcanceltype()
+ *
+ * @brief     function atomically both sets the calling thread's cancelability 
+ * 	      state and returns oldstate 
+ * input parameters
+ * output parameters
+ * @return   on success return 0 otherwise error value 
+ *****************************************************************************/
 osal_basetype_t osal_task_setcanceltype()
 {
-    return (0);
+    return 0;
 }
 
-osal_basetype_t osal_task_sigmask(int how, const osal_sigset_t *set, osal_sigset_t *oldset)
+/****************************************************************************
+ * @fn        osal_task_sigmask
+ *
+ * @brief    function examines and/or changes the calling thread's signal mask.
+ *
+ * input parameters
+ *  @param[in] how specifies what to set the signal mask to
+ *  @param[in] set of signals to be modified
+ *  @param[out] oldset previous signal mask is stored in the location pointed
+ *
+ * output parameters
+ * @return   on success return 0 otherwise error value 
+ *****************************************************************************/
+osal_basetype_t osal_task_sigmask(int how, const sigset_t *set, sigset_t *oldset)
 {
     (void) how;
     (void) set;
     (void) oldset;
-    return (0);
+    return 0;
 }
 
-//sem_init
+/****************************************************************************
 osal_basetype_t osal_sem_create(osal_sem_t * sem, uint16_t value)
+ *
+ * @brief   initialize an unnamed semaphore. 
+ *
+ * input parameters
+ *  @param[in] sem address to store semaphore 
+ *  @param[in] value initial value of semaphore
+ *
+ * output parameters
+ * @return 0 on success; on error, -1 is returned 
+ *****************************************************************************/
 {
     if (sem == NULL) {
         return -1;
@@ -108,8 +169,17 @@ osal_basetype_t osal_sem_create(osal_sem_t * sem, uint16_t value)
     return *sem == NULL ? -1 : 0;
 }
 
-//sem_post
+/****************************************************************************
 osal_basetype_t osal_sem_post(osal_sem_t * sem)
+ *
+ * @brief   increments (unlocks) the semaphore pointed to by sem 
+ *
+ * input parameters
+ *  @param[in] sem semaphore 
+ *
+ * output parameters
+ * @return 0 on success; on error, -1 is returned 
+ *****************************************************************************/
 {
     osal_basetype_t ret = 0;
 
@@ -121,8 +191,18 @@ osal_basetype_t osal_sem_post(osal_sem_t * sem)
     return __ret_freertos2posix(ret);
 }
 
-//sem_wait
-osal_basetype_t osal_sem_wait(osal_sem_t * sem, osal_time_t timeout)
+/****************************************************************************
+ * @fn        osal_sem_wait()
+ *
+ * @brief   decrements (locks) the semaphore pointed to by sem
+ *
+ * input parameters
+ *  @param[in] sem semaphore 
+ *  @param[in] timeout value to wait if semaphore is not availbel.
+ *
+ * output parameters
+ * @return 0 on success; on error, -1 is returned 
+ *****************************************************************************/
 {
     osal_basetype_t ret = 0;
     if (sem == NULL) {
@@ -134,8 +214,16 @@ osal_basetype_t osal_sem_wait(osal_sem_t * sem, osal_time_t timeout)
     return __ret_freertos2posix(ret);
 }
 
-//sem_destroy
-osal_basetype_t osal_sem_destroy(osal_sem_t *sem)
+/****************************************************************************
+ *
+ * @brief  destroys the unnamed semaphore at the address pointed to by sem 
+ *
+ * input parameters
+ *  @param[in] sem semaphore 
+ *
+ * output parameters
+ * @return 0 on success; on error, -1 is returned 
+ *****************************************************************************/
 {
     if (sem == NULL) {
         return -1;
@@ -144,52 +232,153 @@ osal_basetype_t osal_sem_destroy(osal_sem_t *sem)
     return 0;
 }
 
-//Socket
+/****************************************************************************
+ * @fn        osal_socket
+ *
+ * @brief   creates an endpoint for communication
+ *
+ * input parameters
+ *  @param[in] domain communication domain
+ *  @param[in] type communication semantics
+ *  @param[in] protocol specifies a particular protocol to be used with the socket.
+ *
+ * output parameters
+ * @return On success, a file descriptor for the new socket is returned.  
+ *         On error, -1 is returned
+ *****************************************************************************/
 osal_socket_handle_t osal_socket(osal_basetype_t domain, osal_basetype_t type, osal_basetype_t protocol)
 {
     return socket(domain, type, protocol);
 }
 
-//bind
-osal_basetype_t osal_bind(osal_socket_handle_t sockd, osal_sockaddr_t *addr, 
-                            osal_socklen_t addrlen)
+
+ *
+ * @brief   assigns the address specified by osal_addr to the socket 
+ *          referred to by the file descriptor osal_sockfd.
+ *
+ * input parameters
+ *  @param[in] osal_sockfd socket file descriptor 
+ *  @param[in] osal_addr network address
+ *  @param[in] addrlen size in bytes of the address structure 
+ *
+ * output parameters
+ * @return On success 0 is returned.  On error, -1 is returned 
+ *****************************************************************************/
 {
     return bind(osal_sockfd, (const struct sockaddr *)(osal_addr), addrlen);
 }
 
-//recvfrom
-osal_ssize_t osal_recvfrom(int sockd, void *buf, size_t len, int flags,
-                    osal_sockaddr_t *src_addr, osal_socklen_t *addrlen)
+/****************************************************************************
+ * @brief  used to receive messages from a socket. 
+ *
+ * input parameters
+ *  @param[in] sockfd socket file descriptor 
+ *  @param[out] buf contains received messages 
+ *  @param[in] len size of buffer 
+ *  @param[in] flags argument is formed by ORing one or many socket options 
+ *  @param[in] src_addr source address 
+ *  @param[in] addrlen size in bytes of the address structure
+ *
+ * output parameters
+ * @return On success 0 is returned.  On error, -1 is returned 
+ *****************************************************************************/
 {
     return recvfrom(sockfd, buf, len, flags, (struct sockaddr*)(src_addr), addrlen);
 }
 
-//sendmsg
-ssize_t osal_sendmsg(int sockd, const struct msghdr msg, int flags){
+/****************************************************************************
+ *
+ * @brief  used to transmit a message to another socket. 
+ *
+ * input parameters
+ *  @param[in] sockfd socket file descriptor 
+ *  @param[in] msghdr structure contains message meta data.
+ *  @param[in] flags argument is formed by ORing one or many socket options 
+ *
+ * output parameters
+ * @return On success return the number of bytes sent on error -1 is returned 
+ *****************************************************************************/
     return sendmsg(sockfd, &msg, flags);
 }
 
-//sendto
-ssize_t osal_sendto(int sockd, const void *buf, size_t len, int flags,
-                      const osal_sockaddr_t *dest_addr, osal_socklen_t addrlen)
+/****************************************************************************
+ * @brief  used to transmit a message to another socket. 
+ *
+ * input parameters
+ *  @param[in] sockfd socket file descriptor 
+ *  @param[in] buf message buffer
+ *  @param[in] len data buffer len 
+ *  @param[in] flags argument is formed by ORing one or many socket options 
+ *  @param[in] dest_addr destination address 
+ *  @param[in] addrlen address length
+ *
+ * output parameters
+ * @return On success return the number of bytes sent on error -1 is returned 
+ *****************************************************************************/
 {
     return sendto(sockfd, buf, len, flags, (struct sockaddr*)(dest_addr), addrlen);
 }
 
-//inet_pton
-
+/****************************************************************************
+ * @fn      osal_inet_pton
+ *
+ * @brief  This function converts the character string src into a network 
+ *         address structure in the af address family 
+ *
+ * input parameters
+ *  @param[in] af address family 
+ *  @param[in] src character string 
+ *  @param[out] dst network address structure
+ *
+ * output parameters
+ * @return 1 on success
+ *         0 if src does not contain a character string representing a valid
+ *           network address in the specified address family
+ *        -1 if af does not contain a valid address family
+ *****************************************************************************/
 osal_basetype_t osal_inet_pton(int af, const char *src, void *dst)
 {
     return inet_pton(af, src, dst);
 }
 
-//select
-osal_basetype_t osal_select(int nsds, osal_sd_set_t *readsds, osal_sd_set_t *writesds,
-                  osal_sd_set_t *exceptsds, struct timeval *timeout)
+/****************************************************************************
+ * @brief Allows a program to monitor multiple file descriptors, waiting until
+ *        one or more of the file descriptors become "ready" for some class of 
+ *        I/O operatio 
+ *
+ * input parameters
+ *  @param[in] nfds This argument should be set to the highest-numbered file 
+ *                  descriptor plus one
+ *  @param[in] readfds The file descriptors in this set are watched to see if 
+ *                     they are ready for reading 
+ *  @param[in] writefds The file descriptors in this set are watched to see 
+ *                      if they are ready for writing.
+ *  @param[in] exceptfds The  file descriptors in this set are watched for 
+ *                     "exceptional conditions". 
+ *  @param[in] timeout The interval that osal_select() should block waiting 
+ *                     for a file descriptor to become ready
+ *
+ * output parameters
+ * @return on success returns the number of file descriptors contained in the 
+ *         three returned descriptor sets 
+ *         0 if timeout expired  before any file descriptors became ready. 
+ *        -1 on error
+ *****************************************************************************/
 {
     return select(nfds, readfds, writefds, exceptfds, timeout);
 }
 
+/****************************************************************************
+ * @fn     osal_update_sockaddr 
+ *
+ * @brief  update the ipv6 socket address structure
+ *
+ * input parameters
+ *  @param[in] listen_addr address of sockaddr structure 
+ *  @param[in] sport source port 
+ * output parameters
+ * @return none
+ *****************************************************************************/
 void osal_update_sockaddr(osal_sockaddr *listen_addr, uint16_t sport)
 {
     listen_addr->sin6_family = AF_INET6;
@@ -197,33 +386,89 @@ void osal_update_sockaddr(osal_sockaddr *listen_addr, uint16_t sport)
     listen_addr->sin6_port = htons(sport);
 }
 
-void osal_sd_zero(osal_sd_set_t *set)
+ * @fn     osal_fd_zero 
+ *
+ * @brief clears (removes all file descriptors from) set 
+ *
+ * input parameters
+ *  @param[in] set file descriptor set 
+ * output parameters
+ * @return none
+ *****************************************************************************/
 {
     FD_ZERO(set);
 }
 
-void osal_sd_set(int sd, osal_sd_set_t *set)
+ * @fn     osal_fd_set 
+ *
+ * @brief  This  macro  adds the file descriptor fd to set
+ *
+ * input parameters
+ *  @param[in] fd file descriptor 
+ *  @param[in] set file descriptor set 
+ * output parameters
+ * @return none
+ *****************************************************************************/
 {
     FD_SET(fd, set);
 }
 
-osal_basetype_t osal_sd_isset(int sd, osal_sd_set_t *set)
+ * @fn     osal_fd_isset 
+ *
+ * @brief  modifies  the  contents of the sets
+ *
+ * input parameters
+ *  @param[in] fd file descriptor 
+ *  @param[in] set file descriptor set 
+ * output parameters
+ * @return returns nonzero if the file  descriptor fd is present in set, 
+ *         and zero if it is not 
+ *****************************************************************************/
 {
     return(FD_ISSET(fd, set));
 }
 
-//gettimeofday
-osal_basetype_t osal_gettime(struct timeval *tv, struct timezone *tz)
+/****************************************************************************
+ *
+ * @brief get time as well as a timezone 
+ *
+ * input parameters
+ *  @param[in] tv is a struct timeval 
+ *  @param[in] tz is a struct timezone
+ * output parameters
+ * @return 0 for success, or -1 for failure 
+ *****************************************************************************/
 {
     return gettimeofday(tv, tz);
 }
 
-//settime
+/****************************************************************************
+ * @fn     osal_settimeofday
+ *
+ * @brief set time as well as a timezone 
+ *
+ * input parameters
+ *  @param[in] tv is a struct timeval 
+ *  @param[in] tz is a struct timezone
+ * output parameters
+ * @return 0 for success, or -1 for failure 
+ *****************************************************************************/
 osal_basetype_t osal_settime(struct timeval *tv, struct timezone *tz)
 {
     return settimeofday(tv, tz);
 }
 
+/****************************************************************************
+ * @fn    osal_signal 
+ *
+ * @brief  sets the disposition of the signal signum to handler
+ *
+ * input parameters
+ *  @param[in] signum is delivered to the process 
+ *  @param[in] handler programmer-de‐fined function (a "signal handler")
+ * output parameters
+ * @return returns the previous value of the signal handler, or SIG_ERR on error 
+ *****************************************************************************/
 osal_sighandler_t osal_signal(int signum, osal_sighandler_t handler)
 {
     (void) signum;
@@ -232,6 +477,17 @@ osal_sighandler_t osal_signal(int signum, osal_sighandler_t handler)
 }
 
 osal_basetype_t osal_sigprocmask(int how, const osal_sigset_t *set, osal_sigset_t *oldset)
+ * @fn    osal_sigprocmask 
+ *
+ * @brief fetch and/or change the signal mask of the calling thread 
+ *
+ * input parameters
+ *  @param[in] how define behavior of the call SIG_BLOCK, SIG_UNBLOCK, SIG_SETMASK
+ *  @param[in] set set of signals
+ *  @param[in] oldset the previous value of the signal mask
+ * output parameters
+ * @return returns 0 on success and -1 on error 
+ *****************************************************************************/
 {
     (void) how;
     (void) set;
@@ -239,19 +495,50 @@ osal_basetype_t osal_sigprocmask(int how, const osal_sigset_t *set, osal_sigset_
     return (0);
 }
 
-osal_basetype_t osal_sigemptyset(osal_sigset_t *set)
+/****************************************************************************
+ * @fn    osal_sigemptyset
+ *
+ * @brief initializes the signal set given by set to empty, 
+ *        with all signals excluded from the set 
+ *
+ * input parameters
+ *  @param[in] set set of signals
+ * output parameters
+ * @return returns 0 on success and -1 on error 
+ *****************************************************************************/
+osal_basetype_t osal_sigemptyset(sigset_t *set)
 {
     (void) set;
     return (0);
 }
 
-osal_basetype_t osal_sigaddset(osal_sigset_t *set, int signum)
+/****************************************************************************
+ * @fn    osal_sigaddset
+ *
+ * @brief add and delete respectively signal signum from set.
+ *
+ * input parameters
+ *  @param[in] set set of signals
+ * output parameters
+ * @return returns 0 on success and -1 on error 
+ *****************************************************************************/
+osal_basetype_t osal_sigaddset(sigset_t *set, int signum)
 {
     (void) set;
     (void) signum;
     return (0);
 }
 
+/****************************************************************************
+ * @fn    osal_print_formatted_ip
+ *
+ * @brief print formatted ip v6 address from sockadd for debugging purpose
+ *
+ * input parameters
+ *  @param[in] sockadd socket address structure
+ * output parameters
+ * @return none 
+ *****************************************************************************/
 void osal_print_formatted_ip(const osal_sockaddr *sockadd)
 {
     (void) sockadd;
@@ -343,14 +630,66 @@ void osal_trickle_timer_stop(timerid_t timerid)
   xTimerStop(timers[timerid].timer, 0);
 }
 
+/****************************************************************************
+ * @fn   osal_malloc
+ *
+ * @brief allocate memory
+ *
+ * input parameters
+ *  @param[in] size size of memory to be allocated
+ * output parameters
+ * @return pointer to allocated memory on success, NULL on failure
+ *****************************************************************************/
 void *osal_malloc(size_t size)
 {
   return malloc(size);
 }
+/****************************************************************************
+ * @fn   osal_calloc
+ *
+ * @brief allocate memory and set to zero
+ *
+ * input parameters
+ *  @param[in] num number of elements
+ *  @param[in] size size of memory to be allocated
+ * output parameters
+ * @return pointer to allocated memory on success, NULL on failure
+ *****************************************************************************/
+/****************************************************************************
+ * @fn   osal_realloc
+ *
+ * @brief reallocate memory
+ *
+ * input parameters
+ *  @param[in] ptr pointer to memory to be reallocated
+ *  @param[in] size size of memory to be allocated
+ * output parameters
+ * @return pointer to allocated memory on success, NULL on failure
+ *****************************************************************************/
+/****************************************************************************
+ * @fn   osal_free
+ *
+ * @brief free memory
+ *
+ * input parameters
+ *  @param[in] ptr pointer to memory to be freed
+ * output parameters
+ * @return none
+ *****************************************************************************/
 void osal_free(void *ptr)
 {
   free(ptr);
 }
+/****************************************************************************
+ * @fn   osal_sleep_ms
+ *
+ * @brief sleep for given time
+ *
+ * input parameters
+ *  @param[in] ms time in milliseconds to sleep
+ * output parameters
+ * @return none
+ *****************************************************************************/
 void osal_sleep_ms(uint64_t ms)
 {
   vTaskDelay(pdMS_TO_TICKS(ms));
