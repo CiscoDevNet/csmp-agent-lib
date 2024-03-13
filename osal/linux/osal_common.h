@@ -61,9 +61,9 @@ osal_basetype_t osal_task_create(
 osal_basetype_t osal_task_cancel(osal_task_t thread);
 osal_basetype_t osal_task_setcanceltype(int type, int *oldtype);
 osal_basetype_t osal_task_sigmask(int how, const sigset_t *set, sigset_t *oldset);
-osal_basetype_t osal_sem_create (osal_sem * sem, uint16_t value);
-osal_basetype_t osal_sem_post (osal_sem * sem);
-osal_basetype_t osal_sem_wait (osal_sem * sem, osal_time_t timeout);
+osal_basetype_t osal_sem_create(osal_sem * sem, uint16_t value);
+osal_basetype_t osal_sem_post(osal_sem * sem);
+osal_basetype_t osal_sem_wait(osal_sem * sem, osal_time_t timeout);
 osal_basetype_t osal_sem_destroy(osal_sem *sem);
 osal_socket_handle_t osal_socket(osal_basetype_t domain, osal_basetype_t type, osal_basetype_t protocol);
 osal_ssize_t osal_recvfrom(osal_socket_handle_t sockfd, void *buf, size_t len, osal_basetype_t flags,

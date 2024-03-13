@@ -43,19 +43,19 @@ osal_basetype_t osal_task_sigmask(int how, const sigset_t *set, sigset_t *oldset
 }
 
 //sem_init
-osal_basetype_t osal_sem_create (osal_sem * sem, uint16_t value)
+osal_basetype_t osal_sem_create(osal_sem * sem, uint16_t value)
 {
     /* FreeRtos implementation */
 }
 
 //sem_post
-osal_basetype_t osal_sem_post (osal_sem * sem)
+osal_basetype_t osal_sem_post(osal_sem * sem)
 {
     /* FreeRtos implementation */
 }
 
 //sem_wait
-osal_basetype_t osal_sem_wait (osal_sem * sem, osal_time_t timeout)
+osal_basetype_t osal_sem_wait(osal_sem * sem, osal_time_t timeout)
 {
     /* FreeRtos implementation */
 }
