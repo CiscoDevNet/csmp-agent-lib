@@ -16,17 +16,8 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <time.h>
-#include <sys/types.h>
-#include <pthread.h>
-#include <unistd.h>
-
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
 
 #include "coap.h"
 #include "coapserver.h"
@@ -59,6 +50,7 @@ int coapserver_listen(uint16_t sport, recv_handler_t recv_handler)
 {
   osal_socket_handle_t sockfd;
   osal_sockaddr listen_addr;
+  osal_basetype_t ret = 0;
 
   if (m_server_opened) {
     DPRINTF("coapserver_listen coapserver was already opened!\n");
@@ -90,7 +82,9 @@ int coapserver_listen(uint16_t sport, recv_handler_t recv_handler)
 
   m_sockfd = sockfd;
   m_server_opened = true;
-  recvt_id_task = osal_task_create(NULL, 0, 0, recv_thread, NULL);
+  ret = osal_task_create(&recvt_id_task, NULL, 0, 0, recv_thread, NULL);
+  assert(ret == 0);
+
   return 0;
 }
 

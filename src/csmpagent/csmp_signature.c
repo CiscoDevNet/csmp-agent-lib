@@ -15,7 +15,6 @@
  */
 
 #include <string.h>
-#include <sys/time.h>
 #include "csmp.h"
 #include "csmpinfo.h"
 #include "csmptlv.h"

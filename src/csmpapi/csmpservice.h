@@ -17,8 +17,8 @@
 #ifndef _CSMPSERVICE_H
 #define _CSMPSERVICE_H
 
-#include <netinet/in.h>
 #include "csmp.h"
+#include "osal_common.h"
 
 /*! \file
  *
