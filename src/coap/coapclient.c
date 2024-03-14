@@ -244,47 +244,27 @@ static void recv_fn(void* arg)
 {
   (void)arg; // Disable un-used argument compiler warning.
   DPRINTF("coapclient receive thread is serving now...\n");
-
-  osal_ssize_t rv;
   osal_sockaddr_t from = {0};
   socklen_t socklen = sizeof(struct sockaddr_in6);
-  uint8_t data[1024];
+  static uint8_t data[1024];
   osal_basetype_t len;
 
   osal_task_setcanceltype();
 
-  fd_set readset;
-  fd_set tempset;
-
-  osal_sd_zero(&readset);
-  osal_sd_zero(&tempset);
-  osal_sd_set(m_sock, &tempset);
-
   while (1)
   {
-    osal_sd_zero(&readset);
-    readset = tempset;
-    rv = osal_select(m_sock+1, &readset, NULL, NULL, NULL);
-
-    if (rv < 0) {
-    //perror("select");
+    len = osal_recvfrom(m_sock, data, sizeof(data), 0, &from, &socklen);
+    if (len < 0) {
+      DPRINTF("coapserver_listen recv_fn recvmsg error!\n");
+      // Dispatch for non-blocking socket
+      osal_sleep_ms(1000);
       continue;
     }
 
-    if (osal_sd_isset(m_sock, &readset))
-    {
-      len = osal_recvfrom(m_sock, data, sizeof(data), 0, &from, &socklen);
-      if (len < 0) {
-        DPRINTF("coapserver_listen recv_fn recvmsg error!\n");
-        continue;
-      }
+    DPRINTF("coapclient.Socket.recvfrom - Got %u-byte response from ",len);
+    osal_print_formatted_ip(&from);
 
-      DPRINTF("coapclient.Socket.recvfrom - Got %u-byte response from ",len);
-      osal_print_formatted_ip(&from);
-
-      process_response(data, len, &from );
-      continue;
-   }
+    process_response(data, len, &from ); 
  }
 #if defined(OSAL_LINUX)
   return NULL;
