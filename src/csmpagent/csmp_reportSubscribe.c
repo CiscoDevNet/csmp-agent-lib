@@ -14,7 +14,6 @@
  *  limitations under the License.
  */
 
-#include <stdlib.h>
 #include <string.h>
 #include "csmp.h"
 #include "cgmsagent.h"
@@ -22,6 +21,7 @@
 #include "csmpagent.h"
 #include "csmpfunction.h"
 #include "CsmpTlvs.pb-c.h"
+#include "osal_common.h"
 
 #define MAX_CNT 15
 #define MAX_LEN 8
@@ -38,14 +38,14 @@ int csmp_get_reportSubscribe(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tl
 
   (void)tlvindex; // Suppress unused param compiler warning.
   
-  tlvlist = malloc(MAX_CNT * sizeof(void *));
+  tlvlist = osal_malloc(MAX_CNT * sizeof(void *));
 
   DPRINTF("csmpagent_reportSubscribe: start working.\n");
   ReportSubscribeMsg.interval_present_case = REPORT_SUBSCRIBE__INTERVAL_PRESENT_INTERVAL;
   ReportSubscribeMsg.interval = g_csmplib_report_list.period;
 
   for (i = 0;i < g_csmplib_report_list.cnt;i++) {
-    tlvlist[i] = malloc(MAX_LEN);
+    tlvlist[i] = osal_malloc(MAX_LEN);
     csmptlv_id2str(tlvlist[i],MAX_LEN,&g_csmplib_report_list.list[i]);
   }
   ReportSubscribeMsg.n_tlvid = g_csmplib_report_list.cnt;
@@ -62,8 +62,8 @@ int csmp_get_reportSubscribe(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tl
   pbuf += rv; used += rv;
 
   for (i = 0;i < g_csmplib_report_list.cnt;i++)
-    free(tlvlist[i]);
-  free(tlvlist);
+    osal_free(tlvlist[i]);
+  osal_free(tlvlist);
 
   return used;
 }
