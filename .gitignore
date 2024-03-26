@@ -1,6 +1,5 @@
 sample/CsmpAgentLib_sample
 efr32_wisun/build/
-!efr32_wisun/gecko_sdk_2024.6.0/protocol/wisun/stack/libwisun_full_efr32xg2x_gcc_debug.a
 *.o
 *.a
 *.out
@@ -10,3 +9,4 @@ efr32_wisun/build/
 *.hex
 *.s37
 *.d
+!libwisun_full_efr32xg2x_gcc_debug.a

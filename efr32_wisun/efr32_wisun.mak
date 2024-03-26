@@ -4,13 +4,14 @@
 ####################################################################
 
 BASE_SDK_PATH = /Users/ismilak/Silabs/gsdk
+CSMP_AGENT_LIB_EFR32_WISUN_PATH = efr32_wisun
 UNAME:=$(shell $(POSIX_TOOL_PATH)uname -s | $(POSIX_TOOL_PATH)sed -e 's/^\(CYGWIN\).*/\1/' | $(POSIX_TOOL_PATH)sed -e 's/^\(MINGW\).*/\1/')
 ifeq ($(UNAME),MINGW)
 # Translate "C:/super" into "/C/super" for MinGW make.
 SDK_PATH := /$(shell $(POSIX_TOOL_PATH)echo $(BASE_SDK_PATH) | sed s/://)
 endif
 SDK_PATH ?= $(BASE_SDK_PATH)
-COPIED_SDK_PATH ?= gecko_sdk_2024.6.0
+COPIED_SDK_PATH ?= $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/gecko_sdk_2024.6.0
 
 # This uses the explicit build rules below
 PROJECT_SOURCE_FILES =
@@ -81,11 +82,11 @@ ASM_DEFS += \
  '-DHAVE_LFN=1'
 
 INCLUDES += \
- -Iconfig \
- -Iconfig/rail \
- -Iconfig/wisun \
- -Iautogen \
- -I. \
+ -I$(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/config \
+ -I$(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/config/rail \
+ -I$(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/config/wisun \
+ -I$(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen \
+ -I$(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/. \
  -I$(COPIED_SDK_PATH)/platform/Device/SiliconLabs/EFR32ZG28/Include \
  -I$(COPIED_SDK_PATH)/app/wisun/component/app_project_info \
  -I$(COPIED_SDK_PATH)/platform/common/inc \
@@ -238,7 +239,8 @@ LD_FLAGS += \
 pre-build:
 	# No pre-build defined
 
-post-build: $(OUTPUT_DIR)/$(PROJECTNAME).out
+# post-build: $(OUTPUT_DIR)/$(PROJECTNAME).out
+post-build:
 	# No post-build defined
 
 ####################################################################
@@ -1728,110 +1730,85 @@ $(OUTPUT_DIR)/sdk/util/third_party/segger/systemview/SEGGER/SEGGER_RTT.o: $(COPI
 CDEPS += $(OUTPUT_DIR)/sdk/util/third_party/segger/systemview/SEGGER/SEGGER_RTT.d
 OBJS += $(OUTPUT_DIR)/sdk/util/third_party/segger/systemview/SEGGER/SEGGER_RTT.o
 
-$(OUTPUT_DIR)/project/app.o: app.c
-	@$(POSIX_TOOL_PATH)echo 'Building app.c'
-	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ app.c
-CDEPS += $(OUTPUT_DIR)/project/app.d
-OBJS += $(OUTPUT_DIR)/project/app.o
 
-$(OUTPUT_DIR)/project/app_custom_callback.o: app_custom_callback.c
-	@$(POSIX_TOOL_PATH)echo 'Building app_custom_callback.c'
-	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ app_custom_callback.c
-CDEPS += $(OUTPUT_DIR)/project/app_custom_callback.d
-OBJS += $(OUTPUT_DIR)/project/app_custom_callback.o
 
-$(OUTPUT_DIR)/project/app_init.o: app_init.c
-	@$(POSIX_TOOL_PATH)echo 'Building app_init.c'
-	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ app_init.c
-CDEPS += $(OUTPUT_DIR)/project/app_init.d
-OBJS += $(OUTPUT_DIR)/project/app_init.o
-
-$(OUTPUT_DIR)/project/autogen/rail_config.o: autogen/rail_config.c
+$(OUTPUT_DIR)/project/autogen/rail_config.o: $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/rail_config.c
 	@$(POSIX_TOOL_PATH)echo 'Building autogen/rail_config.c'
 	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ autogen/rail_config.c
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/rail_config.c
 CDEPS += $(OUTPUT_DIR)/project/autogen/rail_config.d
 OBJS += $(OUTPUT_DIR)/project/autogen/rail_config.o
 
-$(OUTPUT_DIR)/project/autogen/sl_board_default_init.o: autogen/sl_board_default_init.c
+$(OUTPUT_DIR)/project/autogen/sl_board_default_init.o: $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_board_default_init.c
 	@$(POSIX_TOOL_PATH)echo 'Building autogen/sl_board_default_init.c'
 	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ autogen/sl_board_default_init.c
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_board_default_init.c
 CDEPS += $(OUTPUT_DIR)/project/autogen/sl_board_default_init.d
 OBJS += $(OUTPUT_DIR)/project/autogen/sl_board_default_init.o
 
-$(OUTPUT_DIR)/project/autogen/sl_cli_command_table.o: autogen/sl_cli_command_table.c
+$(OUTPUT_DIR)/project/autogen/sl_cli_command_table.o: $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_cli_command_table.c
 	@$(POSIX_TOOL_PATH)echo 'Building autogen/sl_cli_command_table.c'
 	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ autogen/sl_cli_command_table.c
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_cli_command_table.c
 CDEPS += $(OUTPUT_DIR)/project/autogen/sl_cli_command_table.d
 OBJS += $(OUTPUT_DIR)/project/autogen/sl_cli_command_table.o
 
-$(OUTPUT_DIR)/project/autogen/sl_cli_instances.o: autogen/sl_cli_instances.c
+$(OUTPUT_DIR)/project/autogen/sl_cli_instances.o: $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_cli_instances.c
 	@$(POSIX_TOOL_PATH)echo 'Building autogen/sl_cli_instances.c'
 	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ autogen/sl_cli_instances.c
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_cli_instances.c
 CDEPS += $(OUTPUT_DIR)/project/autogen/sl_cli_instances.d
 OBJS += $(OUTPUT_DIR)/project/autogen/sl_cli_instances.o
 
-$(OUTPUT_DIR)/project/autogen/sl_device_init_clocks.o: autogen/sl_device_init_clocks.c
-	@$(POSIX_TOOL_PATH)echo 'Building autogen/sl_device_init_clocks.c'
+$(OUTPUT_DIR)/project/autogen/sl_device_init_clocks.o: $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_device_init_clocks.c
+	@$(POSIX_TOOL_PATH)echo 'Building $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_device_init_clocks.c'
 	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ autogen/sl_device_init_clocks.c
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_device_init_clocks.c
 CDEPS += $(OUTPUT_DIR)/project/autogen/sl_device_init_clocks.d
 OBJS += $(OUTPUT_DIR)/project/autogen/sl_device_init_clocks.o
 
-$(OUTPUT_DIR)/project/autogen/sl_event_handler.o: autogen/sl_event_handler.c
+$(OUTPUT_DIR)/project/autogen/sl_event_handler.o: $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_event_handler.c
 	@$(POSIX_TOOL_PATH)echo 'Building autogen/sl_event_handler.c'
 	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ autogen/sl_event_handler.c
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_event_handler.c
 CDEPS += $(OUTPUT_DIR)/project/autogen/sl_event_handler.d
 OBJS += $(OUTPUT_DIR)/project/autogen/sl_event_handler.o
 
-$(OUTPUT_DIR)/project/autogen/sl_iostream_handles.o: autogen/sl_iostream_handles.c
-	@$(POSIX_TOOL_PATH)echo 'Building autogen/sl_iostream_handles.c'
+$(OUTPUT_DIR)/project/autogen/sl_iostream_handles.o: $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_iostream_handles.c
+	@$(POSIX_TOOL_PATH)echo 'Building $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_iostream_handles.c'
 	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ autogen/sl_iostream_handles.c
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_iostream_handles.c
 CDEPS += $(OUTPUT_DIR)/project/autogen/sl_iostream_handles.d
 OBJS += $(OUTPUT_DIR)/project/autogen/sl_iostream_handles.o
 
-$(OUTPUT_DIR)/project/autogen/sl_iostream_init_eusart_instances.o: autogen/sl_iostream_init_eusart_instances.c
+$(OUTPUT_DIR)/project/autogen/sl_iostream_init_eusart_instances.o: $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_iostream_init_eusart_instances.c
 	@$(POSIX_TOOL_PATH)echo 'Building autogen/sl_iostream_init_eusart_instances.c'
 	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ autogen/sl_iostream_init_eusart_instances.c
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_iostream_init_eusart_instances.c
 CDEPS += $(OUTPUT_DIR)/project/autogen/sl_iostream_init_eusart_instances.d
 OBJS += $(OUTPUT_DIR)/project/autogen/sl_iostream_init_eusart_instances.o
 
-$(OUTPUT_DIR)/project/autogen/sl_simple_button_instances.o: autogen/sl_simple_button_instances.c
+$(OUTPUT_DIR)/project/autogen/sl_simple_button_instances.o: $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_simple_button_instances.c
 	@$(POSIX_TOOL_PATH)echo 'Building autogen/sl_simple_button_instances.c'
 	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ autogen/sl_simple_button_instances.c
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_simple_button_instances.c
 CDEPS += $(OUTPUT_DIR)/project/autogen/sl_simple_button_instances.d
 OBJS += $(OUTPUT_DIR)/project/autogen/sl_simple_button_instances.o
 
-$(OUTPUT_DIR)/project/autogen/sl_wisun_config.o: autogen/sl_wisun_config.c
+$(OUTPUT_DIR)/project/autogen/sl_wisun_config.o: $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_wisun_config.c
 	@$(POSIX_TOOL_PATH)echo 'Building autogen/sl_wisun_config.c'
 	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ autogen/sl_wisun_config.c
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_wisun_config.c
 CDEPS += $(OUTPUT_DIR)/project/autogen/sl_wisun_config.d
 OBJS += $(OUTPUT_DIR)/project/autogen/sl_wisun_config.o
 
-$(OUTPUT_DIR)/project/autogen/sli_cli_hooks.o: autogen/sli_cli_hooks.c
+$(OUTPUT_DIR)/project/autogen/sli_cli_hooks.o: $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sli_cli_hooks.c
 	@$(POSIX_TOOL_PATH)echo 'Building autogen/sli_cli_hooks.c'
 	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ autogen/sli_cli_hooks.c
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sli_cli_hooks.c
 CDEPS += $(OUTPUT_DIR)/project/autogen/sli_cli_hooks.d
 OBJS += $(OUTPUT_DIR)/project/autogen/sli_cli_hooks.o
 
-$(OUTPUT_DIR)/project/main.o: main.c
-	@$(POSIX_TOOL_PATH)echo 'Building main.c'
-	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ main.c
-CDEPS += $(OUTPUT_DIR)/project/main.d
-OBJS += $(OUTPUT_DIR)/project/main.o
 
 # Automatically-generated Simplicity Studio Metadata
 # Please do not edit or delete these lines!
