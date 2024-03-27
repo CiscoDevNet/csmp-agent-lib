@@ -264,7 +264,7 @@ void currenttime_post(Current_Time *tlv) {
   struct timeval tv = {0};
   if(tlv->has_posix) {
     tv.tv_sec = tlv->posix;
-    settimeofday(&tv, NULL);
+    osal_settime(&tv, NULL);
   }
 }
 
