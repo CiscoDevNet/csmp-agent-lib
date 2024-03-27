@@ -1,3 +1,4 @@
+build/
 sample/CsmpAgentLib_sample
 efr32_wisun/build/
 *.o
