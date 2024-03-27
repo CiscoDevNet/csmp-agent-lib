@@ -640,14 +640,14 @@ void osal_trickle_timer_start(timerid_t timerid, uint32_t imin, uint32_t imax, t
 
   seed = (((uint16_t)g_csmplib_eui64[6] << 8) | g_csmplib_eui64[7]);
   srand(seed);
-  timers[timerid].t0 = tv.tv_sec + (random()%imin);
+  timers[timerid].t0 = tv.tv_sec + (rand()%imin);
   timers[timerid].icur = imin;
   timers[timerid].imin = imin;
   timers[timerid].imax = imax;
   timers[timerid].is_running = true;
   timer_fired[timerid] = trickle_timer_fired;
   min = timers[timerid].icur >> 1;
-  timers[timerid].tfire = timers[timerid].t0 + min + (random() % (timers[timerid].icur - min));
+  timers[timerid].tfire = timers[timerid].t0 + min + (rand() % (timers[timerid].icur - min));
   xTimerStart(timers[timerid].timer, 0);
   osal_update_timer();
 }
@@ -840,7 +840,7 @@ static void osal_alarm_fired(TimerHandle_t xTimer)
 
     timer_fired[i]();
     min = timer->icur >> 1;
-    timer->tfire = timer->t0 + min + (random() % (timer->icur - min));
+    timer->tfire = timer->t0 + min + (rand() % (timer->icur - min));
   }
   osal_update_timer();
 }

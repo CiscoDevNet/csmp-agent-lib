@@ -17,10 +17,12 @@
 #ifndef __OSAL_H
 #define __OSAL_H
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <assert.h>
 #include <errno.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
