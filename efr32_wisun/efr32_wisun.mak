@@ -3,14 +3,8 @@
 # Makefile Version 15                                              #
 ####################################################################
 
-BASE_SDK_PATH = /Users/ismilak/Silabs/gsdk
-CSMP_AGENT_LIB_EFR32_WISUN_PATH = efr32_wisun
+CSMP_AGENT_LIB_EFR32_WISUN_PATH ?= efr32_wisun
 UNAME:=$(shell $(POSIX_TOOL_PATH)uname -s | $(POSIX_TOOL_PATH)sed -e 's/^\(CYGWIN\).*/\1/' | $(POSIX_TOOL_PATH)sed -e 's/^\(MINGW\).*/\1/')
-ifeq ($(UNAME),MINGW)
-# Translate "C:/super" into "/C/super" for MinGW make.
-SDK_PATH := /$(shell $(POSIX_TOOL_PATH)echo $(BASE_SDK_PATH) | sed s/://)
-endif
-SDK_PATH ?= $(BASE_SDK_PATH)
 COPIED_SDK_PATH ?= $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/gecko_sdk_2024.6.0
 
 # This uses the explicit build rules below
@@ -225,7 +219,7 @@ LD_FLAGS += \
  -mthumb \
  -mfpu=fpv5-sp-d16 \
  -mfloat-abi=hard \
- -T"autogen/linkerfile.ld" \
+ -T"$(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/linkerfile.ld" \
  --specs=nano.specs \
  -Xlinker -Map=$(OUTPUT_DIR)/$(PROJECTNAME).map \
  -Wl,--wrap=_free_r -Wl,--wrap=_malloc_r -Wl,--wrap=_calloc_r -Wl,--wrap=_realloc_r \
