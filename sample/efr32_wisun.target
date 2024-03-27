@@ -62,7 +62,7 @@ signature_verify.c
 CXX_SOURCE_FILES = 
 ASM_SOURCE_FILES = 
 
-LIBS = ../csmp_agent_lib_efr32_wisun.a
+LIBS = csmp_agent_lib_efr32_wisun.a
 
 C_DEFS   += -DOSAL_EFR32_WISUN
 ASM_DEFS = 

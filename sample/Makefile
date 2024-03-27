@@ -20,3 +20,7 @@ efr32_wisun:
 
 clean:
 	-rm -rf *.o CsmpAgentLib_sample
+	-rm -f *.a
+	-rm -f *.bin
+	-rm -f *.hex
+	-rm -f *.s37
