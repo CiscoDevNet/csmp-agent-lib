@@ -24,3 +24,5 @@ clean:
 	-rm -f *.bin
 	-rm -f *.hex
 	-rm -f *.s37
+	-rm -f *.out
+	-rm -rf ../build
