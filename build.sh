@@ -26,6 +26,7 @@ build_lib()
   make $OS -C $DESTDIR
   rm -f *.o
   [ ! -f csmp_agent_lib.a ] || mv csmp_agent_lib.a sample/
+  [ ! -f csmp_agent_lib_freertos.a ] || mv csmp_agent_lib_freertos.a sample/
   [ ! -f csmp_agent_lib_efr32_wisun.a ] || mv csmp_agent_lib_efr32_wisun.a sample/
 }
 
