@@ -67,7 +67,7 @@ INCLUDES += -Iinclude\
 					  -Iosal/efr32_wisun\
 					 
 
-C_FLAGS           = 
+C_FLAGS           += -Wno-missing-braces
 C_FLAGS_DEBUG     = 
 C_FLAGS_RELEASE   = 
 CXX_FLAGS         = 
