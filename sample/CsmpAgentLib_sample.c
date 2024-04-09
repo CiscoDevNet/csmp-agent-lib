@@ -33,6 +33,9 @@ typedef struct thread_argument {
 
 
 static void *csmp_sample_app_thr_fnc(void *arg)
+#else
+static void csmp_sample_app_thr_fnc(void *arg)
+#endif
 {
   thread_argument_t *thread_arg = (thread_argument_t *)arg;
   int argc = thread_arg->argc;
@@ -186,12 +189,11 @@ static void *csmp_sample_app_thr_fnc(void *arg)
   else
     printf("stop csmp agent service: fail!\n");
 
-  return 0;
-
 start_error:
   printf("start csmp agent service: fail!\n");
-
+#if defined(OSAL_LINUX)
   return NULL;
+#endif
 }
 
 /**************************************************************

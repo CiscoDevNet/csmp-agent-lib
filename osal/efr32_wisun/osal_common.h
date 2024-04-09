@@ -37,7 +37,7 @@ typedef struct sockaddr_in6 osal_sockaddr;
 typedef SemaphoreHandle_t osal_sem;
 typedef socklen_t osal_socklen;
 typedef TaskHandle_t osal_task_t;
-
+typedef TaskFunction_t osal_task_fnc_t;
 typedef ssize_t osal_ssize_t;
 typedef uint64_t osal_time_t;
 typedef BaseType_t osal_basetype_t;
@@ -49,8 +49,8 @@ typedef int osal_socket_handle_t;
 void osal_kernel_start(void);
 
 struct timeval {
-    long tv_sec;
-    long tv_usec;
+    uint32_t tv_sec;
+    uint32_t tv_usec;
 };
 struct timezone {
     int tz_minuteswest;
@@ -64,7 +64,7 @@ osal_basetype_t osal_task_create(
    const char * name,
    uint32_t priority,
    size_t stacksize,
-   void* (*entry) (void * arg),
+   osal_task_fnc_t entry,
    void * arg);
 osal_basetype_t osal_task_cancel(osal_task_t thread);
 osal_basetype_t osal_task_setcanceltype(void);

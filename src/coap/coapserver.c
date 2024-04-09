@@ -36,8 +36,11 @@ static recv_handler_t m_recv_handler = NULL;
 void process_datagram(void *data, uint16_t len, struct sockaddr_in6 *from );
 void send_internal_response(const struct sockaddr_in6 *from, uint16_t tx_id,
                             uint8_t token_length, uint8_t *token, uint16_t status);
-
-void *recv_thread(void* arg);
+#if defined(OSAL_LINUX)
+static void *recv_thread(void* arg);
+#else
+static void recv_thread(void* arg);
+#endif
 
 int coapserver_stop()
 {
@@ -89,7 +92,11 @@ int coapserver_listen(uint16_t sport, recv_handler_t recv_handler)
   return 0;
 }
 
-void *recv_thread(void* arg)
+#ifdef OSAL_LINUX
+static void *recv_thread(void* arg)
+#else
+static void recv_thread(void* arg)
+#endif
 {
   (void)arg; // Disable un-used argument compiler warning.
   DPRINTF("coapserver receive thread is serving now...\n");
@@ -144,6 +151,9 @@ void *recv_thread(void* arg)
       continue;
     }
   }
+#if defined(OSAL_LINUX)
+  return NULL;
+#endif
 }
 
 int coapserver_response(const struct sockaddr_in6 *to,

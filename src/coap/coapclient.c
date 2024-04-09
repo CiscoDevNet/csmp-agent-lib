@@ -32,8 +32,11 @@ static osal_basetype_t m_sock = 0;
 static bool m_client_opened = false;
 static uint16_t m_transaction_id = 0;
 static osal_task_t recvt_id_task;
-
-void *recv_fn(void*);
+#if defined(OSAL_LINUX)
+static void *recv_fn(void*);
+#else
+static void recv_fn(void*);
+#endif
 int write_option( uint8_t *buf, uint16_t buf_len, coap_option_t this_option, coap_option_t *last_option,
     const uint8_t* option_buf, uint32_t option_len, uint32_t *written_len );
 void process_response(uint8_t* data, uint16_t len, struct sockaddr_in6 *from);
@@ -233,8 +236,11 @@ void coap_option_map(uint32_t val, uint8_t *map)
   else if (val <= 0xffff + 269)
     *map = 14;
 }
-
-void *recv_fn(void* arg)
+#if defined(OSAL_LINUX)
+static void *recv_fn(void* arg)
+#else
+static void recv_fn(void* arg)
+#endif
 {
   (void)arg; // Disable un-used argument compiler warning.
   DPRINTF("coapclient receive thread is serving now...\n");
@@ -280,6 +286,9 @@ void *recv_fn(void* arg)
       continue;
    }
  }
+#if defined(OSAL_LINUX)
+  return NULL;
+#endif
 }
 
 void process_response(uint8_t* data, uint16_t len, struct sockaddr_in6 *from)

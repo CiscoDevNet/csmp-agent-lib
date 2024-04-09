@@ -60,14 +60,16 @@ void osal_kernel_start(void)
 }
 
 osal_basetype_t osal_task_create(osal_task_t * thread,
-                                 const char * name,
-                                 uint32_t priority,
-                                 size_t stacksize,
-                                 void* (*entry) (void * arg),
+osal_basetype_t osal_task_create (
+   osal_task_t * thread,
+   const char * name,
+   uint32_t priority,
+   size_t stacksize,
+   osal_task_fnc_t entry,
                                  void * arg)
 {
     osal_basetype_t ret = 0;
-    ret = xTaskCreate((TaskFunction_t)entry, 
+    ret = xTaskCreate(entry, 
                       name, 
                       ((PTHREAD_STACK_MIN / sizeof(size_t)) + stacksize), 
                       arg, 
