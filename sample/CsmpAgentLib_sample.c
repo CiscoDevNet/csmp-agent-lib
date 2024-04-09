@@ -155,7 +155,7 @@ static void *csmp_sample_app_thr_fnc(void *arg)
     printf("start csmp agent service: success!\n");
 
   // get the regmin and regmax
-  printf("min : %d, max = %d\n",g_devconfig.reginterval_min, g_devconfig.reginterval_max);
+  printf("min : %" PRIuLEAST32 ", max = %" PRIuLEAST32 "\n",g_devconfig.reginterval_min, g_devconfig.reginterval_max);
 
   while(1) {
     osal_sleep_ms(g_devconfig.reginterval_min * 1000UL);
@@ -167,10 +167,10 @@ static void *csmp_sample_app_thr_fnc(void *arg)
     // get the stats of CSMP agent service
     stats_ptr = csmp_service_stats();
     printf("-------------- CSMP service stats --------------\n");
-    printf(" reg_succeed: %d\n reg_attempts: %d\n reg_fails: %d\n\
-        \n *** reg_fail reason ***\n  error_coap: %d\n  error_signature: %d\n  error_process: %d\n\
-        \n metrics_reports: %d\n csmp_get_succeed: %d\n csmp_post_succeed: %d\n\
-        \n sig_ok: %d\n sig_no_signature: %d\n sig_bad_auth: %d\n sig_bad_validity: %d\n",\
+    printf(" reg_succeed: %" PRIuLEAST32 "\n reg_attempts: %" PRIuLEAST32 "\n reg_fails: %" PRIuLEAST32 "\n\
+        \n *** reg_fail reason ***\n  error_coap: %" PRIuLEAST32 "\n  error_signature: %" PRIuLEAST32 "\n  error_process: %" PRIuLEAST32 "\n\
+        \n metrics_reports: %" PRIuLEAST32 "\n csmp_get_succeed: %" PRIuLEAST32 "\n csmp_post_succeed: %" PRIuLEAST32 "\n\
+        \n sig_ok: %" PRIuLEAST32 "\n sig_no_signature: %" PRIuLEAST32 "\n sig_bad_auth: %" PRIuLEAST32 "\n sig_bad_validity: %" PRIuLEAST32 "\n",\
         stats_ptr->reg_succeed,stats_ptr->reg_attempts,stats_ptr->reg_fails,\
         stats_ptr->reg_fails_stats.error_coap,stats_ptr->reg_fails_stats.error_signature,\
         stats_ptr->reg_fails_stats.error_process,stats_ptr->metrics_reports,\
