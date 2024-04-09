@@ -41,7 +41,7 @@ static bool m_timert_isrunning = false;
 
 static void osal_update_timer();
 static void osal_alarm_fired(TimerHandle_t xTimer);
-
+static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2);
 void osal_kernel_start(void)
 {
     for (BaseType_t i = 0; i < timer_num; i++) {
@@ -354,7 +354,7 @@ static void osal_update_timer() {
       m_remaining = remaining;
     //   flag = true;
       if (m_remaining <= 0) {
-        xTimerPendFunctionCall((PendedFunction_t)osal_alarm_fired, 
+        xTimerPendFunctionCall(osal_alarm_fired_pend_fnc, 
                                NULL, 
                                0, 
                                pdFALSE);
@@ -409,3 +409,9 @@ static void osal_alarm_fired(TimerHandle_t xTimer)
 }
 
 
+static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2)
+{
+  (void) param1;
+  (void) param2;
+  osal_alarm_fired(NULL);
+}

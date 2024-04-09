@@ -41,6 +41,7 @@ static bool m_timert_isrunning = false;
 
 static void osal_update_timer();
 static void osal_alarm_fired(TimerHandle_t xTimer);
+static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2);
 
 /****************************************************************************
  * @fn        osal_kernel_start
@@ -772,7 +773,6 @@ static void osal_update_timer() {
   uint32_t now;
   struct timeval tv = {0};
   uint8_t i;
-//   bool flag = false;
 
   m_remaining = (1UL << 31) - 1; /* max int32_t */
   osal_gettimeofday(&tv, NULL);
@@ -787,9 +787,8 @@ static void osal_update_timer() {
     remaining = timer->tfire - now;
     if (remaining < m_remaining) {
       m_remaining = remaining;
-    //   flag = true;
       if (m_remaining <= 0) {
-        xTimerPendFunctionCall((PendedFunction_t)osal_alarm_fired, 
+        xTimerPendFunctionCall(osal_alarm_fired_pend_fnc, 
                                NULL, 
                                0, 
                                pdFALSE);
@@ -798,8 +797,6 @@ static void osal_update_timer() {
       }
     }
   }
-//   if(flag)
-//     osal_sem_post(&sem);
 }
 
 static void osal_alarm_fired(TimerHandle_t xTimer)
@@ -845,4 +842,9 @@ static void osal_alarm_fired(TimerHandle_t xTimer)
   osal_update_timer();
 }
 
-
+static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2)
+{
+  (void) param1;
+  (void) param2;
+  osal_alarm_fired(NULL);
+}
