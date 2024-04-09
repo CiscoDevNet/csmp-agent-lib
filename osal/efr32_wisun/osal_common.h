@@ -68,9 +68,6 @@ osal_basetype_t osal_task_create(
    void * arg);
 osal_basetype_t osal_task_cancel(osal_task_t thread);
 osal_basetype_t osal_task_setcanceltype(void);
-#if 0
-osal_basetype_t osal_task_sigmask(int how, const sigset_t *set, sigset_t *oldset);
-#endif
 osal_basetype_t osal_sem_create(osal_sem * sem, uint16_t value);
 osal_basetype_t osal_sem_post(osal_sem * sem);
 osal_basetype_t osal_sem_wait(osal_sem * sem, osal_time_t timeout);
@@ -100,12 +97,6 @@ osal_basetype_t osal_fd_isset(int fd, fd_set *set);
 
 osal_basetype_t osal_gettimeofday(struct timeval *tv, struct timezone *tz);
 osal_basetype_t osal_settime(struct timeval *tv, struct timezone *tz);
-#if 0
-osal_sighandler_t osal_signal(int signum, osal_sighandler_t handler);
-osal_basetype_t osal_sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
-osal_basetype_t osal_sigemptyset(sigset_t *set);
-osal_basetype_t osal_sigaddset(sigset_t *set, int signum);
-#endif
 
 typedef enum {
  reg_timer = 0,  /**< register timer */

@@ -127,29 +127,6 @@ osal_basetype_t osal_task_setcanceltype()
     return 0;
 }
 
-#if 0
-/****************************************************************************
- * @fn        osal_task_sigmask
- *
- * @brief    function examines and/or changes the calling thread's signal mask.
- *
- * input parameters
- *  @param[in] how specifies what to set the signal mask to
- *  @param[in] set of signals to be modified
- *  @param[out] oldset previous signal mask is stored in the location pointed
- *
- * output parameters
- * @return   on success return 0 otherwise error value 
- *****************************************************************************/
-osal_basetype_t osal_task_sigmask(int how, const sigset_t *set, sigset_t *oldset)
-{
-    (void) how;
-    (void) set;
-    (void) oldset;
-    return 0;
-}
-#endif
-
 /****************************************************************************
  * @fn        osal_sem_create()
  *
@@ -363,7 +340,6 @@ osal_basetype_t osal_inet_pton(int af, const char *src, void *dst)
     return inet_pton(af, src, dst);
 }
 
-// #if 0
 /****************************************************************************
  * @fn      osal_select
  *
@@ -399,7 +375,6 @@ osal_basetype_t osal_select(int nfds, fd_set *readfds, fd_set *writefds,
     (void)timeout;
     return 0;  
 }
-// #endif
 
 /****************************************************************************
  * @fn     osal_update_sockaddr 
@@ -505,81 +480,6 @@ osal_basetype_t osal_settime(struct timeval *tv, struct timezone *tz)
   (void) tv;
   return 0;
 }
-
-#if 0
-/****************************************************************************
- * @fn    osal_signal 
- *
- * @brief  sets the disposition of the signal signum to handler
- *
- * input parameters
- *  @param[in] signum is delivered to the process 
- *  @param[in] handler programmer-de‐fined function (a "signal handler")
- * output parameters
- * @return returns the previous value of the signal handler, or SIG_ERR on error 
- *****************************************************************************/
-osal_sighandler_t osal_signal(int signum, osal_sighandler_t handler)
-{
-    (void) signum;
-    (void) handler;
-    return (0);
-}
-
-/****************************************************************************
- * @fn    osal_sigprocmask 
- *
- * @brief fetch and/or change the signal mask of the calling thread 
- *
- * input parameters
- *  @param[in] how define behavior of the call SIG_BLOCK, SIG_UNBLOCK, SIG_SETMASK
- *  @param[in] set set of signals
- *  @param[in] oldset the previous value of the signal mask
- * output parameters
- * @return returns 0 on success and -1 on error 
- *****************************************************************************/
-osal_basetype_t osal_sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
-{
-    (void) how;
-    (void) set;
-    (void) oldset;
-    return (0);
-}
-
-/****************************************************************************
- * @fn    osal_sigemptyset
- *
- * @brief initializes the signal set given by set to empty, 
- *        with all signals excluded from the set 
- *
- * input parameters
- *  @param[in] set set of signals
- * output parameters
- * @return returns 0 on success and -1 on error 
- *****************************************************************************/
-osal_basetype_t osal_sigemptyset(sigset_t *set)
-{
-    (void) set;
-    return (0);
-}
-
-/****************************************************************************
- * @fn    osal_sigaddset
- *
- * @brief add and delete respectively signal signum from set.
- *
- * input parameters
- *  @param[in] set set of signals
- * output parameters
- * @return returns 0 on success and -1 on error 
- *****************************************************************************/
-osal_basetype_t osal_sigaddset(sigset_t *set, int signum)
-{
-    (void) set;
-    (void) signum;
-    return (0);
-}
-
-#endif
 
 /****************************************************************************
  * @fn    osal_print_formatted_ip
