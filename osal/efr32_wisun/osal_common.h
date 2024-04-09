@@ -23,12 +23,14 @@
 #include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
 #include "timers.h"
 #include "socket/socket.h"
 #include "sl_malloc.h"
+#include "sl_sleeptimer.h"
 
 typedef void (*osal_sighandler_t)(int);
 
@@ -47,15 +49,6 @@ typedef int osal_socket_handle_t;
 #define OSAL_SOCK_DGRAM SOCK_DGRAM
 
 void osal_kernel_start(void);
-
-struct timeval {
-    uint32_t tv_sec;
-    uint32_t tv_usec;
-};
-struct timezone {
-    int tz_minuteswest;
-    int tz_dsttime;
-};
 
 #define s6_addr address
 
