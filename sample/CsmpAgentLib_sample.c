@@ -26,7 +26,8 @@
 #include "csmp_info.h"
 #include "signature_verify.h"
 #include "osal.h"
-
+#include "CsmpAgentLib_sample_config.h"
+#endif
 typedef struct thread_argument {
   int argc;
   char **argv;
