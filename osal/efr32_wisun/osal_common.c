@@ -16,7 +16,9 @@
 
 #include "osal_common.h"
 #include "../../src/lib/debug.h"
+#include "sl_system_kernel.h"
 
+#define OSAL_EFR32_WISUN_MIN_STACK_SIZE_WORDS 4096
 
 struct trickle_timer {
   uint32_t t0;
@@ -60,7 +62,8 @@ void osal_kernel_start(void)
         xTimerStop(timers[i].timer, 0);
 
     }
-    vTaskStartScheduler();
+
+    sl_system_kernel_start();
 }
 
 /****************************************************************************
@@ -89,7 +92,7 @@ osal_basetype_t osal_task_create(
     osal_basetype_t ret = 0;
     ret = xTaskCreate(entry, 
                       name, 
-                      ((configMINIMAL_STACK_SIZE / sizeof(size_t)) + stacksize), 
+                      (OSAL_EFR32_WISUN_MIN_STACK_SIZE_WORDS + stacksize), 
                       arg, 
                       priority, 
                       thread);

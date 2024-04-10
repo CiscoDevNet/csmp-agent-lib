@@ -84,7 +84,7 @@
 //  <o>Timer task stack depth [words] <0-65535>
 //  <i> Stack for timer task in words.
 //  <i> Default: 160
-#define configTIMER_TASK_STACK_DEPTH            160
+#define configTIMER_TASK_STACK_DEPTH            4096
 
 //  <o>Timer task priority <0-56>
 //  <i> Timer task priority.

@@ -28,6 +28,10 @@
 #include "osal.h"
 #include "CsmpAgentLib_sample_config.h"
 #endif
+#if defined(OSAL_EFR32_WISUN)
+#include "sl_system_init.h"
+#endif
+
 typedef struct thread_argument {
   int argc;
   char **argv;
@@ -359,6 +363,10 @@ int main(int argc, char **argv)
   (void) argc;
   (void) argv;
   args = NULL;
+#endif
+
+#if defined(OSAL_EFR32_WISUN)
+    sl_system_init();
 #endif
 
 // Create Sample application task
