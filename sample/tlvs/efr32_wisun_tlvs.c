@@ -10,7 +10,7 @@
 #include "csmp_info.h"
 #include "signature_verify.h"
 #include "osal_common.h"
-
+#include "sl_wisun_app_core.h"
 
 #define nexthop_IP "fe80::a00:27ff:fe3b:2ab1"
 
@@ -164,10 +164,11 @@ void* interface_desc_get(uint32_t *num) {
  * @return void* pointer to global variable g_ipAddress
  */
 void* ipaddress_get(uint32_t *num) {
-  int i;
-
+  static sl_wisun_app_core_current_addr_t wisun_addrs = { 0 };
+  
   *num = 3;
-  for(i=0;i<3;i++) {
+
+  for(int i=0;i<3;i++) {
     g_ipAddress[i].has_ipaddressindex = true;
     g_ipAddress[i].has_ipaddressaddrtype = true;
     g_ipAddress[i].has_ipaddressaddr = true;
@@ -180,6 +181,8 @@ void* ipaddress_get(uint32_t *num) {
     g_ipAddress[i].ipaddressindex = i+1;
   }
 
+  sl_wisun_app_core_get_current_addresses(&wisun_addrs);
+
   g_ipAddress[0].ipaddressaddrtype = IPV6;
   g_ipAddress[0].ipaddressaddr.len = 16;
   osal_inet_pton(AF_INET6, "0::1", &g_ipAddress[0].ipaddressaddr.data);
@@ -191,7 +194,7 @@ void* ipaddress_get(uint32_t *num) {
 
   g_ipAddress[1].ipaddressaddrtype = IPV6;
   g_ipAddress[1].ipaddressaddr.len = 16;
-  osal_inet_pton(AF_INET6, "fe80::207:8109:dc:c8d", &g_ipAddress[1].ipaddressaddr.data);
+  memcpy(g_ipAddress[1].ipaddressaddr.data, wisun_addrs.link_local.address, sizeof(in6_addr_t));
   g_ipAddress[1].ipaddressifindex = 2;
   g_ipAddress[1].ipaddresstype = UNICAST;
   g_ipAddress[1].ipaddressorigin = LINKLAYER;
@@ -200,7 +203,7 @@ void* ipaddress_get(uint32_t *num) {
 
   g_ipAddress[2].ipaddressaddrtype = IPV6;
   g_ipAddress[2].ipaddressaddr.len = 16;
-  osal_inet_pton(AF_INET6, "2001:a:b:c::9", &g_ipAddress[2].ipaddressaddr.data);
+  memcpy(g_ipAddress[2].ipaddressaddr.data, wisun_addrs.global.address, sizeof(in6_addr_t));
   g_ipAddress[2].ipaddressifindex = 2;
   g_ipAddress[2].ipaddresstype = UNICAST;
   g_ipAddress[2].ipaddressorigin = DHCP;
