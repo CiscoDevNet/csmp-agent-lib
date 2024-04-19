@@ -56,8 +56,10 @@ endif
 CSMP_AGENT_DIRs += $(shell find ../src -maxdepth 3 -type d)
 C_SOURCE_FILES   += \
 CsmpAgentLib_sample.c \
+CsmpAgentLib_sample_tlvs.c \
 CsmpAgentLib_sample_util.c \
-signature_verify.c
+signature_verify.c \
+tlvs/efr32_wisun_tlvs.c
 
 CXX_SOURCE_FILES = 
 ASM_SOURCE_FILES = 
@@ -68,7 +70,8 @@ C_DEFS   += -DOSAL_EFR32_WISUN
 ASM_DEFS = 
 
 INCLUDES += $(foreach dir, $(CSMP_AGENT_DIRs), -I $(dir))
-INCLUDES += -I../include \
+INCLUDES += -I./ \
+						-I../include \
 					  -I../osal/efr32_wisun 
 						
 C_FLAGS           = 

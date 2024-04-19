@@ -2,7 +2,7 @@
 CC = gcc -Wall -Wextra
 OUTPUT_DIR = ../build/debug
 
-CFLAGS += -I ../include -I ../osal/linux/
+CFLAGS += -I ../include -I ../osal/linux/ -I ./
 CFLAGS += -DOSAL_LINUX
 LIBS += -lpthread
 
@@ -12,7 +12,11 @@ LIBS += -lpthread
 #LIBS += -lcrypto
 #LIBS += -ldl
 
-OBJ = CsmpAgentLib_sample.o CsmpAgentLib_sample_util.o signature_verify.o
+OBJ = CsmpAgentLib_sample.o \
+			CsmpAgentLib_sample_tlvs.o \
+			CsmpAgentLib_sample_util.o \
+			signature_verify.o \
+			linux_tlvs.o
 
 CSMP_AGENT_LIB = csmp_agent_lib.a
 OBJECT = CsmpAgentLib_sample
@@ -22,6 +26,11 @@ CFLAGS += -I ../osal/
 $(OBJECT): $(addprefix $(OUTPUT_DIR)/, $(OBJ))
 	@echo 'Building $@'
 	$(CC) -o $@ $^ $(CSMP_AGENT_LIB) $(LIBS)
+
+$(OUTPUT_DIR)/linux_tlvs.o: tlvs/linux_tlvs.c
+	@echo 'Building $<'
+	@mkdir -p $(@D)
+	@$(CC) $(CFLAGS) -c -o $@ $< $(CSMP_AGENT_LIB)
 
 $(OUTPUT_DIR)/%.o: %.c
 	@echo 'Building $<'
