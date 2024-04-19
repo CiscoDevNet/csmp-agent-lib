@@ -56,8 +56,8 @@ Signature_Settings g_SignatureSettings = SIGNATURE_SETTINGS_INIT;
 /** \brief the vendor specific data */
 Vendor_Specific g_VendorData[VENDOR_SUBTYPE_NUM] = {VENDOR_INIT};
 
-char *SSID = "Cisco Systems";
-char vendorhwid[32] = "vendor hardware ID";
+char *SSID = "Silabs EFR32 Wi-SUN";
+char vendorhwid[32] = "brd4401c";
 uint32_t g_init_time;
 uint8_t neighbor_eui64[2][8] = {{0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb1},
                              {0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb0}};
@@ -107,9 +107,9 @@ void* hardware_desc_get(uint32_t *num) {
   g_hardwareDesc.has_entphysicalfunction = true;
 
   g_hardwareDesc.entphysicalindex = 1;
-  sprintf(g_hardwareDesc.entphysicaldescr,"CSMP Agent Lib test node");
+  sprintf(g_hardwareDesc.entphysicaldescr,"CSMP Agent Lib EFR32 Wi-SUN test node");
   g_hardwareDesc.entphysicalclass = MODULE;
-  sprintf(g_hardwareDesc.entphysicalname,"lowpan");
+  sprintf(g_hardwareDesc.entphysicalname,"wisun");
   sprintf(g_hardwareDesc.entphysicalhardwarerev,"1.0");
   sprintf(g_hardwareDesc.entphysicalfirmwarerev,"1.0.0");
   snprintf(g_hardwareDesc.entphysicalserialnum,sizeof(g_hardwareDesc.entphysicalserialnum),
