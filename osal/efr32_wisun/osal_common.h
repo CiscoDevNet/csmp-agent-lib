@@ -31,6 +31,7 @@
 #include "socket/socket.h"
 #include "sl_malloc.h"
 #include "sl_sleeptimer.h"
+#include "sl_wisun_ntp_timesync_config.h"
 
 typedef void (*osal_sighandler_t)(int);
 

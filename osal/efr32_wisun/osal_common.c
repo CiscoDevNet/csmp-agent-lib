@@ -461,10 +461,10 @@ osal_basetype_t osal_fd_isset(int fd, fd_set *set)
  *****************************************************************************/
 osal_basetype_t osal_gettimeofday(struct timeval *tv, struct timezone *tz)
 {
-  sl_sleeptimer_timestamp_64_t time = 0;
-  sl_sleeptimer_time_zone_offset_t timezone = 0;
+  sl_sleeptimer_timestamp_t time = 0;
+  sl_sleeptimer_time_zone_offset_t timezone = (SL_WISUN_NTP_TIMESYNC_TIMEZONE_UTC_OFFSET_HOUR * 60 * 60);
   
-  time = sl_sleeptimer_get_time_64();
+  time = sl_sleeptimer_get_time();
   timezone = sl_sleeptimer_get_tz();
   
   if (tv == NULL) {
@@ -495,13 +495,13 @@ osal_basetype_t osal_gettimeofday(struct timeval *tv, struct timezone *tz)
  *****************************************************************************/
 osal_basetype_t osal_settime(struct timeval *tv, struct timezone *tz)
 {
-  sl_sleeptimer_timestamp_64_t time = 0;
+  sl_sleeptimer_timestamp_t time = 0;
   if (tv == NULL) {
     return -1;
   }
   time = tv->tv_sec + tv->tv_usec / 1000000;
   if (tz != NULL) {
-    sl_sleeptimer_set_time_64(time);
+    sl_sleeptimer_set_time(time);
     sl_sleeptimer_set_tz(tz->tz_minuteswest * 60);
   }
   return 0;

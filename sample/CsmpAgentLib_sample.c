@@ -32,6 +32,7 @@
 #if defined(OSAL_EFR32_WISUN)
 #include "sl_system_init.h"
 #include "sl_wisun_app_core_util.h"
+#include "sl_wisun_ntp_timesync.h"
 #endif
 
 typedef struct thread_argument {
@@ -221,8 +222,12 @@ static void csmp_sample_app_thr_fnc(void *arg)
 
 #if defined(OSAL_EFR32_WISUN)
   sl_wisun_app_core_util_connect_and_wait();
-#endif
 
+  if (sl_wisun_ntp_timesync() != SL_STATUS_OK) {
+    printf("Warning: NTP Time Sync failed\n");
+  }
+#endif
+  
   osal_gettimeofday(&tv, NULL);
   g_init_time = tv.tv_sec;
 

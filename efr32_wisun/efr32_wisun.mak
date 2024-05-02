@@ -142,6 +142,7 @@ INCLUDES += \
  -I$(COPIED_SDK_PATH)/app/wisun/component/cli_util \
  -I$(COPIED_SDK_PATH)/app/wisun/component/event_manager \
  -I$(COPIED_SDK_PATH)/app/wisun/component/ping \
+ -I$(COPIED_SDK_PATH)/app/wisun/component/ntp_timesync \
  -I$(COPIED_SDK_PATH)/app/wisun/component/trace_util \
  -I$(COPIED_SDK_PATH)/app/wisun/component/trace_util/nanostack/nanostack-libservice/mbed-client-libservice \
  -I$(COPIED_SDK_PATH)/platform/service/sleeptimer/inc \
@@ -323,6 +324,13 @@ $(OUTPUT_DIR)/sdk/app/wisun/component/ping_cli/sl_wisun_ping_cli.o: $(COPIED_SDK
 	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/app/wisun/component/ping_cli/sl_wisun_ping_cli.c
 CDEPS += $(OUTPUT_DIR)/sdk/app/wisun/component/ping_cli/sl_wisun_ping_cli.d
 OBJS += $(OUTPUT_DIR)/sdk/app/wisun/component/ping_cli/sl_wisun_ping_cli.o
+
+$(OUTPUT_DIR)/sdk/app/wisun/component/ntp_timesync/sl_wisun_ntp_timesync.o: $(COPIED_SDK_PATH)/app/wisun/component/ntp_timesync/sl_wisun_ntp_timesync.c
+	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/app/wisun/component/ntp_timesync/sl_wisun_ntp_timesync.c'
+	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/app/wisun/component/ntp_timesync/sl_wisun_ntp_timesync.c
+CDEPS += $(OUTPUT_DIR)/sdk/app/wisun/component/ntp_timesync/sl_wisun_ntp_timesync.d
+OBJS += $(OUTPUT_DIR)/sdk/app/wisun/component/ntp_timesync/sl_wisun_ntp_timesync.o
 
 $(OUTPUT_DIR)/sdk/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libBits/common_functions.o: $(COPIED_SDK_PATH)/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libBits/common_functions.c
 	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libBits/common_functions.c'
