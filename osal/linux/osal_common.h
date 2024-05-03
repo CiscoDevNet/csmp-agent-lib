@@ -102,4 +102,9 @@ typedef void (*trickle_timer_fired_t) ();
 void osal_trickle_timer_start(timerid_t timerid, uint32_t imin, uint32_t imax, trickle_timer_fired_t trickle_time_fired);
 void osal_trickle_timer_stop(timerid_t timerid);
 
+void *osal_malloc(size_t size);
+void *osal_calloc(size_t num, size_t size);
+void *osal_realloc(void *ptr, size_t size);
+void osal_free(void *ptr); 
+
 #endif

@@ -45,8 +45,8 @@
  * \todo Use size_t consistently.
  */
 
-#include <stdlib.h>	/* for malloc, free */
 #include <string.h>	/* for strcmp, strlen, memcpy, memmove, memset */
+#include "osal_common.h"	/* for malloc, free */
 
 #include "protobuf-c.h"
 
@@ -151,14 +151,14 @@ static void *
 system_alloc(void *allocator_data, size_t size)
 {
 	(void)allocator_data;
-	return malloc(size);
+	return osal_malloc(size);
 }
 
 static void
 system_free(void *allocator_data, void *data)
 {
 	(void)allocator_data;
-	free(data);
+	osal_free(data);
 }
 
 static inline void *

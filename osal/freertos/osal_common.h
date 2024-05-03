@@ -84,4 +84,10 @@ osal_sighandler_t osal_signal(int signum, osal_sighandler_t handler);
 int osal_sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
 int osal_sigemptyset(sigset_t *set);
 int osal_sigaddset(sigset_t *set, int signum);
+
+void *osal_malloc(size_t size);
+void *osal_calloc(size_t num, size_t size);
+void *osal_realloc(void *ptr, size_t size);
+void osal_free(void *ptr); 
+
 #endif
