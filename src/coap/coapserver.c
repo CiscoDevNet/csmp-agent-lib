@@ -50,7 +50,7 @@ int coapserver_listen(uint16_t sport, recv_handler_t recv_handler)
 {
   osal_socket_handle_t sockfd;
   osal_sockaddr listen_addr;
-  osal_basetype_t ret = 0;
+  osal_basetype_t ret = OSAL_FAILURE;
 
   if (m_server_opened) {
     DPRINTF("coapserver_listen coapserver was already opened!\n");
@@ -83,7 +83,7 @@ int coapserver_listen(uint16_t sport, recv_handler_t recv_handler)
   m_sockfd = sockfd;
   m_server_opened = true;
   ret = osal_task_create(&recvt_id_task, NULL, 0, 0, recv_thread, NULL);
-  assert(ret == 0);
+  assert(ret == OSAL_SUCCESS);
 
   return 0;
 }

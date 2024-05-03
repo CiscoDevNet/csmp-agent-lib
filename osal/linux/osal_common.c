@@ -68,7 +68,7 @@ osal_basetype_t osal_task_create(
    pthread_attr_t attr;
    
    if (thread == NULL) {
-       return -1;
+       return OSAL_FAILURE;
    }
 
    pthread_attr_init(&attr);
@@ -76,14 +76,14 @@ osal_basetype_t osal_task_create(
   
    ret = pthread_create(thread, &attr, (void *)entry, arg);
    if (ret != 0){
-       return (-ret);
+       return OSAL_FAILURE;
    }
    ret = pthread_detach(*thread);
    if (ret != 0){
-       return (-ret);
+       return OSAL_FAILURE;
    }
 
-   return 0;
+   return OSAL_SUCCESS;
 }
 
 /****************************************************************************
@@ -662,7 +662,7 @@ void osal_trickle_timer_start(timerid_t timerid, uint32_t imin, uint32_t imax, t
     osal_sem_create(&sem, 0);
     osal_task_create(&timer_id_task, NULL, 0, 0, osal_timer_thread, NULL);
     ret = osal_task_create(&timer_id_task, NULL, 0, 0, osal_timer_thread, NULL);
-    assert(ret == 0);
+    assert(ret == OSAL_SUCCESS);
     
     m_timert_isrunning = true;
   }

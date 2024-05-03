@@ -51,7 +51,11 @@ typedef ssize_t osal_ssize_t;
 typedef int osal_socket_handle_t;
 typedef void (*osal_sighandler_t)(int);
 #define OSAL_AF_INET6 AF_INET6 
-#define OSAL_SOCK_DGRAM SOCK_DGRAM 
+#define OSAL_SOCK_DGRAM SOCK_DGRAM
+
+#define OSAL_SUCCESS 0
+#define OSAL_FAILURE -1
+
 osal_basetype_t osal_task_create(
    osal_task_t * thread,
    const char * name,

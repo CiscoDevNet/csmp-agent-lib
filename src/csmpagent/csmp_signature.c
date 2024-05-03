@@ -130,7 +130,7 @@ int checkSignature(const uint8_t *buf, uint32_t len, bool agent)
 
   ret = osal_gettimeofday(&tv, NULL);
 
-  if (ret == -1)
+  if (ret == OSAL_FAILURE)
   {
     g_csmplib_stats.sig_no_sync++;
     return ERROR;
