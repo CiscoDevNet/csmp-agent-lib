@@ -16,12 +16,14 @@ LIBOBJ = $(patsubst %.c,%.o,$(LIBOBJ_nodir))
 
 LIB_OBJECT = csmp_agent_lib.a
 
-LIBSRC += osal/linux/osal_common.c
-INC += osal/linux/
+LIBSRC += osal/linux/osal.c
+INC += \
+-I osal/linux/ \
+-I osal/
 
 $(LIB_OBJECT):$(LIBOBJ)
 	$(AR) $@ $^
 
 $(LIBOBJ):$(LIBSRC)
-	$(CC) -c $(CFLAGS) $^ $(LIBS) -I $(INC)
+	$(CC) -c $(CFLAGS) $^ $(LIBS) $(INC)
 

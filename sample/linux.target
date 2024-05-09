@@ -14,6 +14,7 @@ OBJ = CsmpAgentLib_sample.o signature_verify.o
 
 LIB_OBJECT = csmp_agent_lib.a
 OBJECT = CsmpAgentLib_sample
+CFLAGS += -I ../osal/
 ifeq ($(OS), Linux)
 	CFLAGS += -I ../osal/linux/
 else
