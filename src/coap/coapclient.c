@@ -70,6 +70,7 @@ int coapclient_open(response_handler_t response_handler)
   m_sock = sockfd;
   m_client_opened = true;
   ret = osal_task_create(&recvt_id_task, NULL, 0, 0, recv_fn, NULL);
+  DPRINTF("CoapClient.open - %s.\n" , (ret == OSAL_SUCCESS) ? "task created" : "task creation failed");
   assert(ret == OSAL_SUCCESS);
   
   return 0;

@@ -83,6 +83,7 @@ int coapserver_listen(uint16_t sport, recv_handler_t recv_handler)
   m_sockfd = sockfd;
   m_server_opened = true;
   ret = osal_task_create(&recvt_id_task, NULL, 0, 0, recv_thread, NULL);
+  DPRINTF("coapserver - %s.\n" , (ret == OSAL_SUCCESS) ? "task created" : "task creation failed");
   assert(ret == OSAL_SUCCESS);
 
   return 0;

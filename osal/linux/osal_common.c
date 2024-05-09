@@ -76,10 +76,12 @@ osal_basetype_t osal_task_create(
   
    ret = pthread_create(thread, &attr, (void *)entry, arg);
    if (ret != 0){
+       DPRINTF("pthread_create failed: %d\n", ret);
        return OSAL_FAILURE;
    }
    ret = pthread_detach(*thread);
    if (ret != 0){
+       DPRINTF("pthread_detach failed: %d\n", ret);
        return OSAL_FAILURE;
    }
 
