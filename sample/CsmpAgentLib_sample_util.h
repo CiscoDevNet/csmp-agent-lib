@@ -5,36 +5,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "csmp_service.h"
-// /**
-//  * @brief pubkey_get
-//  *
-//  * @param key pointer to pubkey
-//  */
-// void pubkey_get(char *key);
-
-// /**
-//  * @brief hardware description function
-//  *
-//  * @param num amount of instances (array index) of hardware Descriptions
-//  * @return void* pointer to global variable g_hardwareDesc
-//  */
-// void* hardware_desc_get(uint32_t *num);
-
-// /**
-//  * @brief interface description function
-//  *
-//  * @param num  amount of instances (array index) of interface Descriptions
-//  * @return void* pointer to global variable g_interfaceDesc
-//  */
-// void* interface_desc_get(uint32_t *num);
-
-// /**
-//  * @brief function to set the ip Addresses.
-//  *
-//  * @param num amount of instances (array index) of ipAddresses
-//  * @return void* pointer to global variable g_ipAddress
-//  */
-// void* ipaddress_get(uint32_t *num);
 
 extern dev_config_t g_devconfig;
 extern csmp_handle_t g_csmp_handle;

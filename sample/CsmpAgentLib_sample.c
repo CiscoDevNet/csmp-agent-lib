@@ -21,7 +21,6 @@
 #include <assert.h>
 #include "CsmpAgentLib_sample.h"
 #include "CsmpAgentLib_sample_util.h"
-#include "osal_common.h"
 #include "csmp_service.h"
 #include "csmp_info.h"
 #include "signature_verify.h"

@@ -38,16 +38,12 @@ static bool m_timert_isrunning = false;
 static void osal_update_timer();
 static void osal_alarm_fired();
 
-osal_basetype_t osal_task_create(osal_task_t * thread,
- * @fn        osal_kernel_start
- * @brief     start the kernel
-*****************************************************************************/
 void osal_kernel_start(void)
 {
   (void) 0;
 }
 
-/****************************************************************************
+osal_basetype_t osal_task_create(osal_task_t * thread,
                                  const char * name,
                                  uint32_t priority,
                                  size_t stacksize,
@@ -86,8 +82,7 @@ osal_basetype_t osal_task_cancel(osal_task_t thread)
     return (pthread_cancel(thread));
 }
 
-osal_basetype_t osal_task_setcanceltype(osal_basetype_t type, osal_basetype_t *oldtype){
-osal_basetype_t osal_task_setcanceltype(){
+osal_basetype_t osal_task_setcanceltype(void){
     return (pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL));
 }
 
@@ -330,9 +325,6 @@ void osal_trickle_timer_start(osal_timerid_t timerid, uint32_t imin, uint32_t im
     ret = osal_task_create(&timer_id_task, NULL, 0, 0, osal_timer_thread, NULL);
     assert(ret == OSAL_SUCCESS);
     
-    ret = osal_task_create(&timer_id_task, NULL, 0, 0, osal_timer_thread, NULL);
-    assert(ret == 0);
-    
     m_timert_isrunning = true;
   }
 
@@ -383,68 +375,16 @@ void osal_trickle_timer_stop(osal_timerid_t timerid)
   m_timert_isrunning = false;
 }
 
-/****************************************************************************
- * @fn   osal_malloc
- *
- * @brief allocate memory
- *
- * input parameters
- *  @param[in] size size of memory to be allocated
- * output parameters
- * @return pointer to allocated memory on success, NULL on failure
- *****************************************************************************/
 void *osal_malloc(size_t size)
 {
   return malloc(size);
 }
-/****************************************************************************
- * @fn   osal_calloc
- *
- * @brief allocate memory and set to zero
- *
- * input parameters
- *  @param[in] num number of elements
- *  @param[in] size size of memory to be allocated
- * output parameters
- * @return pointer to allocated memory on success, NULL on failure
- *****************************************************************************/
-/****************************************************************************
- * @fn   osal_realloc
- *
- * @brief reallocate memory
- *
- * input parameters
- *  @param[in] ptr pointer to memory to be reallocated
- *  @param[in] size size of memory to be allocated
- * output parameters
- * @return pointer to allocated memory on success, NULL on failure
- *****************************************************************************/
 
-/****************************************************************************
- * @fn   osal_free
- *
- * @brief free memory
- *
- * input parameters
- *  @param[in] ptr pointer to memory to be freed
- * output parameters
- * @return none
- *****************************************************************************/
 void osal_free(void *ptr)
 {
   free(ptr);
 }
 
-/****************************************************************************
- * @fn   osal_sleep_ms
- *
- * @brief sleep for given time
- *
- * input parameters
- *  @param[in] ms time in milliseconds to sleep
- * output parameters
- * @return none
- *****************************************************************************/
 void osal_sleep_ms(uint64_t ms)
 {
   usleep(ms * 1000);

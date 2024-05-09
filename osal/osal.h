@@ -22,6 +22,14 @@ typedef enum {
 typedef void (*trickle_timer_fired_t) ();
 
 /****************************************************************************
+ * @fn        osal_kernel_start
+ * @brief     Initialization code for starting kernel. The function implementation
+ *            should contain context initialisation for threads, 
+ *            like timer and other OS object initialisation.
+*****************************************************************************/
+void osal_kernel_start(void);
+
+/****************************************************************************
  * @fn osal_task_create
  *
  * @brief create new task/thread. 
@@ -58,21 +66,19 @@ osal_basetype_t osal_task_create(osal_task_t * thread,
  * @return on success return 0 otherwise error value 
  *****************************************************************************/
 osal_basetype_t osal_task_cancel(osal_task_t thread);
-osal_basetype_t osal_task_setcanceltype(void);
+
 /****************************************************************************
  * @fn osal_task_setcanceltype
  *
- * @brief function atomically both sets the calling thread's cancelability 
- *        state and returns oldstate
+ * @brief sets the cancelability of the calling thread. 
+ *        This function usually used for pthreads.
  * 
  * input parameters
- * @param[in] type cancelability state to be set
- * @param[out] oldtype old cancelability state to be returned
  *
  * output parameters
  * @return on success return 0 otherwise error value 
  *****************************************************************************/
-osal_basetype_t osal_task_setcanceltype(osal_basetype_t type, osal_basetype_t *oldtype);
+osal_basetype_t osal_task_setcanceltype(void);
 
 /****************************************************************************
  * @fn osal_task_sigmask
@@ -425,7 +431,7 @@ osal_basetype_t osal_sigaddset(osal_sigset_t *set, osal_basetype_t signum);
  * output parameters
  * @return none 
  *****************************************************************************/
-void osal_print_formatted_ip(const osal_sockaddr_t *sockAdd);
+void osal_print_formatted_ip(const osal_sockaddr_t *sockadd);
 
 /****************************************************************************
  * @fn osal_trickle_timer_start
@@ -441,7 +447,8 @@ void osal_print_formatted_ip(const osal_sockaddr_t *sockAdd);
  * output parameters
  * @return none 
  *****************************************************************************/
-void osal_trickle_timer_start(osal_timerid_t timerid, uint32_t imin, uint32_t imax, trickle_timer_fired_t trickle_time_fired);
+void osal_trickle_timer_start(osal_timerid_t timerid, uint32_t imin, uint32_t imax, 
+                              trickle_timer_fired_t trickle_timer_fired);
 
 /****************************************************************************
  * @fn osal_trickle_timer_stop
@@ -482,5 +489,17 @@ void *osal_malloc(size_t size);
  *****************************************************************************/
 void osal_free(void *ptr); 
 
+/****************************************************************************
+ * @fn   osal_sleep_ms
+ *
+ * @brief sleep for given time in milliseconds
+ *
+ * input parameters
+ *  @param[in] ms time in milliseconds to sleep
+ * 
+ * output parameters
+ * @return none
+ *****************************************************************************/
 void osal_sleep_ms(uint64_t ms);
+
 #endif

@@ -17,13 +17,14 @@ LIBOBJ = $(patsubst %.c,%.o,$(LIBOBJ_nodir))
 LIB_OBJECT = csmp_agent_lib.a
 
 INC += \
+-Iosal/ \
 -Iosal/freertos/ \
 -Iosal/freertos/FreeRTOS-Kernel/include \
 -Iosal/freertos/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/ \
 -Iosal/freertos/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/utils/
 
 LIBSRC += \
-osal/freertos/osal_common.c \
+osal/freertos/osal_freertos.c \
 osal/freertos/FreeRTOS-Kernel/list.c \
 osal/freertos/FreeRTOS-Kernel/stream_buffer.c \
 osal/freertos/FreeRTOS-Kernel/queue.c \
