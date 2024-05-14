@@ -163,16 +163,6 @@ void *osal_malloc(size_t size)
     /* FreeRtos implementation */
 }
 
-void *osal_calloc(size_t num, size_t size)
-{
-    /* FreeRtos implementation */
-}
-
-void *osal_realloc(void *ptr, size_t size)
-{
-    /* FreeRtos implementation */
-}
-
 void osal_free(void *ptr)
 {
     /* FreeRtos implementation */

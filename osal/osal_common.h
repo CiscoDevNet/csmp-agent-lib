@@ -470,34 +470,6 @@ void osal_trickle_timer_stop(osal_timerid_t timerid);
 void *osal_malloc(size_t size);
 
 /****************************************************************************
- * @fn osal_calloc
- *
- * @brief allocate memory and set to zero
- *
- * input parameters
- * @param[in] num number of elements
- * @param[in] size size of memory to be allocated
- * 
- * output parameters
- * @return pointer to allocated memory on success, NULL on failure
- *****************************************************************************/
-void *osal_calloc(size_t num, size_t size);
-
-/****************************************************************************
- * @fn osal_realloc
- *
- * @brief reallocate memory
- *
- * input parameters
- * @param[in] ptr pointer to memory to be reallocated
- * @param[in] size size of memory to be allocated
- * 
- * output parameters
- * @return pointer to allocated memory on success, NULL on failure
- *****************************************************************************/
-void *osal_realloc(void *ptr, size_t size);
-
-/****************************************************************************
  * @fn osal_free
  *
  * @brief free memory
