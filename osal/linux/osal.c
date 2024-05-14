@@ -113,27 +113,27 @@ osal_socket_handle_t osal_socket(osal_basetype_t domain, osal_basetype_t type, o
     return(socket(domain, type, protocol));
 }
 
-osal_basetype_t osal_bind(osal_socket_handle_t osal_sockfd, osal_sockaddr *osal_addr, osal_socklen addrlen)
+osal_basetype_t osal_bind(osal_socket_handle_t sockd, osal_sockaddr *addr, osal_socklen addrlen)
 {
-    return (bind(osal_sockfd, (const struct sockaddr *)(osal_addr), addrlen));
+    return (bind(sockd, (const struct sockaddr *)(addr), addrlen));
 }
 
-osal_ssize_t osal_recvfrom(osal_socket_handle_t sockfd, void *buf, size_t len, osal_basetype_t flags,
+osal_ssize_t osal_recvfrom(osal_socket_handle_t sockd, void *buf, size_t len, osal_basetype_t flags,
                         osal_sockaddr *src_addr, osal_socklen *addrlen)
 {
-    return (recvfrom(sockfd, buf, len, flags, (struct sockaddr*)(src_addr), addrlen));
+    return (recvfrom(sockd, buf, len, flags, (struct sockaddr*)(src_addr), addrlen));
 
 }
 
-osal_ssize_t osal_sendmsg(osal_socket_handle_t sockfd, const struct msghdr msg, osal_basetype_t flags)
+osal_ssize_t osal_sendmsg(osal_socket_handle_t sockd, const struct msghdr msg, osal_basetype_t flags)
 {
-    return(sendmsg(sockfd, &msg, flags));
+    return(sendmsg(sockd, &msg, flags));
 }
 
-osal_ssize_t osal_sendto(osal_socket_handle_t sockfd, const void *buf, size_t len, osal_basetype_t flags,
+osal_ssize_t osal_sendto(osal_socket_handle_t sockd, const void *buf, size_t len, osal_basetype_t flags,
                          const osal_sockaddr *dest_addr, osal_socklen addrlen)
 {
-    return(sendto(sockfd, buf, len, flags, (struct sockaddr*)(dest_addr), addrlen));
+    return(sendto(sockd, buf, len, flags, (struct sockaddr*)(dest_addr), addrlen));
 }
 
 osal_basetype_t osal_inet_pton(osal_basetype_t af, const char *src, void *dst)
@@ -141,10 +141,10 @@ osal_basetype_t osal_inet_pton(osal_basetype_t af, const char *src, void *dst)
     return(inet_pton(af, src, dst));
 }
 
-osal_basetype_t osal_select(osal_basetype_t nfds, fd_set *readfds, fd_set *writefds,
-                  fd_set *exceptfds, struct timeval *timeout)
+osal_basetype_t osal_select(osal_basetype_t nsds, osal_sd_set_t *readsds, osal_sd_set_t *writesds,
+                  osal_sd_set_t *exceptsds, struct timeval *timeout)
 {
-    return(select(nfds, readfds, writefds, exceptfds, timeout));
+    return(select(nsds, readsds, writesds, exceptsds, timeout));
 }
 
 void osal_update_sockaddr(osal_sockaddr *listen_addr, uint16_t sport)
@@ -154,19 +154,19 @@ void osal_update_sockaddr(osal_sockaddr *listen_addr, uint16_t sport)
     listen_addr->sin6_port = htons(sport);
 }
 
-void osal_fd_zero(fd_set *set)
+void osal_sd_zero(osal_sd_set_t *set)
 {
     FD_ZERO(set);
 }
 
-void osal_fd_set(osal_socket_handle_t fd, fd_set *set)
+void osal_sd_set(osal_socket_handle_t sd, osal_sd_set_t *set)
 {
-    FD_SET(fd, set);
+    FD_SET(sd, set);
 }
 
-osal_basetype_t osal_fd_isset(osal_socket_handle_t fd, fd_set *set)
+osal_basetype_t osal_sd_isset(osal_socket_handle_t sd, osal_sd_set_t *set)
 {
-    return(FD_ISSET(fd, set));
+    return(FD_ISSET(sd, set));
 }
 
 osal_basetype_t osal_gettimeofday(struct timeval *tv, struct timezone *tz)

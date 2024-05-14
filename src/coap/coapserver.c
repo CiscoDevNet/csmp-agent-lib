@@ -105,13 +105,13 @@ void *recv_thread(void* arg)
   fd_set readset;
   fd_set tempset;
 
-  osal_fd_zero(&readset);
-  osal_fd_zero(&tempset);
-  osal_fd_set(m_sockfd, &tempset);
+  osal_sd_zero(&readset);
+  osal_sd_zero(&tempset);
+  osal_sd_set(m_sockfd, &tempset);
 
   while (1)
   {
-    osal_fd_zero(&readset);
+    osal_sd_zero(&readset);
     readset = tempset;
     rv = osal_select(m_sockfd+1, &readset, NULL, NULL, NULL);
 
@@ -120,7 +120,7 @@ void *recv_thread(void* arg)
       continue;
     }
 
-    if (osal_fd_isset(m_sockfd, &readset))
+    if (osal_sd_isset(m_sockfd, &readset))
     {
       len = osal_recvfrom(m_sockfd, data, sizeof(data), 0, &from, &socklen);
       if (len < 0) {

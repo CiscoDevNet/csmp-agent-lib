@@ -72,26 +72,26 @@ osal_socket_handle_t osal_socket(osal_basetype_t domain, osal_basetype_t type, o
 }
 
 //bind
-osal_basetype_t osal_bind(osal_socket_handle_t osal_sockfd, osal_sockaddr *osal_addr, 
+osal_basetype_t osal_bind(osal_socket_handle_t sockd, osal_sockaddr *addr, 
                             osal_socklen addrlen)
 {
-    return (FreeRTOS_bind(osal_sockfd, (struct freertos_sockaddr *)(osal_addr), addrlen));
+    return (FreeRTOS_bind(sockd, (struct freertos_sockaddr *)(addr), addrlen));
 }
 
 //recvfrom
-osal_ssize_t osal_recvfrom(int sockfd, void *buf, size_t len, int flags,
+osal_ssize_t osal_recvfrom(int sockd, void *buf, size_t len, int flags,
                     osal_sockaddr *src_addr, osal_socklen *addrlen)
 {
     /* FreeRtos implementation */
 
 }
 //sendmsg
-ssize_t osal_sendmsg(int sockfd, const struct msghdr msg, int flags){
+ssize_t osal_sendmsg(int sockd, const struct msghdr msg, int flags){
     /* FreeRtos implementation */
 }
 
 //sendto
-ssize_t osal_sendto(int sockfd, const void *buf, size_t len, int flags,
+ssize_t osal_sendto(int sockd, const void *buf, size_t len, int flags,
                       const osal_sockaddr *dest_addr, osal_socklen addrlen)
 {
     /* FreeRtos implementation */
@@ -105,23 +105,23 @@ osal_basetype_t osal_inet_pton(int af, const char *src, void *dst)
 }
 
 //select
-osal_basetype_t osal_select(int nfds, fd_set *readfds, fd_set *writefds,
-                  fd_set *exceptfds, struct timeval *timeout)
+osal_basetype_t osal_select(int nsds, osal_sd_set_t *readsds, osal_sd_set_t *writesds,
+                  osal_sd_set_t *exceptsds, struct timeval *timeout)
 {
     /* FreeRtos implementation */
 }
 
-void osal_fd_zero(fd_set *set)
+void osal_sd_zero(osal_sd_set_t *set)
 {
     /* FreeRtos implementation */
 }
 
-void osal_fd_set(int fd, fd_set *set)
+void osal_sd_set(int sd, osal_sd_set_t *set)
 {
     /* FreeRtos implementation */
 }
 
-osal_basetype_t osal_fd_isset(int fd, fd_set *set)
+osal_basetype_t osal_sd_isset(int sd, osal_sd_set_t *set)
 {
     /* FreeRtos implementation */
 }

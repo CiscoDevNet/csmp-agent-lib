@@ -163,7 +163,7 @@ osal_socket_handle_t osal_socket(osal_basetype_t domain, osal_basetype_t type, o
  * @brief used to receive messages from a socket. 
  *
  * input parameters
- * @param[in] sockfd socket file descriptor 
+ * @param[in] sockd socket descriptor 
  * @param[out] buf contains received messages 
  * @param[in] len size of buffer 
  * @param[in] flags argument is formed by ORing one or many socket options 
@@ -173,7 +173,7 @@ osal_socket_handle_t osal_socket(osal_basetype_t domain, osal_basetype_t type, o
  * output parameters
  * @return On success 0 is returned. On error, -1 is returned 
  *****************************************************************************/
-osal_ssize_t osal_recvfrom(osal_socket_handle_t sockfd, void *buf, size_t len, osal_basetype_t flags,
+osal_ssize_t osal_recvfrom(osal_socket_handle_t sockd, void *buf, size_t len, osal_basetype_t flags,
                            osal_sockaddr *src_addr, osal_socklen *addrlen);
 
 /****************************************************************************
@@ -182,14 +182,14 @@ osal_ssize_t osal_recvfrom(osal_socket_handle_t sockfd, void *buf, size_t len, o
  * @brief used to transmit a message to another socket. 
  *
  * input parameters
- * @param[in] sockfd socket file descriptor 
+ * @param[in] sockd socket descriptor 
  * @param[in] msghdr structure contains message meta data.
  * @param[in] flags argument is formed by ORing one or many socket options 
  *
  * output parameters
  * @return On success return the number of bytes sent on error -1 is returned 
  *****************************************************************************/
-osal_ssize_t osal_sendmsg(osal_socket_handle_t sockfd, const struct msghdr msg, osal_basetype_t flags);
+osal_ssize_t osal_sendmsg(osal_socket_handle_t sockd, const struct msghdr msg, osal_basetype_t flags);
 
 /****************************************************************************
  * @fn osal_bind
@@ -197,14 +197,14 @@ osal_ssize_t osal_sendmsg(osal_socket_handle_t sockfd, const struct msghdr msg, 
  * @brief bind a name to a socket. 
  *
  * input parameters
- * @param[in] osal_sockfd socket file descriptor 
- * @param[in] osal_addr address to be binded
+ * @param[in] sockd socket descriptor 
+ * @param[in] addr address to be binded
  * @param[in] addrlen address length
  *
  * output parameters
  * @return On success 0 is returned. On error, -1 is returned 
  *****************************************************************************/
-osal_basetype_t osal_bind(osal_socket_handle_t osal_sockfd, osal_sockaddr *osal_addr, osal_socklen addrlen);
+osal_basetype_t osal_bind(osal_socket_handle_t sockd, osal_sockaddr *addr, osal_socklen addrlen);
 
 /****************************************************************************
  * @fn osal_sendto
@@ -212,7 +212,7 @@ osal_basetype_t osal_bind(osal_socket_handle_t osal_sockfd, osal_sockaddr *osal_
  * @brief used to transmit a message to another socket. 
  *
  * input parameters
- * @param[in] sockfd socket file descriptor 
+ * @param[in] sockd socket descriptor 
  * @param[in] buf message buffer
  * @param[in] len data buffer length
  * @param[in] flags argument is formed by ORing one or many socket options 
@@ -222,7 +222,7 @@ osal_basetype_t osal_bind(osal_socket_handle_t osal_sockfd, osal_sockaddr *osal_
  * output parameters
  * @return On success return the number of bytes sent on error -1 is returned 
  *****************************************************************************/
-osal_ssize_t osal_sendto(osal_socket_handle_t sockfd, const void *buf, size_t len, osal_basetype_t flags,
+osal_ssize_t osal_sendto(osal_socket_handle_t sockd, const void *buf, size_t len, osal_basetype_t flags,
                          const osal_sockaddr *dest_addr, osal_socklen addrlen);
 
 /****************************************************************************
@@ -247,73 +247,73 @@ osal_basetype_t osal_inet_pton(osal_basetype_t af, const char *src, void *dst);
 /****************************************************************************
  * @fn osal_select
  *
- * @brief Allows a program to monitor multiple file descriptors, waiting until
- *        one or more of the file descriptors become "ready" for some class of 
+ * @brief Allows a program to monitor multiple socket descriptors, waiting until
+ *        one or more of the socket descriptors become "ready" for some class of 
  *        I/O operation.
- *        Currently only used for blocking and reading socket file descriptors.
+ *        Currently only used for blocking and reading socket descriptors.
  *
  * input parameters
- * @param[in] nfds This argument should be set to the highest-numbered file 
+ * @param[in] nsds This argument should be set to the highest-numbered socket 
  *                 descriptor plus one
- * @param[in] readfds The file descriptors in this set are watched to see if 
+ * @param[in] readsds The socket descriptors in this set are watched to see if 
  *                    they are ready for reading 
- * @param[in] writefds The file descriptors in this set are watched to see 
+ * @param[in] writesds The socket descriptors in this set are watched to see 
  *                     if they are ready for writing.
- * @param[in] exceptfds The file descriptors in this set are watched for 
+ * @param[in] exceptsds The socket descriptors in this set are watched for 
  *                      "exceptional conditions". 
  * @param[in] timeout The interval that osal_select() should block waiting 
- *                    for a file descriptor to become ready
+ *                    for a socket descriptor to become ready
  *
  * output parameters
- * @return on success returns the number of file descriptors contained in the 
+ * @return on success returns the number of socket descriptors contained in the 
  *         three returned descriptor sets 
- *         0 if timeout expired before any file descriptors became ready. 
+ *         0 if timeout expired before any socket descriptors became ready. 
  *        -1 on error
  *****************************************************************************/
-osal_basetype_t osal_select(osal_basetype_t nfds, fd_set *readfds, fd_set *writefds,
-                            fd_set *exceptfds, struct timeval *timeout);
+osal_basetype_t osal_select(osal_basetype_t nsds, osal_sd_set_t *readsds, osal_sd_set_t *writesds,
+                            osal_sd_set_t *exceptsds, struct timeval *timeout);
 
 /****************************************************************************
- * @fn osal_fd_zero 
+ * @fn osal_sd_zero 
  *
- * @brief Removes all file descriptors from set
+ * @brief Removes all socket descriptors from set
  *
  * input parameters
- * @param[in] set file descriptor set
+ * @param[in] set socket descriptor set
  * 
  * output parameters
  * @return none
  *****************************************************************************/
-void osal_fd_zero(fd_set *set);
+void osal_sd_zero(osal_sd_set_t *set);
 
 /****************************************************************************
- * @fn osal_fd_set 
+ * @fn osal_sd_set 
  *
- * @brief Adds the file descriptor fd to set
+ * @brief Adds the socket descriptor sd to set
  *
  * input parameters
- * @param[in] fd file descriptor 
- * @param[in] set file descriptor set
+ * @param[in] sd socket descriptor 
+ * @param[in] set socket descriptor set
  * 
  * output parameters
  * @return none
  *****************************************************************************/
-void osal_fd_set(osal_socket_handle_t fd, fd_set *set);
+void osal_sd_set(osal_socket_handle_t sd, osal_sd_set_t *set);
 
 /****************************************************************************
- * @fn osal_fd_isset 
+ * @fn osal_sd_isset 
  *
- * @brief Checks whether the file descriptor fd is present in set
+ * @brief Checks whether the socket descriptor sd is present in set
  *
  * input parameters
- * @param[in] fd file descriptor 
- * @param[in] set file descriptor set
+ * @param[in] sd socket descriptor 
+ * @param[in] set socket descriptor set
  * 
  * output parameters
- * @return returns nonzero if the file descriptor fd is present in set, 
+ * @return returns nonzero if the socket descriptor sd is present in set, 
  *         and zero if it is not 
  *****************************************************************************/
-osal_basetype_t osal_fd_isset(osal_socket_handle_t fd, fd_set *set);
+osal_basetype_t osal_sd_isset(osal_socket_handle_t sd, osal_sd_set_t *set);
 
 /****************************************************************************
  * @fn osal_update_sockaddr 

@@ -50,6 +50,7 @@ typedef long osal_basetype_t;
 typedef ssize_t osal_ssize_t;
 typedef int osal_socket_handle_t;
 typedef void (*osal_sighandler_t)(int);
+typedef fd_set osal_sd_set_t;
 
 #define OSAL_AF_INET6 AF_INET6 
 #define OSAL_SOCK_DGRAM SOCK_DGRAM
