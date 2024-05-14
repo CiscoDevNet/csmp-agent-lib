@@ -17,7 +17,7 @@ typedef enum {
  reg_timer = 0,  /**< register timer */
  rpt_timer = 1,  /**< reporting timer */
  timer_num = 2   /**< max amount of timers */
-}timerid_t;
+} osal_timerid_t;
 
 typedef void (*trickle_timer_fired_t) ();
 
@@ -49,7 +49,8 @@ osal_basetype_t osal_task_create(osal_task_t * thread,
 /****************************************************************************
  * @fn osal_task_cancel
  *
- * @brief function requests that thread be canceled. 
+ * @brief function requests that thread be canceled.
+ * 
  * input parameters
  * @param[in] thread thread ID to be canceled
  *
@@ -86,7 +87,7 @@ osal_basetype_t osal_task_setcanceltype(osal_basetype_t type, osal_basetype_t *o
  * output parameters
  * @return on success return 0 otherwise error value 
  *****************************************************************************/
-osal_basetype_t osal_task_sigmask(osal_basetype_t how, const sigset_t *set, sigset_t *oldset);
+osal_basetype_t osal_task_sigmask(osal_basetype_t how, const osal_sigset_t *set, osal_sigset_t *oldset);
 
 /****************************************************************************
  * @fn osal_sem_create
@@ -100,7 +101,7 @@ osal_basetype_t osal_task_sigmask(osal_basetype_t how, const sigset_t *set, sigs
  * output parameters
  * @return 0 on success; on error, -1 is returned 
  *****************************************************************************/
-osal_basetype_t osal_sem_create(osal_sem * sem, uint16_t value);
+osal_basetype_t osal_sem_create(osal_sem_t * sem, uint16_t value);
 
 /****************************************************************************
  * @fn osal_sem_post
@@ -113,7 +114,7 @@ osal_basetype_t osal_sem_create(osal_sem * sem, uint16_t value);
  * output parameters
  * @return 0 on success; on error, -1 is returned 
  *****************************************************************************/
-osal_basetype_t osal_sem_post(osal_sem * sem);
+osal_basetype_t osal_sem_post(osal_sem_t * sem);
 
 /****************************************************************************
  * @fn osal_sem_wait
@@ -127,7 +128,7 @@ osal_basetype_t osal_sem_post(osal_sem * sem);
  * output parameters
  * @return 0 on success; on error, -1 is returned
  * *****************************************************************************/
-osal_basetype_t osal_sem_wait(osal_sem * sem, osal_time_t timeout);
+osal_basetype_t osal_sem_wait(osal_sem_t * sem, osal_time_t timeout);
 
 /****************************************************************************
  * @fn osal_sem_destroy
@@ -140,7 +141,7 @@ osal_basetype_t osal_sem_wait(osal_sem * sem, osal_time_t timeout);
  * output parameters
  * @return 0 on success; on error, -1 is returned
  *****************************************************************************/
-osal_basetype_t osal_sem_destroy(osal_sem *sem);
+osal_basetype_t osal_sem_destroy(osal_sem_t *sem);
 
 /****************************************************************************
  * @fn osal_socket
@@ -174,7 +175,7 @@ osal_socket_handle_t osal_socket(osal_basetype_t domain, osal_basetype_t type, o
  * @return On success 0 is returned. On error, -1 is returned 
  *****************************************************************************/
 osal_ssize_t osal_recvfrom(osal_socket_handle_t sockd, void *buf, size_t len, osal_basetype_t flags,
-                           osal_sockaddr *src_addr, osal_socklen *addrlen);
+                           osal_sockaddr_t *src_addr, osal_socklen_t *addrlen);
 
 /****************************************************************************
  * @fn osal_sendmsg
@@ -204,7 +205,7 @@ osal_ssize_t osal_sendmsg(osal_socket_handle_t sockd, const struct msghdr msg, o
  * output parameters
  * @return On success 0 is returned. On error, -1 is returned 
  *****************************************************************************/
-osal_basetype_t osal_bind(osal_socket_handle_t sockd, osal_sockaddr *addr, osal_socklen addrlen);
+osal_basetype_t osal_bind(osal_socket_handle_t sockd, osal_sockaddr_t *addr, osal_socklen_t addrlen);
 
 /****************************************************************************
  * @fn osal_sendto
@@ -223,7 +224,7 @@ osal_basetype_t osal_bind(osal_socket_handle_t sockd, osal_sockaddr *addr, osal_
  * @return On success return the number of bytes sent on error -1 is returned 
  *****************************************************************************/
 osal_ssize_t osal_sendto(osal_socket_handle_t sockd, const void *buf, size_t len, osal_basetype_t flags,
-                         const osal_sockaddr *dest_addr, osal_socklen addrlen);
+                         const osal_sockaddr_t *dest_addr, osal_socklen_t addrlen);
 
 /****************************************************************************
  * @fn osal_inet_pton
@@ -327,10 +328,10 @@ osal_basetype_t osal_sd_isset(osal_socket_handle_t sd, osal_sd_set_t *set);
  * output parameters
  * @return none
  *****************************************************************************/
-void osal_update_sockaddr(osal_sockaddr *listen_addr, uint16_t sport);
+void osal_update_sockaddr(osal_sockaddr_t *listen_addr, uint16_t sport);
 
 /****************************************************************************
- * @fn osal_gettimeofday
+ * @fn osal_gettime
  *
  * @brief get time as well as a timezone 
  *
@@ -341,10 +342,10 @@ void osal_update_sockaddr(osal_sockaddr *listen_addr, uint16_t sport);
  * output parameters
  * @return 0 for success, or -1 for failure 
  *****************************************************************************/
-osal_basetype_t osal_gettimeofday(struct timeval *tv, struct timezone *tz);
+osal_basetype_t osal_gettime(struct timeval *tv, struct timezone *tz);
 
 /****************************************************************************
- * @fn osal_settimeofday
+ * @fn osal_settime
  *
  * @brief set time as well as a timezone 
  *
@@ -384,7 +385,7 @@ osal_sighandler_t osal_signal(osal_basetype_t signum, osal_sighandler_t handler)
  * output parameters
  * @return returns 0 on success and -1 on error 
  *****************************************************************************/
-osal_basetype_t osal_sigprocmask(osal_basetype_t how, const sigset_t *set, sigset_t *oldset);
+osal_basetype_t osal_sigprocmask(osal_basetype_t how, const osal_sigset_t *set, osal_sigset_t *oldset);
 
 /****************************************************************************
  * @fn osal_sigemptyset
@@ -398,7 +399,7 @@ osal_basetype_t osal_sigprocmask(osal_basetype_t how, const sigset_t *set, sigse
  * output parameters
  * @return returns 0 on success and -1 on error 
  *****************************************************************************/
-osal_basetype_t osal_sigemptyset(sigset_t *set);
+osal_basetype_t osal_sigemptyset(osal_sigset_t *set);
 
 /****************************************************************************
  * @fn osal_sigaddset
@@ -411,7 +412,7 @@ osal_basetype_t osal_sigemptyset(sigset_t *set);
  * output parameters
  * @return returns 0 on success and -1 on error 
  *****************************************************************************/
-osal_basetype_t osal_sigaddset(sigset_t *set, osal_basetype_t signum);
+osal_basetype_t osal_sigaddset(osal_sigset_t *set, osal_basetype_t signum);
 
 /****************************************************************************
  * @fn osal_print_formatted_ip
@@ -424,7 +425,7 @@ osal_basetype_t osal_sigaddset(sigset_t *set, osal_basetype_t signum);
  * output parameters
  * @return none 
  *****************************************************************************/
-void osal_print_formatted_ip(const osal_sockaddr *sockAdd);
+void osal_print_formatted_ip(const osal_sockaddr_t *sockAdd);
 
 /****************************************************************************
  * @fn osal_trickle_timer_start
@@ -440,7 +441,7 @@ void osal_print_formatted_ip(const osal_sockaddr *sockAdd);
  * output parameters
  * @return none 
  *****************************************************************************/
-void osal_trickle_timer_start(timerid_t timerid, uint32_t imin, uint32_t imax, trickle_timer_fired_t trickle_time_fired);
+void osal_trickle_timer_start(osal_timerid_t timerid, uint32_t imin, uint32_t imax, trickle_timer_fired_t trickle_time_fired);
 
 /****************************************************************************
  * @fn osal_trickle_timer_stop
@@ -453,7 +454,7 @@ void osal_trickle_timer_start(timerid_t timerid, uint32_t imin, uint32_t imax, t
  * output parameters
  * @return none 
  *****************************************************************************/
-void osal_trickle_timer_stop(timerid_t timerid);
+void osal_trickle_timer_stop(osal_timerid_t timerid);
 
 /****************************************************************************
  * @fn osal_malloc

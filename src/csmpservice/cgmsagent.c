@@ -28,7 +28,7 @@
 #include "osal_common.h"
 
 #define OUTBUF_SIZE 1048
-static osal_sockaddr NMS_addr;
+static osal_sockaddr_t NMS_addr;
 static uint8_t g_outbuf[OUTBUF_SIZE];
 
 enum {

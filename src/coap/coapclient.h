@@ -68,7 +68,7 @@ int coapclient_stop();
  * @param body_len request body length
  * @return int The return value is 0 on success and -1 on failure.
  */
-int coapclient_request(const osal_sockaddr *to,
+int coapclient_request(const osal_sockaddr_t *to,
 		coap_transaction_type_t tx_type,
 		coap_method_t method,
 		uint8_t token_length, uint8_t *token,

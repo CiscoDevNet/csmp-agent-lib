@@ -40,9 +40,10 @@
 
 typedef void (*osal_sighandler_t)(int);
 
-typedef struct sockaddr_in6 osal_sockaddr;
-typedef sem_t osal_sem;
-typedef socklen_t osal_socklen;
+typedef struct sockaddr_in6 osal_sockaddr_t;
+typedef sem_t osal_sem_t;
+typedef sigset_t osal_sigset_t;
+typedef socklen_t osal_socklen_t;
 typedef pthread_t osal_task_t;
 typedef uint64_t osal_time_t;
 typedef ssize_t osal_ssize_t;

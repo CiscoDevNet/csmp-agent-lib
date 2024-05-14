@@ -30,7 +30,7 @@ static struct trickle_timer timers[timer_num];
 static trickle_timer_fired_t timer_fired[timer_num];
 
 static osal_task_t timer_id_task;
-static osal_sem sem;
+static osal_sem_t sem;
 
 static int32_t m_remaining = (1UL << 31) - 1; /* max int32_t */
 static bool m_timert_isrunning = false;
@@ -81,29 +81,29 @@ osal_basetype_t osal_task_setcanceltype(osal_basetype_t type, osal_basetype_t *o
     return (pthread_setcanceltype(type, oldtype));
 }
 
-osal_basetype_t osal_task_sigmask(osal_basetype_t how, const sigset_t *set, sigset_t *oldset)
+osal_basetype_t osal_task_sigmask(osal_basetype_t how, const osal_sigset_t *set, osal_sigset_t *oldset)
 {
     return (pthread_sigmask(how, set, oldset));
 }
 
-osal_basetype_t osal_sem_create(osal_sem * sem, uint16_t value)
+osal_basetype_t osal_sem_create(osal_sem_t * sem, uint16_t value)
 {
     return (sem_init(sem, 0, value));
 }
 
-osal_basetype_t osal_sem_post(osal_sem * sem)
+osal_basetype_t osal_sem_post(osal_sem_t * sem)
 {
     return (sem_post(sem));
 }
 
-osal_basetype_t osal_sem_wait(osal_sem * sem, osal_time_t timeout)
+osal_basetype_t osal_sem_wait(osal_sem_t * sem, osal_time_t timeout)
 {
     /* Silence compiler warnings about unused parameters. */
     (void) timeout;
     return(sem_wait(sem));
 }
 
-osal_basetype_t osal_sem_destroy(osal_sem *sem)
+osal_basetype_t osal_sem_destroy(osal_sem_t *sem)
 {
     return (sem_destroy(sem)); 
 }
@@ -113,13 +113,13 @@ osal_socket_handle_t osal_socket(osal_basetype_t domain, osal_basetype_t type, o
     return(socket(domain, type, protocol));
 }
 
-osal_basetype_t osal_bind(osal_socket_handle_t sockd, osal_sockaddr *addr, osal_socklen addrlen)
+osal_basetype_t osal_bind(osal_socket_handle_t sockd, osal_sockaddr_t *addr, osal_socklen_t addrlen)
 {
     return (bind(sockd, (const struct sockaddr *)(addr), addrlen));
 }
 
 osal_ssize_t osal_recvfrom(osal_socket_handle_t sockd, void *buf, size_t len, osal_basetype_t flags,
-                        osal_sockaddr *src_addr, osal_socklen *addrlen)
+                        osal_sockaddr_t *src_addr, osal_socklen_t *addrlen)
 {
     return (recvfrom(sockd, buf, len, flags, (struct sockaddr*)(src_addr), addrlen));
 
@@ -131,7 +131,7 @@ osal_ssize_t osal_sendmsg(osal_socket_handle_t sockd, const struct msghdr msg, o
 }
 
 osal_ssize_t osal_sendto(osal_socket_handle_t sockd, const void *buf, size_t len, osal_basetype_t flags,
-                         const osal_sockaddr *dest_addr, osal_socklen addrlen)
+                         const osal_sockaddr_t *dest_addr, osal_socklen_t addrlen)
 {
     return(sendto(sockd, buf, len, flags, (struct sockaddr*)(dest_addr), addrlen));
 }
@@ -147,7 +147,7 @@ osal_basetype_t osal_select(osal_basetype_t nsds, osal_sd_set_t *readsds, osal_s
     return(select(nsds, readsds, writesds, exceptsds, timeout));
 }
 
-void osal_update_sockaddr(osal_sockaddr *listen_addr, uint16_t sport)
+void osal_update_sockaddr(osal_sockaddr_t *listen_addr, uint16_t sport)
 {
     listen_addr->sin6_family = AF_INET6;
     listen_addr->sin6_addr = in6addr_any;
@@ -169,7 +169,7 @@ osal_basetype_t osal_sd_isset(osal_socket_handle_t sd, osal_sd_set_t *set)
     return(FD_ISSET(sd, set));
 }
 
-osal_basetype_t osal_gettimeofday(struct timeval *tv, struct timezone *tz)
+osal_basetype_t osal_gettime(struct timeval *tv, struct timezone *tz)
 {
     return(gettimeofday(tv, tz));
 }
@@ -184,22 +184,22 @@ osal_sighandler_t osal_signal(osal_basetype_t signum, osal_sighandler_t handler)
     return(signal(signum, handler));
 }
 
-osal_basetype_t osal_sigprocmask(osal_basetype_t how, const sigset_t *set, sigset_t *oldset)
+osal_basetype_t osal_sigprocmask(osal_basetype_t how, const osal_sigset_t *set, osal_sigset_t *oldset)
 {
     return(sigprocmask(how, set, oldset));
 }
 
-osal_basetype_t osal_sigemptyset(sigset_t *set)
+osal_basetype_t osal_sigemptyset(osal_sigset_t *set)
 {
      return(sigemptyset(set));
 }
 
-osal_basetype_t osal_sigaddset(sigset_t *set, osal_basetype_t signum)
+osal_basetype_t osal_sigaddset(osal_sigset_t *set, osal_basetype_t signum)
 {
     return(sigaddset(set, signum));
 }
 
-void osal_print_formatted_ip(const osal_sockaddr *sockadd)
+void osal_print_formatted_ip(const osal_sockaddr_t *sockadd)
 {
     /* Silence compiler warnings about unused parameters. */
     (void)sockadd;
@@ -216,7 +216,7 @@ void osal_print_formatted_ip(const osal_sockaddr *sockadd)
 }
 
 static void *osal_timer_thread(void* arg) {
-  sigset_t set;
+  osal_sigset_t set;
   /* Silence compiler warnings about unused parameters. */
   (void)arg;
   osal_sigemptyset(&set);
@@ -246,7 +246,7 @@ static void osal_alarm_fired(void)
     uint32_t now;
     struct timeval tv = {0};
 
-    osal_gettimeofday(&tv, NULL);
+    osal_gettime(&tv, NULL);
     now = tv.tv_sec;
 
     if (timer->is_running == false)
@@ -284,7 +284,7 @@ static void osal_update_timer() {
   bool flag = false;
 
   m_remaining = (1UL << 31) - 1; /* max int32_t */
-  osal_gettimeofday(&tv, NULL);
+  osal_gettime(&tv, NULL);
   now = tv.tv_sec;
 
   for (i = 0; i < timer_num; i++) {
@@ -302,12 +302,12 @@ static void osal_update_timer() {
   if(flag)
     osal_sem_post(&sem);
 }
-void osal_trickle_timer_start(timerid_t timerid, uint32_t imin, uint32_t imax, trickle_timer_fired_t trickle_timer_fired)
+void osal_trickle_timer_start(osal_timerid_t timerid, uint32_t imin, uint32_t imax, trickle_timer_fired_t trickle_timer_fired)
 {
   uint32_t min;
   struct timeval tv = {0};
   uint32_t seed = 0;
-  sigset_t set;
+  osal_sigset_t set;
   osal_basetype_t ret = 0;
 
   if(!m_timert_isrunning) {
@@ -330,7 +330,7 @@ void osal_trickle_timer_start(timerid_t timerid, uint32_t imin, uint32_t imax, t
     DPRINTF("metrics report trickle timer start\n");
   }
 
-  osal_gettimeofday(&tv, NULL);
+  osal_gettime(&tv, NULL);
 
   seed = (((uint16_t)g_csmplib_eui64[6] << 8) | g_csmplib_eui64[7]);
   srand(seed);
@@ -344,10 +344,10 @@ void osal_trickle_timer_start(timerid_t timerid, uint32_t imin, uint32_t imax, t
   timers[timerid].tfire = timers[timerid].t0 + min + (random() % (timers[timerid].icur - min));
   osal_update_timer();
 }
-void osal_trickle_timer_stop(timerid_t timerid)
+void osal_trickle_timer_stop(osal_timerid_t timerid)
 {
   uint8_t i;
-  sigset_t set;
+  osal_sigset_t set;
 
   timers[timerid].is_running = false;
   if(timerid == reg_timer) {

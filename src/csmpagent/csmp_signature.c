@@ -128,7 +128,7 @@ int checkSignature(const uint8_t *buf, uint32_t len, bool agent)
   siglen = sigend - sig;
   }
 
-  ret = osal_gettimeofday(&tv, NULL);
+  ret = osal_gettime(&tv, NULL);
 
   if (ret == OSAL_FAILURE)
   {

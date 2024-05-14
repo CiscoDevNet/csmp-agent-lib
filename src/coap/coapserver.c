@@ -49,7 +49,7 @@ int coapserver_stop()
 int coapserver_listen(uint16_t sport, recv_handler_t recv_handler)
 {
   osal_socket_handle_t sockfd;
-  osal_sockaddr listen_addr;
+  osal_sockaddr_t listen_addr;
   osal_basetype_t ret = OSAL_FAILURE;
 
   if (m_server_opened) {
@@ -95,7 +95,7 @@ void *recv_thread(void* arg)
   DPRINTF("coapserver receive thread is serving now...\n");
 
   int rv;
-  osal_sockaddr from = {0};
+  osal_sockaddr_t from = {0};
   socklen_t socklen = sizeof(struct sockaddr_in6);
   uint8_t data[1024];
   osal_basetype_t len;

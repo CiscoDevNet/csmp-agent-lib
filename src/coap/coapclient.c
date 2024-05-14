@@ -76,7 +76,7 @@ int coapclient_open(response_handler_t response_handler)
   return 0;
 }
 
-int coapclient_request (const osal_sockaddr *to,
+int coapclient_request (const osal_sockaddr_t *to,
     coap_transaction_type_t tx_type,
     coap_method_t method,
     uint8_t token_length, uint8_t *token,
@@ -240,7 +240,7 @@ void *recv_fn(void* arg)
   DPRINTF("coapclient receive thread is serving now...\n");
 
   osal_ssize_t rv;
-  osal_sockaddr from = {0};
+  osal_sockaddr_t from = {0};
   socklen_t socklen = sizeof(struct sockaddr_in6);
   uint8_t data[1024];
   osal_basetype_t len;

@@ -37,31 +37,31 @@ osal_basetype_t osal_task_setcanceltype(int type, int *oldtype)
     /* FreeRtos implementation */
 }
 
-osal_basetype_t osal_task_sigmask(int how, const sigset_t *set, sigset_t *oldset)
+osal_basetype_t osal_task_sigmask(int how, const osal_sigset_t *set, osal_sigset_t *oldset)
 {
     /* FreeRtos implementation */
 }
 
 //sem_init
-osal_basetype_t osal_sem_create(osal_sem * sem, uint16_t value)
+osal_basetype_t osal_sem_create(osal_sem_t * sem, uint16_t value)
 {
     /* FreeRtos implementation */
 }
 
 //sem_post
-osal_basetype_t osal_sem_post(osal_sem * sem)
+osal_basetype_t osal_sem_post(osal_sem_t * sem)
 {
     /* FreeRtos implementation */
 }
 
 //sem_wait
-osal_basetype_t osal_sem_wait(osal_sem * sem, osal_time_t timeout)
+osal_basetype_t osal_sem_wait(osal_sem_t * sem, osal_time_t timeout)
 {
     /* FreeRtos implementation */
 }
 
 //sem_destroy
-osal_basetype_t osal_sem_destroy(osal_sem *sem)
+osal_basetype_t osal_sem_destroy(osal_sem_t *sem)
 {
     /* FreeRtos implementation */
 }
@@ -72,15 +72,15 @@ osal_socket_handle_t osal_socket(osal_basetype_t domain, osal_basetype_t type, o
 }
 
 //bind
-osal_basetype_t osal_bind(osal_socket_handle_t sockd, osal_sockaddr *addr, 
-                            osal_socklen addrlen)
+osal_basetype_t osal_bind(osal_socket_handle_t sockd, osal_sockaddr_t *addr, 
+                            osal_socklen_t addrlen)
 {
     return (FreeRTOS_bind(sockd, (struct freertos_sockaddr *)(addr), addrlen));
 }
 
 //recvfrom
 osal_ssize_t osal_recvfrom(int sockd, void *buf, size_t len, int flags,
-                    osal_sockaddr *src_addr, osal_socklen *addrlen)
+                    osal_sockaddr_t *src_addr, osal_socklen_t *addrlen)
 {
     /* FreeRtos implementation */
 
@@ -92,7 +92,7 @@ ssize_t osal_sendmsg(int sockd, const struct msghdr msg, int flags){
 
 //sendto
 ssize_t osal_sendto(int sockd, const void *buf, size_t len, int flags,
-                      const osal_sockaddr *dest_addr, osal_socklen addrlen)
+                      const osal_sockaddr_t *dest_addr, osal_socklen_t addrlen)
 {
     /* FreeRtos implementation */
 }
@@ -127,7 +127,7 @@ osal_basetype_t osal_sd_isset(int sd, osal_sd_set_t *set)
 }
 
 //gettimeofday
-osal_basetype_t osal_gettimeofday(struct timeval *tv, struct timezone *tz)
+osal_basetype_t osal_gettime(struct timeval *tv, struct timezone *tz)
 {
     /* FreeRtos implementation */
 }
@@ -143,17 +143,17 @@ osal_sighandler_t osal_signal(int signum, osal_sighandler_t handler)
     /* FreeRtos implementation */
 }
 
-osal_basetype_t osal_sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
+osal_basetype_t osal_sigprocmask(int how, const osal_sigset_t *set, osal_sigset_t *oldset)
 {
     /* FreeRtos implementation */
 }
 
-osal_basetype_t osal_sigemptyset(sigset_t *set)
+osal_basetype_t osal_sigemptyset(osal_sigset_t *set)
 {
     /* FreeRtos implementation */
 }
 
-osal_basetype_t osal_sigaddset(sigset_t *set, int signum)
+osal_basetype_t osal_sigaddset(osal_sigset_t *set, int signum)
 {
     /* FreeRtos implementation */
 }
