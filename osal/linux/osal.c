@@ -48,7 +48,7 @@ osal_basetype_t osal_task_create(osal_task_t * thread,
     /* Silence compiler warnings about unused parameters. */
    (void) name;
    (void) priority;
-   int ret;
+   osal_basetype_t ret;
    pthread_attr_t attr;
    
    if (thread == NULL) {
@@ -77,11 +77,11 @@ osal_basetype_t osal_task_cancel(osal_task_t thread)
     return (pthread_cancel(thread));
 }
 
-osal_basetype_t osal_task_setcanceltype(int type, int *oldtype){
+osal_basetype_t osal_task_setcanceltype(osal_basetype_t type, osal_basetype_t *oldtype){
     return (pthread_setcanceltype(type, oldtype));
 }
 
-osal_basetype_t osal_task_sigmask(int how, const sigset_t *set, sigset_t *oldset)
+osal_basetype_t osal_task_sigmask(osal_basetype_t how, const sigset_t *set, sigset_t *oldset)
 {
     return (pthread_sigmask(how, set, oldset));
 }
@@ -125,23 +125,23 @@ osal_ssize_t osal_recvfrom(osal_socket_handle_t sockfd, void *buf, size_t len, o
 
 }
 
-osal_ssize_t osal_sendmsg(int sockfd, const struct msghdr msg, int flags)
+osal_ssize_t osal_sendmsg(osal_socket_handle_t sockfd, const struct msghdr msg, osal_basetype_t flags)
 {
     return(sendmsg(sockfd, &msg, flags));
 }
 
-osal_ssize_t osal_sendto(osal_basetype_t sockfd, const void *buf, size_t len, int flags,
+osal_ssize_t osal_sendto(osal_socket_handle_t sockfd, const void *buf, size_t len, osal_basetype_t flags,
                          const osal_sockaddr *dest_addr, osal_socklen addrlen)
 {
     return(sendto(sockfd, buf, len, flags, (struct sockaddr*)(dest_addr), addrlen));
 }
 
-osal_basetype_t osal_inet_pton(int af, const char *src, void *dst)
+osal_basetype_t osal_inet_pton(osal_basetype_t af, const char *src, void *dst)
 {
     return(inet_pton(af, src, dst));
 }
 
-osal_basetype_t osal_select(int nfds, fd_set *readfds, fd_set *writefds,
+osal_basetype_t osal_select(osal_basetype_t nfds, fd_set *readfds, fd_set *writefds,
                   fd_set *exceptfds, struct timeval *timeout)
 {
     return(select(nfds, readfds, writefds, exceptfds, timeout));
@@ -159,12 +159,12 @@ void osal_fd_zero(fd_set *set)
     FD_ZERO(set);
 }
 
-void osal_fd_set(int fd, fd_set *set)
+void osal_fd_set(osal_socket_handle_t fd, fd_set *set)
 {
     FD_SET(fd, set);
 }
 
-osal_basetype_t osal_fd_isset(int fd, fd_set *set)
+osal_basetype_t osal_fd_isset(osal_socket_handle_t fd, fd_set *set)
 {
     return(FD_ISSET(fd, set));
 }
@@ -179,12 +179,12 @@ osal_basetype_t osal_settime(struct timeval *tv, struct timezone *tz)
     return(settimeofday(tv, tz));
 }
 
-osal_sighandler_t osal_signal(int signum, osal_sighandler_t handler)
+osal_sighandler_t osal_signal(osal_basetype_t signum, osal_sighandler_t handler)
 {
     return(signal(signum, handler));
 }
 
-osal_basetype_t osal_sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
+osal_basetype_t osal_sigprocmask(osal_basetype_t how, const sigset_t *set, sigset_t *oldset)
 {
     return(sigprocmask(how, set, oldset));
 }
@@ -194,7 +194,7 @@ osal_basetype_t osal_sigemptyset(sigset_t *set)
      return(sigemptyset(set));
 }
 
-osal_basetype_t osal_sigaddset(sigset_t *set, int signum)
+osal_basetype_t osal_sigaddset(sigset_t *set, osal_basetype_t signum)
 {
     return(sigaddset(set, signum));
 }

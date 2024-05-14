@@ -71,7 +71,7 @@ osal_basetype_t osal_task_cancel(osal_task_t thread);
  * output parameters
  * @return on success return 0 otherwise error value 
  *****************************************************************************/
-osal_basetype_t osal_task_setcanceltype(int type, int *oldtype);
+osal_basetype_t osal_task_setcanceltype(osal_basetype_t type, osal_basetype_t *oldtype);
 
 /****************************************************************************
  * @fn osal_task_sigmask
@@ -86,7 +86,7 @@ osal_basetype_t osal_task_setcanceltype(int type, int *oldtype);
  * output parameters
  * @return on success return 0 otherwise error value 
  *****************************************************************************/
-osal_basetype_t osal_task_sigmask(int how, const sigset_t *set, sigset_t *oldset);
+osal_basetype_t osal_task_sigmask(osal_basetype_t how, const sigset_t *set, sigset_t *oldset);
 
 /****************************************************************************
  * @fn osal_sem_create
@@ -189,7 +189,7 @@ osal_ssize_t osal_recvfrom(osal_socket_handle_t sockfd, void *buf, size_t len, o
  * output parameters
  * @return On success return the number of bytes sent on error -1 is returned 
  *****************************************************************************/
-osal_ssize_t osal_sendmsg(int sockfd, const struct msghdr msg, int flags);
+osal_ssize_t osal_sendmsg(osal_socket_handle_t sockfd, const struct msghdr msg, osal_basetype_t flags);
 
 /****************************************************************************
  * @fn osal_bind
@@ -204,7 +204,7 @@ osal_ssize_t osal_sendmsg(int sockfd, const struct msghdr msg, int flags);
  * output parameters
  * @return On success 0 is returned. On error, -1 is returned 
  *****************************************************************************/
-osal_basetype_t osal_bind(int osal_sockfd, osal_sockaddr *osal_addr, osal_socklen addrlen);
+osal_basetype_t osal_bind(osal_socket_handle_t osal_sockfd, osal_sockaddr *osal_addr, osal_socklen addrlen);
 
 /****************************************************************************
  * @fn osal_sendto
@@ -222,7 +222,7 @@ osal_basetype_t osal_bind(int osal_sockfd, osal_sockaddr *osal_addr, osal_sockle
  * output parameters
  * @return On success return the number of bytes sent on error -1 is returned 
  *****************************************************************************/
-osal_ssize_t osal_sendto(osal_basetype_t sockfd, const void *buf, size_t len, int flags,
+osal_ssize_t osal_sendto(osal_socket_handle_t sockfd, const void *buf, size_t len, osal_basetype_t flags,
                          const osal_sockaddr *dest_addr, osal_socklen addrlen);
 
 /****************************************************************************
@@ -242,7 +242,7 @@ osal_ssize_t osal_sendto(osal_basetype_t sockfd, const void *buf, size_t len, in
  *           network address in the specified address family
  *        -1 if af does not contain a valid address family
  *****************************************************************************/
-osal_basetype_t osal_inet_pton(int af, const char *src, void *dst);
+osal_basetype_t osal_inet_pton(osal_basetype_t af, const char *src, void *dst);
 
 /****************************************************************************
  * @fn osal_select
@@ -270,7 +270,7 @@ osal_basetype_t osal_inet_pton(int af, const char *src, void *dst);
  *         0 if timeout expired before any file descriptors became ready. 
  *        -1 on error
  *****************************************************************************/
-osal_basetype_t osal_select(int nfds, fd_set *readfds, fd_set *writefds,
+osal_basetype_t osal_select(osal_basetype_t nfds, fd_set *readfds, fd_set *writefds,
                             fd_set *exceptfds, struct timeval *timeout);
 
 /****************************************************************************
@@ -298,7 +298,7 @@ void osal_fd_zero(fd_set *set);
  * output parameters
  * @return none
  *****************************************************************************/
-void osal_fd_set(int fd, fd_set *set);
+void osal_fd_set(osal_socket_handle_t fd, fd_set *set);
 
 /****************************************************************************
  * @fn osal_fd_isset 
@@ -313,7 +313,7 @@ void osal_fd_set(int fd, fd_set *set);
  * @return returns nonzero if the file descriptor fd is present in set, 
  *         and zero if it is not 
  *****************************************************************************/
-osal_basetype_t osal_fd_isset(int fd, fd_set *set);
+osal_basetype_t osal_fd_isset(osal_socket_handle_t fd, fd_set *set);
 
 /****************************************************************************
  * @fn osal_update_sockaddr 
@@ -369,7 +369,7 @@ osal_basetype_t osal_settime(struct timeval *tv, struct timezone *tz);
  * output parameters
  * @return returns the previous value of the signal handler, or SIG_ERR on error 
  *****************************************************************************/
-osal_sighandler_t osal_signal(int signum, osal_sighandler_t handler);
+osal_sighandler_t osal_signal(osal_basetype_t signum, osal_sighandler_t handler);
 
 /****************************************************************************
  * @fn osal_sigprocmask 
@@ -384,7 +384,7 @@ osal_sighandler_t osal_signal(int signum, osal_sighandler_t handler);
  * output parameters
  * @return returns 0 on success and -1 on error 
  *****************************************************************************/
-osal_basetype_t osal_sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
+osal_basetype_t osal_sigprocmask(osal_basetype_t how, const sigset_t *set, sigset_t *oldset);
 
 /****************************************************************************
  * @fn osal_sigemptyset
@@ -411,7 +411,7 @@ osal_basetype_t osal_sigemptyset(sigset_t *set);
  * output parameters
  * @return returns 0 on success and -1 on error 
  *****************************************************************************/
-osal_basetype_t osal_sigaddset(sigset_t *set, int signum);
+osal_basetype_t osal_sigaddset(sigset_t *set, osal_basetype_t signum);
 
 /****************************************************************************
  * @fn osal_print_formatted_ip
