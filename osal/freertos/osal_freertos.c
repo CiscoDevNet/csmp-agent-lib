@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-#include "osal_common.h"
+#include "osal.h"
 
 osal_basetype_t osal_task_create (
    osal_task_t * thread,

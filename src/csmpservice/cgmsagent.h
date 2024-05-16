@@ -23,7 +23,7 @@
  *
  */
 
-#include "osal_common.h"
+#include "osal.h"
 
 /**
  * @brief

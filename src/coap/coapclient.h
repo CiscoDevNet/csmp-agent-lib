@@ -18,7 +18,7 @@
 #define __COAPCLIENT_H
 
 #include "coap.h"
-#include "osal_common.h"
+#include "osal.h"
 
 /*! \file
  *

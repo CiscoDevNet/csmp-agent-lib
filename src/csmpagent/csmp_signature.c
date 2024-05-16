@@ -21,7 +21,7 @@
 #include "csmpagent.h"
 #include "csmpfunction.h"
 #include "CsmpTlvs.pb-c.h"
-#include "osal_common.h"
+#include "osal.h"
 
 extern csmp_cfg_t g_csmp_signature_settings;
 

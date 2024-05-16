@@ -18,7 +18,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <errno.h>
-#include "osal_common.h"
+#include "osal.h"
 #include "csmp.h"
 #include "csmptlv.h"
 #include "coapserver.h"

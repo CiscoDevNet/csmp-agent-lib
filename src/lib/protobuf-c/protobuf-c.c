@@ -46,7 +46,7 @@
  */
 
 #include <string.h>	/* for strcmp, strlen, memcpy, memmove, memset */
-#include "osal_common.h"	/* for malloc, free */
+#include "osal.h"	/* for malloc, free */
 
 #include "protobuf-c.h"
 

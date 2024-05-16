@@ -17,7 +17,7 @@
 #ifndef __CSMPFUNCTION_H
 #define __CSMPFUNCTION_H
 
-#include "osal_common.h"
+#include "osal.h"
 
 int csmp_get_tlvindex(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 int csmp_get_deviceid(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);

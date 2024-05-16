@@ -21,7 +21,7 @@
 
 #include "coap.h"
 #include "coapserver.h"
-#include "osal_common.h"
+#include "osal.h"
 
 enum {
   MAX_PATH_ELEMENTS = 10,

@@ -39,7 +39,7 @@
  */
 
 #include "coap.h"
-#include "osal_common.h"
+#include "osal.h"
 
 /**
  * @brief callback handler for receiving CoAP commands

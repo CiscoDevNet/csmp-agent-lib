@@ -25,7 +25,7 @@
 #include "csmpagent.h"
 #include "cgmsagent.h"
 #include "CsmpTlvs.pb-c.h"
-#include "osal_common.h"
+#include "osal.h"
 
 #define OUTBUF_SIZE 1048
 static osal_sockaddr_t NMS_addr;

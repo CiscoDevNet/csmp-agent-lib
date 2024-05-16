@@ -1,7 +1,7 @@
-#ifndef __OSAL_COMMON_H
-#define __OSAL_COMMON_H
+#ifndef __OSAL_H
+#define __OSAL_H
 
-#include "osal.h"
+#include "osal_platform_types.h"
 
 
 /// OSAL Success return value

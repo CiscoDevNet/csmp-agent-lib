@@ -14,8 +14,8 @@
  *  limitations under the License.
  */
 
-#ifndef __OSAL_H
-#define __OSAL_H
+#ifndef __OSAL_PLATFORM_TYPES_H
+#define __OSAL_PLATFORM_TYPES_H
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>

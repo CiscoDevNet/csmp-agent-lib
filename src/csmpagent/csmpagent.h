@@ -18,7 +18,7 @@
 #define __CSMPAGENT_H
 
 #include "csmpservice.h"
-#include "osal_common.h"
+#include "osal.h"
 
 /*! \file
  *

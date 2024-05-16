@@ -22,7 +22,7 @@
 #include "csmp_info.h"
 #include "CsmpAgentLib_sample.h"
 #include "signature_verify.h"
-#include "osal_common.h"
+#include "osal.h"
 
 #define nexthop_IP "fe80::a00:27ff:fe3b:2ab1"
 #define CSMP_NON_VENDOR_ID 0

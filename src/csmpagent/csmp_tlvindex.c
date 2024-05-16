@@ -20,7 +20,7 @@
 #include "csmpfunction.h"
 #include "csmptlv.h"
 #include "CsmpTlvs.pb-c.h"
-#include "osal_common.h"
+#include "osal.h"
 
 #define NUM_TLVS 20
 static char *ptlvs[NUM_TLVS] = {

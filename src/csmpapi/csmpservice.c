@@ -16,7 +16,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "osal_common.h"
+#include "osal.h"
 #include "csmpinfo.h"
 #include "csmpservice.h"
 #include "cgmsagent.h"

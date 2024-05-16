@@ -21,7 +21,7 @@
 
 #include "coap.h"
 #include "coapclient.h"
-#include "osal_common.h"
+#include "osal.h"
 
 enum {
   MAX_OPTION_LEN = 128,

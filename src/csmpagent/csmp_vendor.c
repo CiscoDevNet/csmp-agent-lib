@@ -21,7 +21,7 @@
 #include "csmptlv.h"
 #include "csmpagent.h"
 #include "CsmpTlvs.pb-c.h"
-#include "osal_common.h"
+#include "osal.h"
 
 int csmp_get_vendor(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
 {

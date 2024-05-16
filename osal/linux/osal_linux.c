@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-#include "osal_common.h"
+#include "osal.h"
 
 struct trickle_timer {
   uint32_t t0;
