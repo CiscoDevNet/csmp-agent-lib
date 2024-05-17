@@ -14,12 +14,9 @@
  *  limitations under the License.
  */
 
-#include <stdlib.h>
-#include <sys/time.h>
 #include <stdio.h>
 #include <string.h>
-#include <netinet/in.h>
-
+#include "osal.h"
 #include "csmpinfo.h"
 #include "csmpservice.h"
 #include "cgmsagent.h"

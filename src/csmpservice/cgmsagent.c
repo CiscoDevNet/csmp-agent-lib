@@ -15,16 +15,8 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <time.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <stdint.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
 
 #include "coap.h"
 #include "coapclient.h"
@@ -33,10 +25,10 @@
 #include "csmpagent.h"
 #include "cgmsagent.h"
 #include "CsmpTlvs.pb-c.h"
-#include "osal_common.h"
+#include "osal.h"
 
 #define OUTBUF_SIZE 1048
-static osal_sockaddr NMS_addr;
+static osal_sockaddr_t NMS_addr;
 static uint8_t g_outbuf[OUTBUF_SIZE];
 
 enum {

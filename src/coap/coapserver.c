@@ -16,21 +16,12 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <time.h>
-#include <sys/types.h>
-#include <pthread.h>
-#include <unistd.h>
-
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
 
 #include "coap.h"
 #include "coapserver.h"
-#include "osal_common.h"
+#include "osal.h"
 
 enum {
   MAX_PATH_ELEMENTS = 10,
@@ -58,7 +49,8 @@ int coapserver_stop()
 int coapserver_listen(uint16_t sport, recv_handler_t recv_handler)
 {
   osal_socket_handle_t sockfd;
-  osal_sockaddr listen_addr;
+  osal_sockaddr_t listen_addr;
+  osal_basetype_t ret = OSAL_FAILURE;
 
   if (m_server_opened) {
     DPRINTF("coapserver_listen coapserver was already opened!\n");
@@ -90,7 +82,10 @@ int coapserver_listen(uint16_t sport, recv_handler_t recv_handler)
 
   m_sockfd = sockfd;
   m_server_opened = true;
-  recvt_id_task = osal_task_create(NULL, 0, 0, recv_thread, NULL);
+  ret = osal_task_create(&recvt_id_task, NULL, 0, 0, recv_thread, NULL);
+  DPRINTF("coapserver - %s.\n" , (ret == OSAL_SUCCESS) ? "task created" : "task creation failed");
+  assert(ret == OSAL_SUCCESS);
+
   return 0;
 }
 
@@ -100,7 +95,7 @@ void *recv_thread(void* arg)
   DPRINTF("coapserver receive thread is serving now...\n");
 
   int rv;
-  osal_sockaddr from = {0};
+  osal_sockaddr_t from = {0};
   socklen_t socklen = sizeof(struct sockaddr_in6);
   uint8_t data[1024];
   osal_basetype_t len;
@@ -110,13 +105,13 @@ void *recv_thread(void* arg)
   fd_set readset;
   fd_set tempset;
 
-  osal_fd_zero(&readset);
-  osal_fd_zero(&tempset);
-  osal_fd_set(m_sockfd, &tempset);
+  osal_sd_zero(&readset);
+  osal_sd_zero(&tempset);
+  osal_sd_set(m_sockfd, &tempset);
 
   while (1)
   {
-    osal_fd_zero(&readset);
+    osal_sd_zero(&readset);
     readset = tempset;
     rv = osal_select(m_sockfd+1, &readset, NULL, NULL, NULL);
 
@@ -125,7 +120,7 @@ void *recv_thread(void* arg)
       continue;
     }
 
-    if (osal_fd_isset(m_sockfd, &readset))
+    if (osal_sd_isset(m_sockfd, &readset))
     {
       len = osal_recvfrom(m_sockfd, data, sizeof(data), 0, &from, &socklen);
       if (len < 0) {

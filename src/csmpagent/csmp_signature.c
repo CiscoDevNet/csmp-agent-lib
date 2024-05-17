@@ -15,14 +15,13 @@
  */
 
 #include <string.h>
-#include <sys/time.h>
 #include "csmp.h"
 #include "csmpinfo.h"
 #include "csmptlv.h"
 #include "csmpagent.h"
 #include "csmpfunction.h"
 #include "CsmpTlvs.pb-c.h"
-#include "osal_common.h"
+#include "osal.h"
 
 extern csmp_cfg_t g_csmp_signature_settings;
 
@@ -129,9 +128,9 @@ int checkSignature(const uint8_t *buf, uint32_t len, bool agent)
   siglen = sigend - sig;
   }
 
-  ret = osal_gettimeofday(&tv, NULL);
+  ret = osal_gettime(&tv, NULL);
 
-  if (ret == -1)
+  if (ret == OSAL_FAILURE)
   {
     g_csmplib_stats.sig_no_sync++;
     return ERROR;

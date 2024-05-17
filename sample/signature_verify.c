@@ -18,7 +18,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "osal_common.h"
+#include "osal.h"
 
 #ifdef OPENSSL
 #include <openssl/evp.h>

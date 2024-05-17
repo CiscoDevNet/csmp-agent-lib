@@ -21,7 +21,7 @@
 #include "csmpagent.h"
 #include "csmpfunction.h"
 #include "CsmpTlvs.pb-c.h"
-#include "osal_common.h"
+#include "osal.h"
 
 #define MAX_CNT 15
 #define MAX_LEN 8

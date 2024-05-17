@@ -16,14 +16,12 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <unistd.h>
 
 #include "coap.h"
 #include "coapclient.h"
-#include "osal_common.h"
+#include "osal.h"
 
 enum {
   MAX_OPTION_LEN = 128,
@@ -51,6 +49,7 @@ int coapclient_stop()
 int coapclient_open(response_handler_t response_handler)
 {
   osal_socket_handle_t sockfd;
+  osal_basetype_t ret = OSAL_FAILURE;
 
   if (m_client_opened) {
     DPRINTF("coaplient was already opened!\n");
@@ -70,11 +69,14 @@ int coapclient_open(response_handler_t response_handler)
 
   m_sock = sockfd;
   m_client_opened = true;
-  recvt_id_task = osal_task_create(NULL, 0, 0, recv_fn, NULL);
+  ret = osal_task_create(&recvt_id_task, NULL, 0, 0, recv_fn, NULL);
+  DPRINTF("CoapClient.open - %s.\n" , (ret == OSAL_SUCCESS) ? "task created" : "task creation failed");
+  assert(ret == OSAL_SUCCESS);
+  
   return 0;
 }
 
-int coapclient_request (const osal_sockaddr *to,
+int coapclient_request (const osal_sockaddr_t *to,
     coap_transaction_type_t tx_type,
     coap_method_t method,
     uint8_t token_length, uint8_t *token,
@@ -238,7 +240,7 @@ void *recv_fn(void* arg)
   DPRINTF("coapclient receive thread is serving now...\n");
 
   osal_ssize_t rv;
-  osal_sockaddr from = {0};
+  osal_sockaddr_t from = {0};
   socklen_t socklen = sizeof(struct sockaddr_in6);
   uint8_t data[1024];
   osal_basetype_t len;
@@ -248,13 +250,13 @@ void *recv_fn(void* arg)
   fd_set readset;
   fd_set tempset;
 
-  osal_fd_zero(&readset);
-  osal_fd_zero(&tempset);
-  osal_fd_set(m_sock, &tempset);
+  osal_sd_zero(&readset);
+  osal_sd_zero(&tempset);
+  osal_sd_set(m_sock, &tempset);
 
   while (1)
   {
-    osal_fd_zero(&readset);
+    osal_sd_zero(&readset);
     readset = tempset;
     rv = osal_select(m_sock+1, &readset, NULL, NULL, NULL);
 
@@ -263,7 +265,7 @@ void *recv_fn(void* arg)
       continue;
     }
 
-    if (osal_fd_isset(m_sock, &readset))
+    if (osal_sd_isset(m_sock, &readset))
     {
       len = osal_recvfrom(m_sock, data, sizeof(data), 0, &from, &socklen);
       if (len < 0) {

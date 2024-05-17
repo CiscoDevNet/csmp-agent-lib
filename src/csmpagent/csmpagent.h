@@ -17,9 +17,8 @@
 #ifndef __CSMPAGENT_H
 #define __CSMPAGENT_H
 
-#include <sys/types.h>
-#include <netinet/in.h>
 #include "csmpservice.h"
+#include "osal.h"
 
 /*! \file
  *
