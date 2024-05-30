@@ -1,7 +1,7 @@
 ## Overview
 CoAP Simple Management Protocol (CSMP) is a device lifecycle management protocol optimized for resource constrained devices deployed within large-scale, bandwidth constrained IoT networks.
 
-There are multiple target platforms supported by using OSAL (Operating System Abstraction Layer). The repository provides Linux and FreeRTOS support. FreRTOS initialised as a submodule and it is built with POSIX port.
+There are multiple target platforms supported by using OSAL (Operating System Abstraction Layer). The repository provides Linux and FreeRTOS support. FreeRTOS initialised as a submodule and it is built with POSIX port.
 
 These instructions describe the build/run process for a C implementation of a sample CSMP Agent which incorporates the Cisco CSMP library `csmp-agent-lib`.
 
