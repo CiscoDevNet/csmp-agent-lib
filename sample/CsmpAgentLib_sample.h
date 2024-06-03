@@ -102,7 +102,7 @@
 #define NMS_IP "2001:a:b:c::ffaa"
 
 /** \brief eui64, should come from the HW*/
-uint8_t g_eui64[8] = {0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb2};
+extern uint8_t g_eui64[8];
 /************************ end *********************************************/
 
 /** \brief  minium registation interval*/
@@ -121,42 +121,42 @@ uint8_t g_eui64[8] = {0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb2};
 #define VENDOR_SUBTYPE_NUM 10
 
 /** \brief the hardware information */
-Hardware_Desc g_hardwareDesc = HARDWARE_DESC_INIT;
+extern Hardware_Desc g_hardwareDesc;
 
 /** \brief the interface information */
-Interface_Desc g_interfaceDesc[interface_max_num] = {INTERFACE_DESC_INIT};
+extern Interface_Desc g_interfaceDesc[interface_max_num];
 
 /** \brief the ipaddress information */
-IP_Address g_ipAddress[ipaddress_max_num] = {IPADDRESS_INIT};
+extern IP_Address g_ipAddress[ipaddress_max_num];
 
 /** \brief the ip route information */
-IP_Route g_ipRoute = IPROUTE_INIT;
+extern IP_Route g_ipRoute;
 
 /** \brief the current information */
-Current_Time g_currentTime = CURRENT_TIME_INIT;
+extern Current_Time g_currentTime;
 
 /** \brief the up time information */
-Up_Time g_upTime = UPTIME_INIT;
+extern Up_Time g_upTime;
 
 /** \brief the interface metrics data */
-Interface_Metrics g_interfaceMetrics[interface_max_num] = {INTERFACE_METRICS_INIT};
+extern Interface_Metrics g_interfaceMetrics[interface_max_num];
 
 /** \brief the ip route rpl metrics data */
-IPRoute_RPLMetrics g_iprouteRplmetrics = IPROUTE_RPLMETRICS_INIT;
+extern IPRoute_RPLMetrics g_iprouteRplmetrics;
 
 /** \brief the wpan status data */
-WPAN_Status g_wpanStatus = WPANSTATUS_INIT;
+extern WPAN_Status g_wpanStatus;
 
 /** \brief the rpl data */
-RPL_Instance g_rplInstance = RPLINSTANCE_INIT;
+extern RPL_Instance g_rplInstance;
 
 /** \brief the firmware info data */
-Firmware_Image_Info g_firmwareImageInfo = FIRMWARE_IMAGE_INFO_INIT;
+extern Firmware_Image_Info g_firmwareImageInfo;
 
 /** \brief the signature settings data */
-Signature_Settings g_SignatureSettings = SIGNATURE_SETTINGS_INIT;
+extern Signature_Settings g_SignatureSettings;
 
 /** \brief the vendor specific data */
-Vendor_Specific g_VendorData[VENDOR_SUBTYPE_NUM] = {VENDOR_INIT};
+extern Vendor_Specific g_VendorData[VENDOR_SUBTYPE_NUM];
 
 #endif

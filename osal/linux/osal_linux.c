@@ -38,6 +38,11 @@ static bool m_timert_isrunning = false;
 static void osal_update_timer();
 static void osal_alarm_fired();
 
+void osal_kernel_start(void)
+{
+  (void) 0;
+}
+
 osal_basetype_t osal_task_create(osal_task_t * thread,
                                  const char * name,
                                  uint32_t priority,
@@ -77,8 +82,8 @@ osal_basetype_t osal_task_cancel(osal_task_t thread)
     return (pthread_cancel(thread));
 }
 
-osal_basetype_t osal_task_setcanceltype(osal_basetype_t type, osal_basetype_t *oldtype){
-    return (pthread_setcanceltype(type, oldtype));
+osal_basetype_t osal_task_setcanceltype(void){
+    return (pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL));
 }
 
 osal_basetype_t osal_task_sigmask(osal_basetype_t how, const osal_sigset_t *set, osal_sigset_t *oldset)
@@ -378,4 +383,9 @@ void *osal_malloc(size_t size)
 void osal_free(void *ptr)
 {
   free(ptr);
+}
+
+void osal_sleep_ms(uint64_t ms)
+{
+  usleep(ms * 1000);
 }

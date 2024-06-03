@@ -15,155 +15,395 @@
  */
 
 #include "osal.h"
+#include "../../src/lib/debug.h"
 
-osal_basetype_t osal_task_create (
-   osal_task_t * thread,
-   const char * name,
-   uint32_t priority,
-   size_t stacksize,
-   void *(*entry) (void * arg),
-   void * arg)
+
+struct trickle_timer {
+  uint32_t t0;
+  uint32_t tfire;
+  uint32_t icur;
+  uint32_t imin;
+  uint32_t imax;
+  uint8_t is_running :1;
+  TimerHandle_t timer;
+};
+
+#define __ret_freertos2posix(ret) \
+    (ret == pdPASS ? OSAL_SUCCESS : OSAL_FAILURE)
+
+extern uint8_t g_csmplib_eui64[8];
+
+/// Vars for trickle timers
+static struct trickle_timer timers[timer_num];
+static trickle_timer_fired_t timer_fired[timer_num];
+static int32_t m_remaining = ((1UL << 31) - 1) / 1000; /* max int32_t */
+static bool m_timert_isrunning = false;
+
+static void osal_update_timer();
+static void osal_alarm_fired(TimerHandle_t xTimer);
+
+void osal_kernel_start(void)
 {
-    /* FreeRtos implementation */
+    for (BaseType_t i = 0; i < timer_num; i++) {
+        timers[i].is_running = false;
+        timers[i].timer = xTimerCreate("trickle_timer", 
+                                       pdMS_TO_TICKS(m_remaining * 1000), 
+                                       pdTRUE, 
+                                       (void *)i, 
+                                       osal_alarm_fired);
+        DPRINTF("timer%d %s\n", i, timers[i].timer == NULL ? "create failed" : "create success");
+        assert(timers[i].timer != NULL);
+        xTimerStop(timers[i].timer, 0);
+
+    }
+    vTaskStartScheduler();
+}
+
+osal_basetype_t osal_task_create(osal_task_t * thread,
+                                 const char * name,
+                                 uint32_t priority,
+                                 size_t stacksize,
+                                 void* (*entry) (void * arg),
+                                 void * arg)
+{
+    osal_basetype_t ret = 0;
+    ret = xTaskCreate((TaskFunction_t)entry, 
+                      name, 
+                      ((PTHREAD_STACK_MIN / sizeof(size_t)) + stacksize), 
+                      arg, 
+                      priority, 
+                      thread);
+    DPRINTF("task '%s'\n", ret == pdPASS ? "create success" : "create failed");
+    return __ret_freertos2posix(ret);
 }
 
 osal_basetype_t osal_task_cancel(osal_task_t thread)
 {
-    /* FreeRtos implementation */
+    vTaskDelete(thread);
+    return OSAL_SUCCESS;
 }
 
-osal_basetype_t osal_task_setcanceltype(int type, int *oldtype)
+osal_basetype_t osal_task_setcanceltype(void)
 {
-    /* FreeRtos implementation */
+    return OSAL_SUCCESS;
 }
 
-osal_basetype_t osal_task_sigmask(int how, const osal_sigset_t *set, osal_sigset_t *oldset)
+
+osal_basetype_t osal_task_sigmask(osal_basetype_t how, const sigset_t *set, sigset_t *oldset)
 {
-    /* FreeRtos implementation */
+    (void) how;
+    (void) set;
+    (void) oldset;
+    return OSAL_FAILURE;
 }
 
-//sem_init
 osal_basetype_t osal_sem_create(osal_sem_t * sem, uint16_t value)
 {
-    /* FreeRtos implementation */
+    if (sem == NULL) {
+        return OSAL_FAILURE;
+    }
+
+    *sem = xSemaphoreCreateCounting(0xFFFF, value);
+
+    return *sem == NULL ? OSAL_FAILURE : OSAL_SUCCESS;
 }
 
-//sem_post
+
 osal_basetype_t osal_sem_post(osal_sem_t * sem)
 {
-    /* FreeRtos implementation */
+    osal_basetype_t ret = 0;
+
+    if (sem == NULL) {
+        return OSAL_FAILURE;
+    }
+    ret = xSemaphoreGive(*sem);
+
+    return __ret_freertos2posix(ret);
 }
 
-//sem_wait
 osal_basetype_t osal_sem_wait(osal_sem_t * sem, osal_time_t timeout)
 {
-    /* FreeRtos implementation */
+    osal_basetype_t ret = 0;
+    if (sem == NULL) {
+        return OSAL_FAILURE;
+    }
+
+    ret = xSemaphoreTake(*sem, timeout);
+
+    return __ret_freertos2posix(ret);
 }
 
-//sem_destroy
 osal_basetype_t osal_sem_destroy(osal_sem_t *sem)
 {
-    /* FreeRtos implementation */
+    if (sem == NULL) {
+        return OSAL_FAILURE;
+    }
+    vSemaphoreDelete(*sem);
+    return OSAL_SUCCESS;
 }
-//Socket
+
 osal_socket_handle_t osal_socket(osal_basetype_t domain, osal_basetype_t type, osal_basetype_t protocol)
 {
-    return(FreeRTOS_socket(domain, type, protocol));
+    return socket(domain, type, protocol);
 }
 
-//bind
-osal_basetype_t osal_bind(osal_socket_handle_t sockd, osal_sockaddr_t *addr, 
-                            osal_socklen_t addrlen)
+osal_ssize_t osal_recvfrom(osal_socket_handle_t sockd, void *buf, size_t len, osal_basetype_t flags,
+                           osal_sockaddr_t *src_addr, osal_socklen_t *addrlen)
 {
-    return (FreeRTOS_bind(sockd, (struct freertos_sockaddr *)(addr), addrlen));
+    return recvfrom(sockd, buf, len, flags, (struct sockaddr*)(src_addr), addrlen);
 }
 
-//recvfrom
-osal_ssize_t osal_recvfrom(int sockd, void *buf, size_t len, int flags,
-                    osal_sockaddr_t *src_addr, osal_socklen_t *addrlen)
+osal_ssize_t osal_sendmsg(osal_socket_handle_t sockd, const struct msghdr msg, osal_basetype_t flags)
 {
-    /* FreeRtos implementation */
-
-}
-//sendmsg
-ssize_t osal_sendmsg(int sockd, const struct msghdr msg, int flags){
-    /* FreeRtos implementation */
+    return sendmsg(sockd, &msg, flags);
 }
 
-//sendto
-ssize_t osal_sendto(int sockd, const void *buf, size_t len, int flags,
-                      const osal_sockaddr_t *dest_addr, osal_socklen_t addrlen)
+osal_basetype_t osal_bind(osal_socket_handle_t sockd, osal_sockaddr_t *addr, osal_socklen_t addrlen)
 {
-    /* FreeRtos implementation */
+    return bind(sockd, (const struct sockaddr *)(addr), addrlen);
 }
 
-//inet_pton
-
-osal_basetype_t osal_inet_pton(int af, const char *src, void *dst)
+osal_ssize_t osal_sendto(osal_socket_handle_t sockd, const void *buf, size_t len, osal_basetype_t flags,
+                         const osal_sockaddr_t *dest_addr, osal_socklen_t addrlen)
 {
-    /* FreeRtos implementation */
+    return sendto(sockd, buf, len, flags, (struct sockaddr*)(dest_addr), addrlen);
 }
 
-//select
-osal_basetype_t osal_select(int nsds, osal_sd_set_t *readsds, osal_sd_set_t *writesds,
-                  osal_sd_set_t *exceptsds, struct timeval *timeout)
+osal_basetype_t osal_inet_pton(osal_basetype_t af, const char *src, void *dst)
 {
-    /* FreeRtos implementation */
+    return inet_pton(af, src, dst);
+}
+
+osal_basetype_t osal_select(osal_basetype_t nsds, osal_sd_set_t *readsds, osal_sd_set_t *writesds,
+                            osal_sd_set_t *exceptsds, struct timeval *timeout)
+{
+    return select(nsds, readsds, writesds, exceptsds, timeout);
 }
 
 void osal_sd_zero(osal_sd_set_t *set)
 {
-    /* FreeRtos implementation */
+    FD_ZERO(set);
 }
 
-void osal_sd_set(int sd, osal_sd_set_t *set)
+void osal_sd_set(osal_socket_handle_t sd, osal_sd_set_t *set)
 {
-    /* FreeRtos implementation */
+    FD_SET(sd, set);
 }
 
-osal_basetype_t osal_sd_isset(int sd, osal_sd_set_t *set)
+osal_basetype_t osal_sd_isset(osal_socket_handle_t sd, osal_sd_set_t *set)
 {
-    /* FreeRtos implementation */
+    return(FD_ISSET(sd, set));
 }
 
-//gettimeofday
+void osal_update_sockaddr(osal_sockaddr_t *listen_addr, uint16_t sport)
+{
+    listen_addr->sin6_family = AF_INET6;
+    listen_addr->sin6_addr = in6addr_any;
+    listen_addr->sin6_port = htons(sport);
+}
+
 osal_basetype_t osal_gettime(struct timeval *tv, struct timezone *tz)
 {
-    /* FreeRtos implementation */
+    return gettimeofday(tv, tz);
 }
 
-//settime
 osal_basetype_t osal_settime(struct timeval *tv, struct timezone *tz)
 {
-    /* FreeRtos implementation */
+    return settimeofday(tv, tz);
 }
 
-osal_sighandler_t osal_signal(int signum, osal_sighandler_t handler)
+osal_sighandler_t osal_signal(osal_basetype_t signum, osal_sighandler_t handler)
 {
-    /* FreeRtos implementation */
+    (void) signum;
+    (void) handler;
+    return NULL;
 }
 
-osal_basetype_t osal_sigprocmask(int how, const osal_sigset_t *set, osal_sigset_t *oldset)
+osal_basetype_t osal_sigprocmask(osal_basetype_t how, const sigset_t *set, sigset_t *oldset)
 {
-    /* FreeRtos implementation */
+    (void) how;
+    (void) set;
+    (void) oldset;
+    return OSAL_FAILURE;
 }
 
-osal_basetype_t osal_sigemptyset(osal_sigset_t *set)
+osal_basetype_t osal_sigemptyset(sigset_t *set)
 {
-    /* FreeRtos implementation */
+    (void) set;
+    return OSAL_FAILURE;
 }
 
-osal_basetype_t osal_sigaddset(osal_sigset_t *set, int signum)
+osal_basetype_t osal_sigaddset(sigset_t *set, osal_basetype_t signum)
 {
-    /* FreeRtos implementation */
+    (void) set;
+    (void) signum;
+    return OSAL_FAILURE;
+}
+
+void osal_print_formatted_ip(const osal_sockaddr_t *sockadd)
+{
+    (void) sockadd;
+    DPRINTF("[%x:%x:%x:%x:%x:%x:%x:%x]:%hu\n",
+      ((uint16_t)sockadd->sin6_addr.s6_addr[0] << 8) | sockadd->sin6_addr.s6_addr[1],
+      ((uint16_t)sockadd->sin6_addr.s6_addr[2] << 8) | sockadd->sin6_addr.s6_addr[3],
+      ((uint16_t)sockadd->sin6_addr.s6_addr[4] << 8) | sockadd->sin6_addr.s6_addr[5],
+      ((uint16_t)sockadd->sin6_addr.s6_addr[6] << 8) | sockadd->sin6_addr.s6_addr[7],
+      ((uint16_t)sockadd->sin6_addr.s6_addr[8] << 8) | sockadd->sin6_addr.s6_addr[9],
+      ((uint16_t)sockadd->sin6_addr.s6_addr[10] << 8) |  sockadd->sin6_addr.s6_addr[11],
+      ((uint16_t)sockadd->sin6_addr.s6_addr[12] << 8) |  sockadd->sin6_addr.s6_addr[13],
+      ((uint16_t)sockadd->sin6_addr.s6_addr[14] << 8) |  sockadd->sin6_addr.s6_addr[15],
+      ntohs(sockadd->sin6_port));
+}
+
+void osal_trickle_timer_start(osal_timerid_t timerid, uint32_t imin, uint32_t imax, 
+                              trickle_timer_fired_t trickle_timer_fired)
+{
+  uint32_t min;
+  struct timeval tv = {0};
+  uint32_t seed = 0;
+
+  if(!m_timert_isrunning) {
+    m_timert_isrunning = true;
+  }
+
+  if(timerid == reg_timer) {
+    DPRINTF("register trickle timer start\n");
+  }
+  else if(timerid == rpt_timer) {
+    DPRINTF("metrics report trickle timer start\n");
+  }
+
+  osal_gettime(&tv, NULL);
+
+  seed = (((uint16_t)g_csmplib_eui64[6] << 8) | g_csmplib_eui64[7]);
+  srand(seed);
+  timers[timerid].t0 = tv.tv_sec + (random()%imin);
+  timers[timerid].icur = imin;
+  timers[timerid].imin = imin;
+  timers[timerid].imax = imax;
+  timers[timerid].is_running = true;
+  timer_fired[timerid] = trickle_timer_fired;
+  min = timers[timerid].icur >> 1;
+  timers[timerid].tfire = timers[timerid].t0 + min + (random() % (timers[timerid].icur - min));
+  xTimerStart(timers[timerid].timer, 0);
+  osal_update_timer();
+}
+
+void osal_trickle_timer_stop(osal_timerid_t timerid)
+{
+  uint8_t i;
+
+  timers[timerid].is_running = false;
+  if(timerid == reg_timer) {
+    DPRINTF("register trickle timer stop\n");
+  }
+  else if(timerid == rpt_timer) {
+    DPRINTF("metrics report trickle timer stop\n");
+  }
+  for(i = 0; i < timer_num; i++) {
+    if(timers[i].is_running)
+      return;
+  }
+  m_timert_isrunning = false;
+  xTimerStop(timers[timerid].timer, 0);
 }
 
 void *osal_malloc(size_t size)
 {
-    /* FreeRtos implementation */
+  return pvPortMalloc(size);
 }
 
 void osal_free(void *ptr)
 {
-    /* FreeRtos implementation */
+  vPortFree(ptr);
 }
+
+void osal_sleep_ms(uint64_t ms)
+{
+  vTaskDelay(pdMS_TO_TICKS(ms));
+}
+
+void vApplicationStackOverflowHook( TaskHandle_t xTask,
+                                    char * pcTaskName )
+{
+    ( void ) xTask;
+    ( void ) pcTaskName;
+    DPRINTF("Stack overflow: %s\n", pcTaskName);
+    for( ;; );
+}
+
+static void osal_update_timer() {
+  uint32_t now;
+  struct timeval tv = {0};
+  uint8_t i;
+
+  m_remaining = (1UL << 31) - 1; /* max int32_t */
+  osal_gettime(&tv, NULL);
+  now = tv.tv_sec;
+
+  for (i = 0; i < timer_num; i++) {
+    struct trickle_timer *timer = &timers[i];
+    int32_t remaining;
+
+    if (timer->is_running == false)
+      continue;
+    remaining = timer->tfire - now;
+    if (remaining < m_remaining) {
+      m_remaining = remaining;
+    //   flag = true;
+      if (m_remaining <= 0) {
+        xTimerPendFunctionCall((PendedFunction_t)osal_alarm_fired, 
+                               NULL, 
+                               0, 
+                               pdFALSE);
+      } else {
+        xTimerChangePeriod(timers[i].timer, pdMS_TO_TICKS(m_remaining * 1000), 0);
+      }
+    }
+  }
+}
+
+static void osal_alarm_fired(TimerHandle_t xTimer)
+{
+  uint32_t min;
+  uint8_t i;
+
+  (void) xTimer;
+
+  for (i = 0; i < timer_num; i++) {
+    struct trickle_timer *timer = &timers[i];
+    uint32_t now;
+    struct timeval tv = {0};
+
+    osal_gettime(&tv, NULL);
+    now = tv.tv_sec;
+
+    if (timer->is_running == false)
+      continue;
+
+    if ((int32_t)(timer->tfire - now) > 0)
+      continue;
+
+    // update t0 to next interval
+    timer->t0 += timer->icur;
+
+    // double interval size
+    timer->icur <<= 1;
+    if (timer->icur > timer->imax)
+      timer->icur = timer->imax;
+
+    if(i == reg_timer) {
+      DPRINTF("register trickle timer fired\n");
+    }
+    else if(i == rpt_timer) {
+      DPRINTF("metrics report trickle timer fired\n");
+    }
+
+    timer_fired[i]();
+    min = timer->icur >> 1;
+    timer->tfire = timer->t0 + min + (random() % (timer->icur - min));
+  }
+  osal_update_timer();
+}
+
+

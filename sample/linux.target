@@ -2,6 +2,7 @@
 CC = gcc -Wall -Wextra
 
 CFLAGS += -I ../include -I ../osal/linux/
+CFLAGS += -DOSAL_LINUX
 LIBS += -lpthread
 
 #if the openssl lib is availabe, please uncomment the following four lines
@@ -10,7 +11,7 @@ LIBS += -lpthread
 #LIBS += -lcrypto
 #LIBS += -ldl
 
-OBJ = CsmpAgentLib_sample.o signature_verify.o
+OBJ = CsmpAgentLib_sample.o CsmpAgentLib_sample_util.o signature_verify.o
 
 LIB_OBJECT = csmp_agent_lib.a
 OBJECT = CsmpAgentLib_sample

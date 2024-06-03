@@ -1,10 +1,13 @@
 ## Overview
 CoAP Simple Management Protocol (CSMP) is a device lifecycle management protocol optimized for resource constrained devices deployed within large-scale, bandwidth constrained IoT networks.
+
+There are multiple target platforms supported by using OSAL (Operating System Abstraction Layer). The repository provides Linux and FreeRTOS support. FreeRTOS initialised as a submodule and it is built with POSIX port.
+
 These instructions describe the build/run process for a C implementation of a sample CSMP Agent which incorporates the Cisco CSMP library `csmp-agent-lib`.
 
 ## Building The CSMP Agent Sample and CSMP Agent Library
 
-These instructions have been verified to work on Ubuntu 20.10 Desktop 64bit (RPi4 build and target platform).
+These instructions have been verified to work on Ubuntu 20.10 Desktop 64bit (RPi4 build and target platform). FreeRTOS platform uses port of POSIX OS API.
 
 It is assumed a snapshot of the CSMP agent's source repository has been acquired and placed on the build platform via Github repository https://github.com/CiscoDevNet/csmp-agent-lib.
 
@@ -18,7 +21,12 @@ If you are going to build for a different target platform, please set the correc
 
 3. Build
 >   chmod 777 build.sh
->  ./build.sh
+- Linux
+>  ./build.sh linux
+
+- FreeRTOS
+> git submodule update --init --recursive
+> ./build.sh freertos
 
 If everything goes well, you should see "CsmpAgentLib_sample" executable in "sample" directory.
 

@@ -1,1 +1,47 @@
-#Placeholder for FreeRTOS make rules.
+
+# Turn on all warnings except missing-braces
+# (no-missing-braces is for protoc generated code)
+CC = gcc -Wall -Wextra -Wno-missing-braces -Wno-deprecated
+AR = ar rc
+
+DIRs += $(shell find ./src -maxdepth 3 -type d)
+
+#CFLAGS += -DPRINTDEBUG
+CFLAGS += $(foreach dir, $(DIRs), -I $(dir))
+CFLAGS += -DOSAL_FREERTOS_LINUX
+
+LIBSRC = $(foreach dir, $(DIRs), $(wildcard $(dir)/*.c))
+LIBOBJ_nodir = $(notdir $(LIBSRC))
+LIBOBJ = $(patsubst %.c,%.o,$(LIBOBJ_nodir))
+
+LIB_OBJECT = csmp_agent_lib.a
+
+INC += \
+-Iosal/ \
+-Iosal/freertos/ \
+-Iosal/freertos/FreeRTOS-Kernel/include \
+-Iosal/freertos/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/ \
+-Iosal/freertos/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/utils/
+
+LIBSRC += \
+osal/freertos/osal_freertos.c \
+osal/freertos/FreeRTOS-Kernel/list.c \
+osal/freertos/FreeRTOS-Kernel/stream_buffer.c \
+osal/freertos/FreeRTOS-Kernel/queue.c \
+osal/freertos/FreeRTOS-Kernel/timers.c \
+osal/freertos/FreeRTOS-Kernel/tasks.c \
+osal/freertos/FreeRTOS-Kernel/event_groups.c \
+osal/freertos/FreeRTOS-Kernel/croutine.c \
+osal/freertos/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/utils/wait_for_event.c \
+osal/freertos/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/port.c \
+osal/freertos/FreeRTOS-Kernel/portable/MemMang/heap_3.c
+
+
+
+$(LIB_OBJECT):$(LIBOBJ)
+	$(AR) $@ $^
+
+$(LIBOBJ):$(LIBSRC)
+	$(CC) -c $(CFLAGS) $^ $(LIBS) $(INC)
+
+
