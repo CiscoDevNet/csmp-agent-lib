@@ -28,7 +28,7 @@ $(OBJECT): $(addprefix $(OUTPUT_DIR)/, $(OBJ))
 	@echo 'Building $@'
 	$(CC) -o $@ $^ $(CSMP_AGENT_LIB)
 
-$(OUTPUT_DIR)/freertos_tlvs.o: tlvs/linux_tlvs.c
+$(OUTPUT_DIR)/freertos_tlvs.o: tlvs/freertos_tlvs.c
 	@echo 'Building $<'
 	@mkdir -p $(@D)
 	@$(CC) $(CFLAGS) -c -o $@ $< $(CSMP_AGENT_LIB)

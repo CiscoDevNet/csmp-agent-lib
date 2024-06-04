@@ -72,7 +72,8 @@ ASM_DEFS =
 INCLUDES += $(foreach dir, $(CSMP_AGENT_DIRs), -I $(dir))
 INCLUDES += -I./ \
 						-I../include \
-					  -I../osal/efr32_wisun 
+					  -I../osal \
+					  -I../osal/efr32_wisun
 						
 C_FLAGS           = 
 C_FLAGS_DEBUG     = 

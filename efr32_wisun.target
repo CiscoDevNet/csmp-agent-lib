@@ -64,7 +64,8 @@ ASM_DEFS =
 
 INCLUDES += $(foreach dir, $(CSMP_AGENT_DIRs), -I $(dir))
 INCLUDES += -Iinclude\
-					  -Iosal/efr32_wisun\
+						-Iosal \
+					  -Iosal/efr32_wisun
 					 
 
 C_FLAGS           += -Wno-missing-braces
@@ -99,7 +100,7 @@ LD      = "$(ARM_GCC_DIR)/bin/arm-none-eabi-gcc"
 
 #Set source files
 C_SOURCE_FILES  =  $(foreach dir, $(CSMP_AGENT_DIRs), $(wildcard $(dir)/*.c))
-C_SOURCE_FILES	+= osal/efr32_wisun/osal_common.c
+C_SOURCE_FILES	+= osal/efr32_wisun/osal_efr32_wisun.c
 OBJS =
 
 ####################################################################
