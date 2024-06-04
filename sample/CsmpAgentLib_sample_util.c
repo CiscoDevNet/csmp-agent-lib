@@ -1,10 +1,7 @@
-
 #include <stdbool.h>
 #include <string.h>
 #include <stdint.h>
 #include "osal.h"
-  osal_gettime(&tv, NULL);
-  osal_gettime(&tv, NULL);
 
 int8_t char2hex(char ch) {
   if ((ch >= '0') && (ch <= '9')) {

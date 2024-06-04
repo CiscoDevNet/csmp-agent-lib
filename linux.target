@@ -22,8 +22,10 @@ LIB_OBJECT = csmp_agent_lib.a
 
 LIBSRC += osal/linux/osal_linux.c
 INC += \
--I osal/linux/ \
--I osal/
+osal \
+osal/linux/
+
+vpath %.c $(DIRs)
 
 $(LIB_OBJECT): $(addprefix $(OUTPUT_DIR)/, $(LIBOBJ))
 	@echo 'Building $@'

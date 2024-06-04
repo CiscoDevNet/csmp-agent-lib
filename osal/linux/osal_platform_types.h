@@ -45,6 +45,7 @@ typedef sem_t osal_sem_t;
 typedef sigset_t osal_sigset_t;
 typedef socklen_t osal_socklen_t;
 typedef pthread_t osal_task_t;
+typedef void* (*osal_task_fnc_t) (void * arg);
 typedef uint64_t osal_time_t;
 typedef ssize_t osal_ssize_t;
 typedef int osal_basetype_t;

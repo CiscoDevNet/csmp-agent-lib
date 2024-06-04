@@ -23,12 +23,14 @@
 #include "CsmpAgentLib_sample.h"
 #include "CsmpAgentLib_sample_util.h"
 #include "CsmpAgentLib_sample_tlvs.h"
+#include "osal.h"
 #include "csmp_service.h"
 #include "csmp_info.h"
 #include "signature_verify.h"
-#include "osal.h"
+#if !defined(OSAL_LINUX)
 #include "CsmpAgentLib_sample_config.h"
 #endif
+
 #if defined(OSAL_EFR32_WISUN)
 #include "sl_system_init.h"
 #include "sl_wisun_app_core_util.h"
@@ -39,6 +41,8 @@ typedef struct thread_argument {
   int argc;
   char **argv;
 } thread_argument_t;
+
+#if defined(OSAL_LINUX)
 
 // Linux Thread function
 static void *csmp_sample_app_thr_fnc(void *arg)
@@ -228,7 +232,7 @@ static void csmp_sample_app_thr_fnc(void *arg)
   }
 #endif
   
-  osal_gettimeofday(&tv, NULL);
+  osal_gettime(&tv, NULL);
   g_init_time = tv.tv_sec;
 
   /**************************************************************

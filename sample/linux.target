@@ -2,7 +2,7 @@
 CC = gcc -Wall -Wextra
 OUTPUT_DIR = ../build/debug
 
-CFLAGS += -I ../include -I ../osal/linux/ -I ./
+CFLAGS += -I ../include -I ../osal/ -I ../osal/linux/ -I ./
 CFLAGS += -DOSAL_LINUX
 LIBS += -lpthread
 
@@ -20,7 +20,6 @@ OBJ = CsmpAgentLib_sample.o \
 
 CSMP_AGENT_LIB = csmp_agent_lib.a
 OBJECT = CsmpAgentLib_sample
-CFLAGS += -I ../osal/
 
 
 $(OBJECT): $(addprefix $(OUTPUT_DIR)/, $(OBJ))
