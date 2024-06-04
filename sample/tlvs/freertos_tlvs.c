@@ -9,7 +9,7 @@
 #include "csmp_service.h"
 #include "csmp_info.h"
 #include "signature_verify.h"
-#include "osal_common.h"
+#include "osal.h"
 
 
 #define nexthop_IP "fe80::a00:27ff:fe3b:2ab1"
@@ -250,7 +250,7 @@ void* currenttime_get(uint32_t *num) {
   memset(&g_currentTime, 0, sizeof(g_currentTime));
 
   *num = 1;
-  osal_gettimeofday(&tv, NULL);
+  osal_gettime(&tv, NULL);
   g_currentTime.has_posix = true;
   g_currentTime.posix = tv.tv_sec;
   return &g_currentTime;
@@ -316,7 +316,7 @@ void* uptime_get(uint32_t *num) {
   memset(&g_upTime, 0, sizeof(g_upTime));
 
   *num = 1;
-  osal_gettimeofday(&tv, NULL);
+  osal_gettime(&tv, NULL);
   g_upTime.has_sysuptime = true;
   g_upTime.sysuptime = tv.tv_sec - g_init_time;
   return &g_upTime;

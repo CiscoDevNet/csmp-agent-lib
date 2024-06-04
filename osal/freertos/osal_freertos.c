@@ -42,6 +42,8 @@ static bool m_timert_isrunning = false;
 static void osal_update_timer();
 static void osal_alarm_fired(TimerHandle_t xTimer);
 static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2);
+
+
 void osal_kernel_start(void)
 {
     for (BaseType_t i = 0; i < timer_num; i++) {
@@ -59,13 +61,12 @@ void osal_kernel_start(void)
     vTaskStartScheduler();
 }
 
+
 osal_basetype_t osal_task_create(osal_task_t * thread,
-osal_basetype_t osal_task_create (
-   osal_task_t * thread,
-   const char * name,
-   uint32_t priority,
-   size_t stacksize,
-   osal_task_fnc_t entry,
+                                 const char * name,
+                                 uint32_t priority,
+                                 size_t stacksize,
+                                 osal_task_fnc_t entry,
                                  void * arg)
 {
     osal_basetype_t ret = 0;

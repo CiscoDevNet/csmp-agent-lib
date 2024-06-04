@@ -8,6 +8,7 @@ OUTPUT_DIR = build/debug
 FREERTOS_KERNEL = osal/freertos/FreeRTOS-Kernel
 
 DIRs += $(shell find ./src -maxdepth 3 -type d)
+DIRs += osal/
 DIRs += osal/freertos
 DIRs += $(FREERTOS_KERNEL)
 DIRs += $(FREERTOS_KERNEL)/portable/ThirdParty/GCC/Posix
@@ -32,8 +33,6 @@ INC += \
 -I$(FREERTOS_KERNEL)/include \
 -I$(FREERTOS_KERNEL)/portable/ThirdParty/GCC/Posix/ \
 -I$(FREERTOS_KERNEL)/portable/ThirdParty/GCC/Posix/utils/
-osal/freertos/osal_freertos.c \
-
 
 
 $(LIB_OBJECT): $(addprefix $(OUTPUT_DIR)/, $(LIBOBJ))
