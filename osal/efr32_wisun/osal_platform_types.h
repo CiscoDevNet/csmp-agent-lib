@@ -29,7 +29,7 @@
 #include "semphr.h"
 #include "timers.h"
 #include "socket/socket.h"
-#include "sl_malloc.h"
+#include "sl_memory_manager.h"
 #include "sl_sleeptimer.h"
 #include "sl_wisun_ntp_timesync_config.h"
 

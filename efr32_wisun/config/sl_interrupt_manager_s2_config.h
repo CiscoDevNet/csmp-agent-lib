@@ -40,11 +40,6 @@
 // <i> Default: 0
 #define SL_INTERRUPT_MANAGER_S2_INTERRUPTS_IN_RAM  0
 
-// <q SL_INTERRUPT_MANAGER_HOOKS> Enable interrupt enter/exit hooks.
-// <i> Set to 1 to enable interrupt enter/exit hooks.
-// <i> Default: 0
-#define SL_INTERRUPT_MANAGER_HOOKS 0
-
 // </h>
 
 #endif /* SSL_INTERRUPT_MANAGER_S2_CONFIG_H */

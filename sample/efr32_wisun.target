@@ -104,7 +104,7 @@ LD      = "$(ARM_GCC_DIR)/bin/arm-none-eabi-gcc"
 # Define a makefile here to add files/settings to the build.       #
 ####################################################################
 CSMP_AGENT_LIB_EFR32_WISUN_PATH = ../efr32_wisun
-COPIED_SDK_PATH = $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/gecko_sdk_2024.6.0
+COPIED_SDK_PATH = $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/simplicity_sdk_2024.6.0
 
 -include ../efr32_wisun/efr32_wisun.mak
 

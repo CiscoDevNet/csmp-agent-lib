@@ -5,7 +5,7 @@
 
 CSMP_AGENT_LIB_EFR32_WISUN_PATH ?= efr32_wisun
 UNAME:=$(shell $(POSIX_TOOL_PATH)uname -s | $(POSIX_TOOL_PATH)sed -e 's/^\(CYGWIN\).*/\1/' | $(POSIX_TOOL_PATH)sed -e 's/^\(MINGW\).*/\1/')
-COPIED_SDK_PATH ?= $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/gecko_sdk_2024.6.0
+COPIED_SDK_PATH ?= $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/simplicity_sdk_2024.6.0
 
 # This uses the explicit build rules below
 PROJECT_SOURCE_FILES =
@@ -28,13 +28,14 @@ C_DEFS += \
  '-DHARDWARE_BOARD_SUPPORTS_RF_BAND_868=1' \
  '-DHARDWARE_BOARD_SUPPORTS_RF_BAND_915=1' \
  '-DHFXO_FREQ=39000000' \
+ '-DSL_CLOCK_MANAGER_AUTO_BAND_VALID=1' \
  '-DconfigNUM_SDK_THREAD_LOCAL_STORAGE_POINTERS=2' \
  '-DSL_COMPONENT_CATALOG_PRESENT=1' \
+ '-DSL_CODE_COMPONENT_PERIPHERAL_SYSRTC=hal_sysrtc' \
  '-DCMSIS_NVIC_VIRTUAL=1' \
  '-DCMSIS_NVIC_VIRTUAL_HEADER_FILE="cmsis_nvic_virtual.h"' \
  '-DMBEDTLS_CONFIG_FILE=<sl_mbedtls_config.h>' \
  '-DSL_MEMORY_POOL_LIGHT=1' \
- '-DSL_CODE_COMPONENT_PERIPHERAL_SYSRTC=peripheral_sysrtc' \
  '-DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=<psa_crypto_config.h>' \
  '-DSL_RAIL_LIB_MULTIPROTOCOL_SUPPORT=0' \
  '-DSL_RAIL_UTIL_PA_CONFIG_HEADER=<sl_rail_util_pa_config.h>' \
@@ -44,6 +45,7 @@ C_DEFS += \
  '-DSL_CODE_COMPONENT_SLEEPTIMER=sleeptimer' \
  '-DHAVE_FFN=1' \
  '-DHAVE_LFN_PARENT=1' \
+ '-DHAVE_ROUTER=1' \
  '-DHAVE_LFN=1'
 
 ASM_DEFS += \
@@ -57,13 +59,14 @@ ASM_DEFS += \
  '-DHARDWARE_BOARD_SUPPORTS_RF_BAND_868=1' \
  '-DHARDWARE_BOARD_SUPPORTS_RF_BAND_915=1' \
  '-DHFXO_FREQ=39000000' \
+ '-DSL_CLOCK_MANAGER_AUTO_BAND_VALID=1' \
  '-DconfigNUM_SDK_THREAD_LOCAL_STORAGE_POINTERS=2' \
  '-DSL_COMPONENT_CATALOG_PRESENT=1' \
+ '-DSL_CODE_COMPONENT_PERIPHERAL_SYSRTC=hal_sysrtc' \
  '-DCMSIS_NVIC_VIRTUAL=1' \
  '-DCMSIS_NVIC_VIRTUAL_HEADER_FILE="cmsis_nvic_virtual.h"' \
  '-DMBEDTLS_CONFIG_FILE=<sl_mbedtls_config.h>' \
  '-DSL_MEMORY_POOL_LIGHT=1' \
- '-DSL_CODE_COMPONENT_PERIPHERAL_SYSRTC=peripheral_sysrtc' \
  '-DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=<psa_crypto_config.h>' \
  '-DSL_RAIL_LIB_MULTIPROTOCOL_SUPPORT=0' \
  '-DSL_RAIL_UTIL_PA_CONFIG_HEADER=<sl_rail_util_pa_config.h>' \
@@ -73,6 +76,7 @@ ASM_DEFS += \
  '-DSL_CODE_COMPONENT_SLEEPTIMER=sleeptimer' \
  '-DHAVE_FFN=1' \
  '-DHAVE_LFN_PARENT=1' \
+ '-DHAVE_ROUTER=1' \
  '-DHAVE_LFN=1'
 
 INCLUDES += \
@@ -104,6 +108,7 @@ INCLUDES += \
  -I$(COPIED_SDK_PATH)/util/third_party/freertos/kernel/include \
  -I$(COPIED_SDK_PATH)/util/third_party/freertos/kernel/portable/GCC/ARM_CM33_NTZ/non_secure \
  -I$(COPIED_SDK_PATH)/platform/emdrv/gpiointerrupt/inc \
+ -I$(COPIED_SDK_PATH)/platform/peripheral/inc \
  -I$(COPIED_SDK_PATH)/platform/service/interrupt_manager/inc \
  -I$(COPIED_SDK_PATH)/platform/service/interrupt_manager/inc/arm \
  -I$(COPIED_SDK_PATH)/platform/service/iostream/inc \
@@ -116,7 +121,6 @@ INCLUDES += \
  -I$(COPIED_SDK_PATH)/platform/service/memory_manager/src \
  -I$(COPIED_SDK_PATH)/hardware/driver/mx25_flash_shutdown/inc/sl_mx25_flash_shutdown_usart \
  -I$(COPIED_SDK_PATH)/platform/emdrv/nvm3/inc \
- -I$(COPIED_SDK_PATH)/platform/peripheral/inc \
  -I$(COPIED_SDK_PATH)/util/third_party/printf \
  -I$(COPIED_SDK_PATH)/util/third_party/printf/inc \
  -I$(COPIED_SDK_PATH)/platform/security/sl_component/sl_psa_driver/inc \
@@ -134,22 +138,21 @@ INCLUDES += \
  -I$(COPIED_SDK_PATH)/platform/security/sl_component/se_manager/inc \
  -I$(COPIED_SDK_PATH)/platform/security/sl_component/se_manager/src \
  -I$(COPIED_SDK_PATH)/util/third_party/segger/systemview/SEGGER \
- -I$(COPIED_SDK_PATH)/util/silicon_labs/silabs_core/memory_manager \
  -I$(COPIED_SDK_PATH)/platform/common/toolchain/inc \
  -I$(COPIED_SDK_PATH)/platform/service/system/inc \
  -I$(COPIED_SDK_PATH)/app/wisun/component/app_core \
  -I$(COPIED_SDK_PATH)/app/wisun/component/app_setting \
  -I$(COPIED_SDK_PATH)/app/wisun/component/cli_util \
  -I$(COPIED_SDK_PATH)/app/wisun/component/event_manager \
- -I$(COPIED_SDK_PATH)/app/wisun/component/ping \
  -I$(COPIED_SDK_PATH)/app/wisun/component/ntp_timesync \
+ -I$(COPIED_SDK_PATH)/app/wisun/component/ping \
  -I$(COPIED_SDK_PATH)/app/wisun/component/trace_util \
  -I$(COPIED_SDK_PATH)/app/wisun/component/trace_util/nanostack/nanostack-libservice/mbed-client-libservice \
  -I$(COPIED_SDK_PATH)/platform/service/sleeptimer/inc \
  -I$(COPIED_SDK_PATH)/platform/service/udelay/inc \
- -I$(COPIED_SDK_PATH)/protocol/wisun/plugin \
  -I$(COPIED_SDK_PATH)/protocol/wisun/stack/inc \
- -I$(COPIED_SDK_PATH)/protocol/wisun/stack/inc/socket
+ -I$(COPIED_SDK_PATH)/protocol/wisun/stack/inc/socket \
+ -I$(COPIED_SDK_PATH)/protocol/wisun/stack/inc/arpa
 
 GROUP_START =-Wl,--start-group
 GROUP_END =-Wl,--end-group
@@ -605,12 +608,12 @@ $(OUTPUT_DIR)/sdk/platform/emlib/src/em_usart.o: $(COPIED_SDK_PATH)/platform/eml
 CDEPS += $(OUTPUT_DIR)/sdk/platform/emlib/src/em_usart.d
 OBJS += $(OUTPUT_DIR)/sdk/platform/emlib/src/em_usart.o
 
-$(OUTPUT_DIR)/sdk/platform/peripheral/src/peripheral_sysrtc.o: $(COPIED_SDK_PATH)/platform/peripheral/src/peripheral_sysrtc.c
-	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/peripheral/src/peripheral_sysrtc.c'
+$(OUTPUT_DIR)/sdk/platform/peripheral/src/sl_hal_sysrtc.o: $(COPIED_SDK_PATH)/platform/peripheral/src/sl_hal_sysrtc.c
+	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/peripheral/src/sl_hal_sysrtc.c'
 	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/peripheral/src/peripheral_sysrtc.c
-CDEPS += $(OUTPUT_DIR)/sdk/platform/peripheral/src/peripheral_sysrtc.d
-OBJS += $(OUTPUT_DIR)/sdk/platform/peripheral/src/peripheral_sysrtc.o
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/peripheral/src/sl_hal_sysrtc.c
+CDEPS += $(OUTPUT_DIR)/sdk/platform/peripheral/src/sl_hal_sysrtc.d
+OBJS += $(OUTPUT_DIR)/sdk/platform/peripheral/src/sl_hal_sysrtc.o
 
 $(OUTPUT_DIR)/sdk/platform/radio/rail_lib/plugin/pa-conversions/pa_conversions_efr32.o: $(COPIED_SDK_PATH)/platform/radio/rail_lib/plugin/pa-conversions/pa_conversions_efr32.c
 	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/radio/rail_lib/plugin/pa-conversions/pa_conversions_efr32.c'
@@ -702,6 +705,13 @@ $(OUTPUT_DIR)/sdk/platform/security/sl_component/se_manager/src/sl_se_manager_ut
 	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/security/sl_component/se_manager/src/sl_se_manager_util.c
 CDEPS += $(OUTPUT_DIR)/sdk/platform/security/sl_component/se_manager/src/sl_se_manager_util.d
 OBJS += $(OUTPUT_DIR)/sdk/platform/security/sl_component/se_manager/src/sl_se_manager_util.o
+
+$(OUTPUT_DIR)/sdk/platform/security/sl_component/se_manager/src/sli_se_manager_mailbox.o: $(COPIED_SDK_PATH)/platform/security/sl_component/se_manager/src/sli_se_manager_mailbox.c
+	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/security/sl_component/se_manager/src/sli_se_manager_mailbox.c'
+	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/security/sl_component/se_manager/src/sli_se_manager_mailbox.c
+CDEPS += $(OUTPUT_DIR)/sdk/platform/security/sl_component/se_manager/src/sli_se_manager_mailbox.d
+OBJS += $(OUTPUT_DIR)/sdk/platform/security/sl_component/se_manager/src/sli_se_manager_mailbox.o
 
 $(OUTPUT_DIR)/sdk/platform/security/sl_component/sl_mbedtls_support/src/mbedtls_ccm.o: $(COPIED_SDK_PATH)/platform/security/sl_component/sl_mbedtls_support/src/mbedtls_ccm.c
 	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/security/sl_component/sl_mbedtls_support/src/mbedtls_ccm.c'
@@ -962,6 +972,20 @@ $(OUTPUT_DIR)/sdk/platform/service/clock_manager/src/sl_clock_manager_hal_s2.o: 
 CDEPS += $(OUTPUT_DIR)/sdk/platform/service/clock_manager/src/sl_clock_manager_hal_s2.d
 OBJS += $(OUTPUT_DIR)/sdk/platform/service/clock_manager/src/sl_clock_manager_hal_s2.o
 
+$(OUTPUT_DIR)/sdk/platform/service/clock_manager/src/sl_clock_manager_init.o: $(COPIED_SDK_PATH)/platform/service/clock_manager/src/sl_clock_manager_init.c
+	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/service/clock_manager/src/sl_clock_manager_init.c'
+	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/service/clock_manager/src/sl_clock_manager_init.c
+CDEPS += $(OUTPUT_DIR)/sdk/platform/service/clock_manager/src/sl_clock_manager_init.d
+OBJS += $(OUTPUT_DIR)/sdk/platform/service/clock_manager/src/sl_clock_manager_init.o
+
+$(OUTPUT_DIR)/sdk/platform/service/clock_manager/src/sl_clock_manager_init_hal_s2.o: $(COPIED_SDK_PATH)/platform/service/clock_manager/src/sl_clock_manager_init_hal_s2.c
+	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/service/clock_manager/src/sl_clock_manager_init_hal_s2.c'
+	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/service/clock_manager/src/sl_clock_manager_init_hal_s2.c
+CDEPS += $(OUTPUT_DIR)/sdk/platform/service/clock_manager/src/sl_clock_manager_init_hal_s2.d
+OBJS += $(OUTPUT_DIR)/sdk/platform/service/clock_manager/src/sl_clock_manager_init_hal_s2.o
+
 $(OUTPUT_DIR)/sdk/platform/service/device_init/src/sl_device_init_dcdc_s2.o: $(COPIED_SDK_PATH)/platform/service/device_init/src/sl_device_init_dcdc_s2.c
 	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/service/device_init/src/sl_device_init_dcdc_s2.c'
 	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
@@ -976,47 +1000,33 @@ $(OUTPUT_DIR)/sdk/platform/service/device_init/src/sl_device_init_emu_s2.o: $(CO
 CDEPS += $(OUTPUT_DIR)/sdk/platform/service/device_init/src/sl_device_init_emu_s2.d
 OBJS += $(OUTPUT_DIR)/sdk/platform/service/device_init/src/sl_device_init_emu_s2.o
 
-$(OUTPUT_DIR)/sdk/platform/service/device_init/src/sl_device_init_hfxo_s2.o: $(COPIED_SDK_PATH)/platform/service/device_init/src/sl_device_init_hfxo_s2.c
-	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/service/device_init/src/sl_device_init_hfxo_s2.c'
+$(OUTPUT_DIR)/sdk/platform/service/device_manager/clocks/sl_device_clock_efr32xg28.o: $(COPIED_SDK_PATH)/platform/service/device_manager/clocks/sl_device_clock_efr32xg28.c
+	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/service/device_manager/clocks/sl_device_clock_efr32xg28.c'
 	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/service/device_init/src/sl_device_init_hfxo_s2.c
-CDEPS += $(OUTPUT_DIR)/sdk/platform/service/device_init/src/sl_device_init_hfxo_s2.d
-OBJS += $(OUTPUT_DIR)/sdk/platform/service/device_init/src/sl_device_init_hfxo_s2.o
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/service/device_manager/clocks/sl_device_clock_efr32xg28.c
+CDEPS += $(OUTPUT_DIR)/sdk/platform/service/device_manager/clocks/sl_device_clock_efr32xg28.d
+OBJS += $(OUTPUT_DIR)/sdk/platform/service/device_manager/clocks/sl_device_clock_efr32xg28.o
 
-$(OUTPUT_DIR)/sdk/platform/service/device_init/src/sl_device_init_lfxo_s2.o: $(COPIED_SDK_PATH)/platform/service/device_init/src/sl_device_init_lfxo_s2.c
-	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/service/device_init/src/sl_device_init_lfxo_s2.c'
+$(OUTPUT_DIR)/sdk/platform/service/device_manager/devices/sl_device_peripheral_hal_efr32xg28.o: $(COPIED_SDK_PATH)/platform/service/device_manager/devices/sl_device_peripheral_hal_efr32xg28.c
+	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/service/device_manager/devices/sl_device_peripheral_hal_efr32xg28.c'
 	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/service/device_init/src/sl_device_init_lfxo_s2.c
-CDEPS += $(OUTPUT_DIR)/sdk/platform/service/device_init/src/sl_device_init_lfxo_s2.d
-OBJS += $(OUTPUT_DIR)/sdk/platform/service/device_init/src/sl_device_init_lfxo_s2.o
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/service/device_manager/devices/sl_device_peripheral_hal_efr32xg28.c
+CDEPS += $(OUTPUT_DIR)/sdk/platform/service/device_manager/devices/sl_device_peripheral_hal_efr32xg28.d
+OBJS += $(OUTPUT_DIR)/sdk/platform/service/device_manager/devices/sl_device_peripheral_hal_efr32xg28.o
 
-$(OUTPUT_DIR)/sdk/platform/service/device_manager/clocks/sl_clock_abstraction_efr32xg28.o: $(COPIED_SDK_PATH)/platform/service/device_manager/clocks/sl_clock_abstraction_efr32xg28.c
-	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/service/device_manager/clocks/sl_clock_abstraction_efr32xg28.c'
+$(OUTPUT_DIR)/sdk/platform/service/device_manager/src/sl_device_clock.o: $(COPIED_SDK_PATH)/platform/service/device_manager/src/sl_device_clock.c
+	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/service/device_manager/src/sl_device_clock.c'
 	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/service/device_manager/clocks/sl_clock_abstraction_efr32xg28.c
-CDEPS += $(OUTPUT_DIR)/sdk/platform/service/device_manager/clocks/sl_clock_abstraction_efr32xg28.d
-OBJS += $(OUTPUT_DIR)/sdk/platform/service/device_manager/clocks/sl_clock_abstraction_efr32xg28.o
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/service/device_manager/src/sl_device_clock.c
+CDEPS += $(OUTPUT_DIR)/sdk/platform/service/device_manager/src/sl_device_clock.d
+OBJS += $(OUTPUT_DIR)/sdk/platform/service/device_manager/src/sl_device_clock.o
 
-$(OUTPUT_DIR)/sdk/platform/service/device_manager/devices/sl_device_abstraction_efr32xg28.o: $(COPIED_SDK_PATH)/platform/service/device_manager/devices/sl_device_abstraction_efr32xg28.c
-	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/service/device_manager/devices/sl_device_abstraction_efr32xg28.c'
+$(OUTPUT_DIR)/sdk/platform/service/device_manager/src/sl_device_peripheral.o: $(COPIED_SDK_PATH)/platform/service/device_manager/src/sl_device_peripheral.c
+	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/service/device_manager/src/sl_device_peripheral.c'
 	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/service/device_manager/devices/sl_device_abstraction_efr32xg28.c
-CDEPS += $(OUTPUT_DIR)/sdk/platform/service/device_manager/devices/sl_device_abstraction_efr32xg28.d
-OBJS += $(OUTPUT_DIR)/sdk/platform/service/device_manager/devices/sl_device_abstraction_efr32xg28.o
-
-$(OUTPUT_DIR)/sdk/platform/service/device_manager/src/sl_device_abstraction_peripheral.o: $(COPIED_SDK_PATH)/platform/service/device_manager/src/sl_device_abstraction_peripheral.c
-	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/service/device_manager/src/sl_device_abstraction_peripheral.c'
-	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/service/device_manager/src/sl_device_abstraction_peripheral.c
-CDEPS += $(OUTPUT_DIR)/sdk/platform/service/device_manager/src/sl_device_abstraction_peripheral.d
-OBJS += $(OUTPUT_DIR)/sdk/platform/service/device_manager/src/sl_device_abstraction_peripheral.o
-
-$(OUTPUT_DIR)/sdk/platform/service/device_manager/src/sl_technology_abstraction_clock.o: $(COPIED_SDK_PATH)/platform/service/device_manager/src/sl_technology_abstraction_clock.c
-	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/service/device_manager/src/sl_technology_abstraction_clock.c'
-	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/service/device_manager/src/sl_technology_abstraction_clock.c
-CDEPS += $(OUTPUT_DIR)/sdk/platform/service/device_manager/src/sl_technology_abstraction_clock.d
-OBJS += $(OUTPUT_DIR)/sdk/platform/service/device_manager/src/sl_technology_abstraction_clock.o
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/service/device_manager/src/sl_device_peripheral.c
+CDEPS += $(OUTPUT_DIR)/sdk/platform/service/device_manager/src/sl_device_peripheral.d
+OBJS += $(OUTPUT_DIR)/sdk/platform/service/device_manager/src/sl_device_peripheral.o
 
 $(OUTPUT_DIR)/sdk/platform/service/interrupt_manager/src/sl_interrupt_manager_cortexm.o: $(COPIED_SDK_PATH)/platform/service/interrupt_manager/src/sl_interrupt_manager_cortexm.c
 	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/service/interrupt_manager/src/sl_interrupt_manager_cortexm.c'
@@ -1074,12 +1084,12 @@ $(OUTPUT_DIR)/sdk/platform/service/memory_manager/src/sl_memory_manager_dynamic_
 CDEPS += $(OUTPUT_DIR)/sdk/platform/service/memory_manager/src/sl_memory_manager_dynamic_reservation.d
 OBJS += $(OUTPUT_DIR)/sdk/platform/service/memory_manager/src/sl_memory_manager_dynamic_reservation.o
 
-$(OUTPUT_DIR)/sdk/platform/service/memory_manager/src/sl_memory_manager_pool_light.o: $(COPIED_SDK_PATH)/platform/service/memory_manager/src/sl_memory_manager_pool_light.c
-	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/service/memory_manager/src/sl_memory_manager_pool_light.c'
+$(OUTPUT_DIR)/sdk/platform/service/memory_manager/src/sl_memory_manager_pool.o: $(COPIED_SDK_PATH)/platform/service/memory_manager/src/sl_memory_manager_pool.c
+	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/service/memory_manager/src/sl_memory_manager_pool.c'
 	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/service/memory_manager/src/sl_memory_manager_pool_light.c
-CDEPS += $(OUTPUT_DIR)/sdk/platform/service/memory_manager/src/sl_memory_manager_pool_light.d
-OBJS += $(OUTPUT_DIR)/sdk/platform/service/memory_manager/src/sl_memory_manager_pool_light.o
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/service/memory_manager/src/sl_memory_manager_pool.c
+CDEPS += $(OUTPUT_DIR)/sdk/platform/service/memory_manager/src/sl_memory_manager_pool.d
+OBJS += $(OUTPUT_DIR)/sdk/platform/service/memory_manager/src/sl_memory_manager_pool.o
 
 $(OUTPUT_DIR)/sdk/platform/service/memory_manager/src/sl_memory_manager_region.o: $(COPIED_SDK_PATH)/platform/service/memory_manager/src/sl_memory_manager_region.c
 	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/platform/service/memory_manager/src/sl_memory_manager_region.c'
@@ -1157,13 +1167,6 @@ $(OUTPUT_DIR)/sdk/platform/service/udelay/src/sl_udelay_armv6m_gcc.o: $(COPIED_S
 	$(ECHO)$(CC) $(ASMFLAGS) -c -o $@ $(COPIED_SDK_PATH)/platform/service/udelay/src/sl_udelay_armv6m_gcc.S
 ASMDEPS_S += $(OUTPUT_DIR)/sdk/platform/service/udelay/src/sl_udelay_armv6m_gcc.d
 OBJS += $(OUTPUT_DIR)/sdk/platform/service/udelay/src/sl_udelay_armv6m_gcc.o
-
-$(OUTPUT_DIR)/sdk/protocol/wisun/plugin/sl_wisun_legacy_socket_wrapper.o: $(COPIED_SDK_PATH)/protocol/wisun/plugin/sl_wisun_legacy_socket_wrapper.c
-	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/protocol/wisun/plugin/sl_wisun_legacy_socket_wrapper.c'
-	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/protocol/wisun/plugin/sl_wisun_legacy_socket_wrapper.c
-CDEPS += $(OUTPUT_DIR)/sdk/protocol/wisun/plugin/sl_wisun_legacy_socket_wrapper.d
-OBJS += $(OUTPUT_DIR)/sdk/protocol/wisun/plugin/sl_wisun_legacy_socket_wrapper.o
 
 $(OUTPUT_DIR)/sdk/util/third_party/freertos/cmsis/Source/cmsis_os2.o: $(COPIED_SDK_PATH)/util/third_party/freertos/cmsis/Source/cmsis_os2.c
 	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/util/third_party/freertos/cmsis/Source/cmsis_os2.c'
@@ -1395,13 +1398,6 @@ $(OUTPUT_DIR)/sdk/util/third_party/mbedtls/library/md.o: $(COPIED_SDK_PATH)/util
 	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/util/third_party/mbedtls/library/md.c
 CDEPS += $(OUTPUT_DIR)/sdk/util/third_party/mbedtls/library/md.d
 OBJS += $(OUTPUT_DIR)/sdk/util/third_party/mbedtls/library/md.o
-
-$(OUTPUT_DIR)/sdk/util/third_party/mbedtls/library/nist_kw.o: $(COPIED_SDK_PATH)/util/third_party/mbedtls/library/nist_kw.c
-	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/util/third_party/mbedtls/library/nist_kw.c'
-	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(COPIED_SDK_PATH)/util/third_party/mbedtls/library/nist_kw.c
-CDEPS += $(OUTPUT_DIR)/sdk/util/third_party/mbedtls/library/nist_kw.d
-OBJS += $(OUTPUT_DIR)/sdk/util/third_party/mbedtls/library/nist_kw.o
 
 $(OUTPUT_DIR)/sdk/util/third_party/mbedtls/library/oid.o: $(COPIED_SDK_PATH)/util/third_party/mbedtls/library/oid.c
 	@$(POSIX_TOOL_PATH)echo 'Building $(COPIED_SDK_PATH)/util/third_party/mbedtls/library/oid.c'
@@ -1761,13 +1757,6 @@ $(OUTPUT_DIR)/project/autogen/sl_cli_instances.o: $(CSMP_AGENT_LIB_EFR32_WISUN_P
 	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_cli_instances.c
 CDEPS += $(OUTPUT_DIR)/project/autogen/sl_cli_instances.d
 OBJS += $(OUTPUT_DIR)/project/autogen/sl_cli_instances.o
-
-$(OUTPUT_DIR)/project/autogen/sl_device_init_clocks.o: $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_device_init_clocks.c
-	@$(POSIX_TOOL_PATH)echo 'Building $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_device_init_clocks.c'
-	@$(POSIX_TOOL_PATH)mkdir -p $(@D)
-	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_device_init_clocks.c
-CDEPS += $(OUTPUT_DIR)/project/autogen/sl_device_init_clocks.d
-OBJS += $(OUTPUT_DIR)/project/autogen/sl_device_init_clocks.o
 
 $(OUTPUT_DIR)/project/autogen/sl_event_handler.o: $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/autogen/sl_event_handler.c
 	@$(POSIX_TOOL_PATH)echo 'Building autogen/sl_event_handler.c'

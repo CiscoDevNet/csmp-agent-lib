@@ -33,7 +33,7 @@
 #ifndef SL_MEMORY_MANAGER_CONFIG_H
 #define SL_MEMORY_MANAGER_CONFIG_H
 
-// <h> Common Memory Manager Configuration
+// <h> Memory Manager Configuration
 
 // <o SL_MEMORY_MANAGER_BLOCK_ALLOCATION_MIN_SIZE> Minimum block allocation size
 // <32-128:8>
