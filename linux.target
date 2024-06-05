@@ -4,7 +4,7 @@ CC = gcc -Wall -Wextra -Wno-missing-braces
 AR = ar rc
 
 DIRs += $(shell find ./src -maxdepth 3 -type d)
-DIRs += osal/linux
+DIRs += ./osal/linux
 
 OUTPUT_DIR = build/debug
 
@@ -22,19 +22,18 @@ LIB_OBJECT = csmp_agent_lib.a
 
 LIBSRC += osal/linux/osal_linux.c
 INC += \
-osal \
-osal/linux/
+osal
 
 vpath %.c $(DIRs)
 
 $(LIB_OBJECT): $(addprefix $(OUTPUT_DIR)/, $(LIBOBJ))
-	@echo 'Building $@'
+	@echo 'Building lib $@'
 	$(AR) $@ $^
 
 $(OUTPUT_DIR)/%.o: %.c
 	@echo 'Building $<'
 	@mkdir -p $(@D)
-	@$(CC) $(CFLAGS) -c -o $@ $< $(LIBS) -I $(INC)
+	@$(CC) $(CFLAGS) -c -o $@ $< -I $(INC)
 
 clean:
 	$(RM) -rf $(BUILD_DIR)

@@ -31,10 +31,10 @@ $(OBJECT): $(addprefix $(OUTPUT_DIR)/, $(OBJ))
 $(OUTPUT_DIR)/freertos_tlvs.o: tlvs/freertos_tlvs.c
 	@echo 'Building $<'
 	@mkdir -p $(@D)
-	@$(CC) $(CFLAGS) -c -o $@ $< $(CSMP_AGENT_LIB)
+	@$(CC) $(CFLAGS) -c -o $@ $<
 
 
 $(OUTPUT_DIR)/%.o: %.c
 	@echo 'Building $<'
 	@mkdir -p $(@D)
-	@$(CC) $(CFLAGS) -c -o $@ $< $(CSMP_AGENT_LIB)
+	@$(CC) $(CFLAGS) -c -o $@ $<

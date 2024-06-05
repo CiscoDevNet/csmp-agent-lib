@@ -326,7 +326,6 @@ void osal_sleep_ms(uint64_t ms)
   vTaskDelay(pdMS_TO_TICKS(ms));
 }
 
-#warning FREERTOS build
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     char * pcTaskName )
 {
