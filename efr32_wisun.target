@@ -96,7 +96,7 @@ LD      = "$(ARM_GCC_DIR)/bin/arm-none-eabi-gcc"
 # Include sub-makefiles                                            #
 # Define a makefile here to add files/settings to the build.       #
 ####################################################################
--include efr32_wisun/efr32_wisun.mak
+-include Vendors/Silabs/efr32_wisun.mak
 
 #Set source files
 C_SOURCE_FILES  =  $(foreach dir, $(CSMP_AGENT_DIRs), $(wildcard $(dir)/*.c))

@@ -103,10 +103,10 @@ LD      = "$(ARM_GCC_DIR)/bin/arm-none-eabi-gcc"
 # Include sub-makefiles                                            #
 # Define a makefile here to add files/settings to the build.       #
 ####################################################################
-CSMP_AGENT_LIB_EFR32_WISUN_PATH = ../efr32_wisun
+CSMP_AGENT_LIB_EFR32_WISUN_PATH = ../Vendors/Silabs
 COPIED_SDK_PATH = $(CSMP_AGENT_LIB_EFR32_WISUN_PATH)/simplicity_sdk_2024.6.0
 
--include ../efr32_wisun/efr32_wisun.mak
+-include ../Vendors/Silabs/efr32_wisun.mak
 
 ####################################################################
 # Rules                                                            #
