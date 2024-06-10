@@ -1,7 +1,7 @@
 ## Overview
 CoAP Simple Management Protocol (CSMP) is a device lifecycle management protocol optimized for resource constrained devices deployed within large-scale, bandwidth constrained IoT networks.
 
-There are multiple target platforms supported by using OSAL (Operating System Abstraction Layer). The repository provides Linux and FreeRTOS support. FreRTOS initialised as a submodule and it is built with POSIX port.
+There are multiple target platforms supported by using OSAL (Operating System Abstraction Layer). The repository provides Linux, FreeRTOS and Silicon Labs EFR32 device support. FreeRTOS initialised as a submodule and it is built with POSIX port.
 
 These instructions describe the build/run process for a C implementation of a sample CSMP Agent which incorporates the Cisco CSMP library `csmp-agent-lib`.
 
@@ -31,49 +31,15 @@ If you are going to build for a different target platform, please set the correc
 
 If everything goes well, you should see "CsmpAgentLib_sample" executable in "sample" directory.
 
-#### EFR32 Wi-SUN
+#### Silicon Labs - Wi-SUN EFR32 Platforms
 
-IPv6 adapter settings on the linux host is required. You have to enable link-local and global address as well on your ethernet adapter
+Silicon Labs Wi-SUN EFR32 platforms supports the CSMP Agent with the Simplicity SDK version 2024.6.0. 
 
-You need to deploy Wi-SUN Linux Border Router and RCP device
-Please follow the instructions in https://github.com/SiliconLabs/wisun-br-linux
+The demonstration requires using a Silicon Labs Wi-SUN Linux Border Router plus the Silicon Labs Wi-SUN node that will connect to Cisco FND.  
 
-After the border router initialisation and the basic settings, you have to set the Border Router config (wsbrd.conf) file properly for communication with Cisco FND
+Demonstration setup and detailed configuration can be found under the [/Vendors/Silabs/](/Vendors/Silabs/Readme.md) folder.
 
-  - Enabling neighbour proxy 
-    ``` bash
-    # eth0 should be replaced by your linux host adapter
-    neighbor_proxy=eth0
-    ```
 
-  - Set IPv6 Prefix
-    ``` bash
-    # Make sure you use the same prefix on your linux host adapter
-    ipv6_prefix = fd12:3456::/64
-    ```
-
-There is an NTP client implemented for time sync for the Silabs EFR32 devices. You have to install and configure the NTP server on the linux host.
-
-  > sudo apt install ntp
-
-You should edit ntp.conf file and set the preffered NTP servers.
-
-  > sudo nano /etc/ntp.conf
-
-  ``` bash
-    server 0.us.pool.ntp.org
-    server 1.us.pool.ntp.org
-    server 2.us.pool.ntp.org
-    server 3.us.pool.ntp.org
-  ```
-
-Restarting NTP server
-  > sudo service ntp restart
-
-Firewall settings for NTP
-  > sudo ufw allow from any to any port 123 proto udp
-
-All configuration header files for EFR32 target can be found in *efr32_wisun/config* directory. You can configure other parameters for NTP too.
 
 ### Clean
 If you want to clean the build files prior to a subsequent build ...

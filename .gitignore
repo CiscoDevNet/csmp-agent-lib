@@ -13,5 +13,6 @@ efr32_wisun/build/
 !libwisun_full_efr32xg2x_gcc_debug.a
 !libnvm3_CM33_gcc.a
 !librail_efr32xg28_gcc_release.a
-Vendors/Silabs
+Vendors/Silabs/*
 !Vendors/Silabs/Readme.md
+!Vendors/Silabs/resources/
