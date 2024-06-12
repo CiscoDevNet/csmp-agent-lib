@@ -70,10 +70,11 @@ C_DEFS   += -DOSAL_EFR32_WISUN
 ASM_DEFS = 
 
 INCLUDES += $(foreach dir, $(CSMP_AGENT_DIRs), -I $(dir))
-INCLUDES += -I./ \
-						-I../include \
-					  -I../osal \
-					  -I../osal/efr32_wisun
+INCLUDES += \
+-I. \
+-I../include \
+-I../osal \
+-I../osal/efr32_wisun
 						
 C_FLAGS           = 
 C_FLAGS_DEBUG     = 
