@@ -1,7 +1,7 @@
 <table border="0">
   <tr>
     <td align="left" valign="middle">
-      <h1>Silabs Wi-SUN CSMP Agent Project</h1>
+      <h1>Silabs Wi-SUN CSMP Agent Projects</h1>
       <a href="https://www.silabs.com/wireless/wi-sun">
         <img src="https://docs.silabs.com/dsc-assets/icons/docspace/icon-wisun-blue.svg"  title="Wi-SUN" alt="Wi-SUN Logo" width="100" />
       </a>
@@ -20,7 +20,7 @@
 
 The Cisco Csmp Agent library and sample application are supported by Silicon Labs Simplicity SDK.
 
-Silicon Labs provide a project that allows a Wi-SUN node to connect to FND using the Csmp Agent. The project is hosted on Silicon Labs [SiliconLabs/wisun_applications](https://github.com/SiliconLabs/wisun_applications).
+Silicon Labs provide two projects that allow a Wi-SUN node to connect to FND using the Csmp Agent. The projects are hosted on Silicon Labs [SiliconLabs/wisun_applications](https://github.com/SiliconLabs/wisun_applications).
 
 ## Requirements
 
@@ -34,7 +34,7 @@ Silicon Labs provide a project that allows a Wi-SUN node to connect to FND using
 
 To connect a Wi-SUN node to FND, the user need three up and running entities. 
 
-First, the user need to have access to FND or to have a running FND OVA virtual machine, second, is the Silicon Labs Linux Border Router that have backhaul connection and third is the Wi-SUN node running the **Wi-SUN - SoC Csmp Agent Sample Application**. In the following sections we will explain how to set up and configure each of those entities.
+First, the user need to have access to FND or to have a running FND OVA virtual machine, second, is the Silicon Labs Linux Border Router that have backhaul connection and third is the Wi-SUN node running even the **Wi-SUN - SoC Csmp Agent Sample Application** or the **Wi-SUN - SoC Csmp Agent Skeleton** . In the following sections we will explain how to set up and configure each of those entities.
 
 ## Cisco FND OVA Virtual Machine
 
@@ -101,20 +101,75 @@ And finally configure the firewall settings for NTP.
 $ sudo ufw allow from any to any port 123 proto udp
 ```
 
-## Wi-SUN - SoC CSMP Agent Sample Application
+## Silicon Labs projects
 
-The CSMP Agent Sample Application is hosted on [wisun_application](https://github.com/SiliconLabs/wisun_applications/tree/main/wisun_soc_csmp_agent)repository. If you didn't already create the project, please follow the project [readme](https://github.com/SiliconLabs/wisun_applications/blob/main/wisun_soc_csmp_agent/Readme.md) to do so. 
+The [wisun_application](https://github.com/SiliconLabs/wisun_applications/tree/main/wisun_soc_csmp_agent) repository, hosts two different example that allow building a Silabs Wi-SUN application that supports the CSMP agent. 
+
+The difference between the two projects is that the Skeleton project allows to generate all the EFR32 platform and Wi-SUN dependent source files and configuration to be copied later to the csmp_agent_lib repository and built using the csmp repository system build, while the sample application project contains the CSMP Agent lib source files and can be built directly on Simplicity Studio.   
+
+### Projects creation
+
+#### Wi-SUN - SoC CSMP Agent Sample Application
+
+The *Wi-SUN - SoC CSMP Agent Sample Application* is hosted on [wisun_application](https://github.com/SiliconLabs/wisun_applications/tree/main/wisun_soc_csmp_agent)repository. If you didn't already create the project, please follow the project [readme](https://github.com/SiliconLabs/wisun_applications/blob/main/wisun_soc_csmp_agent/Readme.md) to do so.
+
+After creating the project, you can jump to the project configuration section.
+
+#### Wi-SUN - SoC CSMP Agent Skeleton
+
+After creating the project and generating makefile as explained in the project [readme](https://github.com/SiliconLabs/wisun_applications/blob/main/wisun_soc_csmp_agent/Readme.md), the *Wi-SUN - SoC CSMP Agent Skeleton* require to be moved to the CSMP Agent repository. 
+
+To copy the project to the csmp_agent_lib, right click on the project name in Simplicity Studio and click on **[Browse File Here]**, you will be prompt to the project location, copy all the content under the project folder to the folder **csmp_agent_lib/Vendors/Silabs**.
+
+After copying the skeleton project to the csmp_agent_lib, run the *make_silabs2cisco.py* script that modifies the project makefile to make sure we have the right GSK path and all the required includes.
+
+``` Bash
+$ python3 csmp_agent_lib/Vendors/Silabs/make_silabs2cisco.py
+```
+
+After this step you are ready to move to the project configuration section.
+
+### Projects Configuration
 
 After creating the project you have to configure the CSMP Agent node to connect to FND.
 The configuration evolves two defines:
 * *CSMP_AGENT_EUI64_ADDRESS* that must contain 16 digits and will need to be set on FND side also. (Refer to the [CSMP Developer Tutorial](../../docs/CSMP%20Developer%20Tutorial%20-%200v11.pdf) section 3.2)
-* *CSMP_AGENT_NMS_ADDRESS* Which is the FND link local address (Refer to the [CSMP Developer Tutorial](../../docs/CSMP%20Developer%20Tutorial%20-%200v11.pdf) section 3.1 step 10). 
+* *CSMP_AGENT_NMS_ADDRESS* Which is the FND global address (Refer to the [CSMP Developer Tutorial](../../docs/CSMP%20Developer%20Tutorial%20-%200v11.pdf) section 3.1 step 10). 
 
-The two options can be configured in *CsmpAgentLib_sample_config.h*, following is a screen shot of the configuration file.
+The two options can be configured on the file *CsmpAgentLib_sample_config.h* that can be found under **csmp_agent_lib/sample** if you are using the skeleton project and in the project root if you are using the sample application, following is a screen shot of the sample application configuration file in studio.
 
 ![Cisco FND and CSMP agent configuration](resources/02_configure_cisco_fnd_and_agent.png)
 
+
+### Projects Build and Flash
+
+#### Wi-SUN - SoC CSMP Agent Sample Application
+
 Once you have configured the CSMP agent, please refer to the following [procedures](https://docs.silabs.com/simplicity-studio-5-users-guide/latest/ss-5-users-guide-building-and-flashing/) to build and flash the project.
+
+#### Wi-SUN - SoC CSMP Agent Skeleton
+
+> If you are using Windows, you can use Git bash to run the commands in this section.
+
+Before building, make sure that you are using the same GNU Arm Embedded Toolchain version in your environment as the one used by Simplicity Studio. 
+
+To check the Toolchain version that was used to generate your project makefile right click on the project name in studio, click on **Properties** and on the project properties perspective click on **C/C++ Build** and check the version selected in Configuration.
+
+On Git Bash run the following command to check the ARM GCC toolchain installed in your environment:
+
+```bash
+$ arm-none-eabi-gcc --version
+
+```
+If it is not the same version as the one used by Simplicity Studio, you can add the path to Simplicity studio Toolchain that can be found under *SiliconLabs\SimplicityStudio\v5\developer\toolchains\gnu_arm* to the *Environment Variables* Path. It is also important that the system variable **ARM_GCC_DIR** is updated to new toolchain path.
+
+Once you have checked that you will use the right Toolchain to build, you can start the build with the following command:
+```
+$ ./build.sh efr32_wisun
+```
+When the build is finished you can find the project binary under **csmp_agent_lib/sample**. To flash the binary to your board you can use the Flash Programmer tool as explained [here](https://docs.silabs.com/simplicity-studio-5-users-guide/latest/ss-5-users-guide-building-and-flashing/flashing#flash-programmer). 
+
+
 
 # Connect to FND
 
