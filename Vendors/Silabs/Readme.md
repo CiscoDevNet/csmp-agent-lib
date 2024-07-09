@@ -20,7 +20,7 @@
 
 The Cisco Csmp Agent library and sample application are supported by Silicon Labs Simplicity SDK.
 
-Silicon Labs provide two projects that allow a Wi-SUN node to connect to FND using the Csmp Agent. The projects are hosted on Silicon Labs [SiliconLabs/wisun_applications](https://github.com/SiliconLabs/wisun_applications).
+Silicon Labs provide project that allow a Wi-SUN node to connect to FND using the Csmp Agent. The project is hosted on Silicon Labs [SiliconLabs/wisun_applications](https://github.com/SiliconLabs/wisun_applications).
 
 ## Requirements
 
@@ -34,7 +34,7 @@ Silicon Labs provide two projects that allow a Wi-SUN node to connect to FND usi
 
 To connect a Wi-SUN node to FND, the user need three up and running entities. 
 
-First, the user need to have access to FND or to have a running FND OVA virtual machine, second, is the Silicon Labs Linux Border Router that have backhaul connection and third is the Wi-SUN node running even the **Wi-SUN - SoC Csmp Agent Sample Application** or the **Wi-SUN - SoC Csmp Agent Skeleton** . In the following sections we will explain how to set up and configure each of those entities.
+First, the user need to have access to FND or to have a running FND OVA virtual machine, second, is the Silicon Labs Linux Border Router that have backhaul connection and third is the Wi-SUN node running the **Wi-SUN - SoC Csmp Agent Skeleton** based Csmp Agent Sample Application. In the following sections we will explain how to set up and configure the project.
 
 ## Cisco FND OVA Virtual Machine
 
@@ -103,19 +103,11 @@ $ sudo ufw allow from any to any port 123 proto udp
 
 ## Silicon Labs projects
 
-The [wisun_application](https://github.com/SiliconLabs/wisun_applications/tree/main/wisun_soc_csmp_agent) repository, hosts two different example that allow building a Silabs Wi-SUN application that supports the CSMP agent. 
+The [wisun_application](https://github.com/SiliconLabs/wisun_applications/tree/main/wisun_soc_csmp_agent) repository includes the Skeleton example that allow building a Silabs Wi-SUN application that supports the CSMP agent. 
 
-The difference between the two projects is that the Skeleton project allows to generate all the EFR32 platform and Wi-SUN dependent source files and configuration to be copied later to the csmp_agent_lib repository and built using the csmp repository system build, while the sample application project contains the CSMP Agent lib source files and can be built directly on Simplicity Studio.   
+The Skeleton project allows to generate all the EFR32 platform and Wi-SUN dependent source files and configuration to be copied later to the csmp_agent_lib repository and built using the csmp repository system build
 
 ### Projects creation
-
-#### Wi-SUN - SoC CSMP Agent Sample Application
-
-The *Wi-SUN - SoC CSMP Agent Sample Application* is hosted on [wisun_application](https://github.com/SiliconLabs/wisun_applications/tree/main/wisun_soc_csmp_agent)repository. If you didn't already create the project, please follow the project [readme](https://github.com/SiliconLabs/wisun_applications/blob/main/wisun_soc_csmp_agent/Readme.md) to do so.
-
-After creating the project, you can jump to the project configuration section.
-
-#### Wi-SUN - SoC CSMP Agent Skeleton
 
 After creating the project and generating makefile as explained in the project [readme](https://github.com/SiliconLabs/wisun_applications/blob/main/wisun_soc_csmp_agent/Readme.md), the *Wi-SUN - SoC CSMP Agent Skeleton* require to be moved to the CSMP Agent repository. 
 
@@ -142,12 +134,6 @@ The two options can be configured on the file *CsmpAgentLib_sample_config.h* tha
 
 
 ### Projects Build and Flash
-
-#### Wi-SUN - SoC CSMP Agent Sample Application
-
-Once you have configured the CSMP agent, please refer to the following [procedures](https://docs.silabs.com/simplicity-studio-5-users-guide/latest/ss-5-users-guide-building-and-flashing/) to build and flash the project.
-
-#### Wi-SUN - SoC CSMP Agent Skeleton
 
 > If you are using Windows, you can use Git bash to run the commands in this section.
 
