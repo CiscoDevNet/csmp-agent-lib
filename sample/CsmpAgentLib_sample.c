@@ -26,9 +26,6 @@
 #include "csmp_service.h"
 #include "csmp_info.h"
 #include "signature_verify.h"
-#if !defined(OSAL_LINUX)
-#include "CsmpAgentLib_sample_config.h"
-#endif
 
 #if defined(OSAL_EFR32_WISUN)
 #include "sl_system_init.h"
@@ -77,7 +74,7 @@ static void *csmp_sample_app_thr_fnc(void *arg)
       * register interval(min, max)
   ***************************************************************/
   memset(&g_devconfig, 0, sizeof(dev_config_t));
-  osal_inet_pton(AF_INET6, NMS_IP, &g_devconfig.NMSaddr.s6_addr);
+  osal_inet_pton(AF_INET6, CSMP_AGENT_NMS_ADDRESS, &g_devconfig.NMSaddr.s6_addr);
   memcpy(g_devconfig.ieee_eui64.data, g_eui64, sizeof(g_eui64));
   g_devconfig.reginterval_min = reg_interval_min;
   g_devconfig.reginterval_max = reg_interval_max;
@@ -247,7 +244,7 @@ static void csmp_sample_app_thr_fnc(void *arg)
       * register interval(min, max)
   ***************************************************************/
   memset(&g_devconfig, 0, sizeof(dev_config_t));
-  osal_inet_pton(AF_INET6, NMS_IP, &g_devconfig.NMSaddr.s6_addr);
+  osal_inet_pton(AF_INET6, CSMP_AGENT_NMS_ADDRESS, &g_devconfig.NMSaddr.s6_addr);
   memcpy(g_devconfig.ieee_eui64.data, g_eui64, sizeof(g_eui64));
   g_devconfig.reginterval_min = reg_interval_min;
   g_devconfig.reginterval_max = reg_interval_max;

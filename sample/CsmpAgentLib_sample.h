@@ -98,12 +98,25 @@
 
 /************************ start ********************************************/
 /*  modify the information before compile */
-/** \brief NMS ip address*/
-#define NMS_IP "2001:a:b:c::ffaa"
+
+/** \brief Min Registration inetval in seconds*/
+#define CSMP_AGENT_REG_INTERVAL_MIN   10U
+
+/** \brief Max Registration inetval in seconds*/
+#define CSMP_AGENT_REG_INTERVAL_MAX   100U
+
+/** \brief EUI64 Address of the Agent*/
+#define CSMP_AGENT_EUI64_ADDRESS      "00173bab00100302"
+
+/** \brief NMS Address*/
+#define CSMP_AGENT_NMS_ADDRESS        "fd12:3456::e119:7a97:d047:fe1a"
+
+/** \brief Enable/Disable Signature Settings*/
+// #define CSMP_AGENT_SIGNATURE_SETTINGS 1
+/************************ end *********************************************/
 
 /** \brief eui64, should come from the HW*/
 extern uint8_t g_eui64[8];
-/************************ end *********************************************/
 
 /** \brief  minium registation interval*/
 #define reg_interval_min 10

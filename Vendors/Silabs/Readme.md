@@ -122,7 +122,7 @@ The configuration evolves two defines:
 * *CSMP_AGENT_EUI64_ADDRESS* that must contain 16 digits and will need to be set on FND side also. (Refer to the [CSMP Developer Tutorial](../../docs/CSMP%20Developer%20Tutorial%20-%200v11.pdf) section 3.2)
 * *CSMP_AGENT_NMS_ADDRESS* Which is the FND global address (Refer to the [CSMP Developer Tutorial](../../docs/CSMP%20Developer%20Tutorial%20-%200v11.pdf) section 3.1 step 10). 
 
-The two options can be configured on the file *CsmpAgentLib_sample_config.h* that can be found under **csmp_agent_lib/sample** if you are using the skeleton project and in the project root if you are using the sample application, following is a screen shot of the sample application configuration file in studio.
+The two options can be configured on the file *CsmpAgentLib_sample.h* that can be found under **csmp_agent_lib/sample** if you are using the skeleton project and in the project root if you are using the sample application, following is a screen shot of the sample application configuration file in studio.
 
 ![Cisco FND and CSMP agent configuration](resources/02_configure_cisco_fnd_and_agent.png)
 
