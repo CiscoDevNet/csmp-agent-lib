@@ -1,12 +1,6 @@
 <table border="0">
   <tr>
     <td align="left" valign="middle">
-      <h1>Silabs Wi-SUN CSMP Agent Projects</h1>
-      <a href="https://www.silabs.com/wireless/wi-sun">
-        <img src="https://docs.silabs.com/dsc-assets/icons/docspace/icon-wisun-blue.svg"  title="Wi-SUN" alt="Wi-SUN Logo" width="100" />
-      </a>
-    </td>
-    <td align="left" valign="middle">
       <a href="https://www.silabs.com/wireless/wi-sun">
         <img src="http://pages.silabs.com/rs/634-SLU-379/images/WGX-transparent.png"  title="Silicon Labs Gecko and Wireless Gecko MCUs" alt="EFR32 32-bit Wireless Microcontrollers" width="200"/>
       </a>
