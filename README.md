@@ -1,7 +1,7 @@
 ## Overview
 CoAP Simple Management Protocol (CSMP) is a device lifecycle management protocol optimized for resource constrained devices deployed within large-scale, bandwidth constrained IoT networks.
 
-There are multiple target platforms supported by using OSAL (Operating System Abstraction Layer). The repository provides Linux, FreeRTOS and Silicon Labs EFR32 device support. FreeRTOS initialised as a submodule and it is built with POSIX port.
+There are multiple target platforms supported by using OSAL (Operating System Abstraction Layer). The repository provides Linux, FreeRTOS and Silicon Labs EFR32 Wi-SUN device support. FreeRTOS initialised as a submodule and it is built with POSIX port. You can find details about Silicon Labs EFR32 Wi-SUN technology and products on [silabs.com](https://www.silabs.com/wireless/wi-sun).
 
 These instructions describe the build/run process for a C implementation of a sample CSMP Agent which incorporates the Cisco CSMP library `csmp-agent-lib`.
 
