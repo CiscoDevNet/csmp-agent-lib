@@ -6,11 +6,11 @@ FREERTOS_KERNEL = ../osal/freertos/FreeRTOS-Kernel
 CFLAGS += -I ../include -I ./
 CFLAGS += -DOSAL_FREERTOS_LINUX
 
-OBJ = CsmpAgentLib_sample.o \
-			CsmpAgentLib_sample_tlvs.o \
-			CsmpAgentLib_sample_util.o \
-			signature_verify.o \
-			freertos_tlvs.o
+OBJ = \
+CsmpAgentLib_sample.o \
+CsmpAgentLib_sample_tlvs.o \
+signature_verify.o \
+freertos_tlvs.o
 
 CSMP_AGENT_LIB = csmp_agent_lib_freertos.a
 OBJECT = CsmpAgentLib_sample

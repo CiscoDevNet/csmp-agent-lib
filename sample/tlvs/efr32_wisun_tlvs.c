@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include "CsmpAgentLib_sample_tlvs.h"
 #include "CsmpAgentLib_sample.h"
-#include "CsmpAgentLib_sample_util.h"
 #include "csmp_service.h"
 #include "csmp_info.h"
 #include "signature_verify.h"

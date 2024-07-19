@@ -57,7 +57,6 @@ CSMP_AGENT_DIRs += $(shell find ../src -maxdepth 3 -type d)
 C_SOURCE_FILES   += \
 CsmpAgentLib_sample.c \
 CsmpAgentLib_sample_tlvs.c \
-CsmpAgentLib_sample_util.c \
 signature_verify.c \
 tlvs/efr32_wisun_tlvs.c
 

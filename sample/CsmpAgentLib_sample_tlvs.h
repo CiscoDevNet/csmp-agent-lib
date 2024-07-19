@@ -5,7 +5,6 @@
 #include <stddef.h>
 #include "csmp_service.h"
 #include "csmp_info.h"
-#include "CsmpAgentLib_sample_util.h"
 
 #define CSMP_NON_VENDOR_ID 0
 #define VENDOR_DATA_LEN 64

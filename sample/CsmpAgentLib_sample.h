@@ -159,4 +159,9 @@ extern Signature_Settings g_SignatureSettings;
 /** \brief the vendor specific data */
 extern Vendor_Specific g_VendorData[VENDOR_SUBTYPE_NUM];
 
+/**
+ * @brief Convert a string to an address
+ */
+int str2addr(char *str, uint8_t *addr);
+
 #endif

@@ -12,11 +12,11 @@ LIBS += -lpthread
 #LIBS += -lcrypto
 #LIBS += -ldl
 
-OBJ = CsmpAgentLib_sample.o \
-			CsmpAgentLib_sample_tlvs.o \
-			CsmpAgentLib_sample_util.o \
-			signature_verify.o \
-			linux_tlvs.o
+OBJ = \
+CsmpAgentLib_sample.o \
+CsmpAgentLib_sample_tlvs.o \
+signature_verify.o \
+linux_tlvs.o
 
 CSMP_AGENT_LIB = csmp_agent_lib.a
 OBJECT = CsmpAgentLib_sample
