@@ -20,9 +20,17 @@ Silicon Labs provide project that allow a Wi-SUN node to connect to FND using th
 
 - A running Cisco Field Network Director (FND).
 
-- Silicon Labs Linux Border Router [wisun-br-linux](https://github.com/SiliconLabs/wisun-br-linux/tree/main)
+- *[Simplicity Studio v5](https://www.silabs.com/developers/simplicity-studio)*
 
-- A Wi-SUN node running the project [wisun_soc_csmp_agent](https://github.com/SiliconLabs/wisun_applications/tree/main/wisun_soc_csmp_agent).
+- Silicon Labs Simplicity SDK: *[sisdk-2024.6](https://github.com/SiliconLabs/simplicity_sdk/tree/sisdk-2024.6)*
+
+- Silicon Labs Linux Border Router *[wisun-br-linux](https://github.com/SiliconLabs/wisun-br-linux/tree/main)*
+
+- A Wi-SUN node running the project *[wisun_soc_csmp_agent](https://github.com/SiliconLabs/wisun_applications/tree/main/wisun_soc_csmp_agent).*
+
+- ARM GCC toolchain: *Arm GNU Toolchain 12.2* (Included in Simplicity Studio)
+
+- python: *>= python3.6*
 
 # Demo Setup
 
