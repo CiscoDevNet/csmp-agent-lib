@@ -33,7 +33,7 @@ If everything goes well, you should see "CsmpAgentLib_sample" executable in "sam
 
 #### Silicon Labs - Wi-SUN EFR32 Platforms
 
-Silicon Labs Wi-SUN EFR32 platforms supports the CSMP Agent with the Simplicity SDK version 2024.6.0. 
+Silicon Labs Wi-SUN EFR32 platforms support the CSMP Agent with the Simplicity SDK version 2024.6.0. 
 
 The demonstration requires using a Silicon Labs Wi-SUN Linux Border Router plus the Silicon Labs Wi-SUN node that will connect to Cisco FND.  
 

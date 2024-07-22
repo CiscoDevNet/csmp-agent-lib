@@ -28,15 +28,15 @@ Silicon Labs provide project that allow a Wi-SUN node to connect to FND using th
 
 - *[Simplicity Studio v5](https://www.silabs.com/developers/simplicity-studio)*
 
-- Silicon Labs Simplicity SDK: *[sisdk-2024.6](https://github.com/SiliconLabs/simplicity_sdk/tree/sisdk-2024.6)*
+- Silicon Labs Simplicity SDK: *[sisdk-2024.6](https://github.com/SiliconLabs/simplicity_sdk/tree/sisdk-2024.6)*.
 
 - Silicon Labs Linux Border Router *[wisun-br-linux](https://github.com/SiliconLabs/wisun-br-linux/tree/main)*
 
-- A Wi-SUN node running the project *[wisun_soc_csmp_agent](https://github.com/SiliconLabs/wisun_applications/tree/main/wisun_soc_csmp_agent).*
+- A Wi-SUN node running the project *[wisun_soc_csmp_agent_skeleton](https://github.com/SiliconLabs/wisun_applications/tree/main/wisun_soc_csmp_agent_skeleton).*
 
 - ARM GCC toolchain: *Arm GNU Toolchain 12.2* (Included in Simplicity Studio)
 
-- python: *>= python3.6*
+- python:  *python3.6* or later.
 
 # Demo Setup
 
@@ -111,17 +111,17 @@ $ sudo ufw allow from any to any port 123 proto udp
 
 ## Silicon Labs projects
 
-The [wisun_application](https://github.com/SiliconLabs/wisun_applications/tree/main/wisun_soc_csmp_agent) repository includes the Skeleton example that allow building a Silabs Wi-SUN application that supports the CSMP agent. 
+The [wisun_application](https://github.com/SiliconLabs/wisun_applications/tree/main/wisun_soc_csmp_agent_skeleton) repository includes the Skeleton example that allows building a Silicon Labs Wi-SUN application that supports the CSMP agent. 
 
 The Skeleton project allows to generate all the EFR32 platform and Wi-SUN dependent source files and configuration to be copied later to the csmp_agent_lib repository and built using the csmp repository system build
 
 ### Projects creation
 
-After creating the project and generating makefile as explained in the project [readme](https://github.com/SiliconLabs/wisun_applications/blob/main/wisun_soc_csmp_agent/Readme.md), the *Wi-SUN - SoC CSMP Agent Skeleton* require to be moved to the CSMP Agent repository. 
+After creating the project and generating the makefile as explained in the project [readme](https://github.com/SiliconLabs/wisun_applications/blob/main/wisun_soc_csmp_agent/Readme.md), the *Wi-SUN - SoC CSMP Agent Skeleton* requires to be moved to the CSMP Agent repository. 
 
 To copy the project to the csmp_agent_lib, right click on the project name in Simplicity Studio and click on **[Browse File Here]**, you will be prompt to the project location, copy all the content under the project folder to the folder **csmp_agent_lib/Vendors/Silabs**.
 
-After copying the skeleton project to the csmp_agent_lib, run the *make_silabs2cisco.py* script that modifies the project makefile to make sure we have the right GSK path and all the required includes.
+After copying the skeleton project to the csmp_agent_lib, run the *make_silabs2cisco.py* script that modifies the project makefile to make sure that we have the right Simplicity SDK path and all the required includes.
 
 ``` Bash
 $ python3 csmp_agent_lib/Vendors/Silabs/make_silabs2cisco.py
@@ -136,7 +136,7 @@ The configuration evolves two defines:
 * *CSMP_AGENT_EUI64_ADDRESS* that must contain 16 digits and will need to be set on FND side also. (Refer to the [CSMP Developer Tutorial](../../docs/CSMP%20Developer%20Tutorial%20-%200v11.pdf) section 3.2)
 * *CSMP_AGENT_NMS_ADDRESS* Which is the FND global address (Refer to the [CSMP Developer Tutorial](../../docs/CSMP%20Developer%20Tutorial%20-%200v11.pdf) section 3.1 step 10). 
 
-The two options can be configured on the file *CsmpAgentLib_sample.h* that can be found under **csmp_agent_lib/sample** if you are using the skeleton project and in the project root if you are using the sample application, following is a screen shot of the sample application configuration file in studio.
+The two options can be configured on the file *CsmpAgentLib_sample.h* that can be found under **csmp_agent_lib/sample**, following is a screenshot of the two configuration options.
 
 ![Cisco FND and CSMP agent configuration](resources/configure_cisco_fnd_and_agent.png)
 
@@ -147,7 +147,7 @@ The two options can be configured on the file *CsmpAgentLib_sample.h* that can b
 
 Before building, make sure that you are using the same GNU Arm Embedded Toolchain version in your environment as the one used by Simplicity Studio. 
 
-To check the Toolchain version that was used to generate your project makefile right click on the project name in studio, click on **Properties** and on the project properties perspective click on **C/C++ Build** and check the version selected in Configuration.
+To check the Toolchain version that was used to generate your project makefile, right-click on the project name in Simplicity Studio, click on **Properties**, and on the project properties perspective click on **C/C++ Build** and check the version selected in Configuration.
 
 On Git Bash run the following command to check the ARM GCC toolchain installed in your environment:
 
@@ -155,7 +155,7 @@ On Git Bash run the following command to check the ARM GCC toolchain installed i
 $ arm-none-eabi-gcc --version
 
 ```
-If it is not the same version as the one used by Simplicity Studio, you can add the path to Simplicity studio Toolchain that can be found under *SiliconLabs\SimplicityStudio\v5\developer\toolchains\gnu_arm* to the *Environment Variables* Path. It is also important that the system variable **ARM_GCC_DIR** is updated to new toolchain path.
+If it is not the same version as the one used by Simplicity Studio, you can add the path to Simplicity studio Toolchain which can be found under *SiliconLabs\SimplicityStudio\v5\developer\toolchains\gnu_arm*, to the *Environment Variables* Path. It is also important that the system variable **ARM_GCC_DIR** is updated to the new toolchain path.
 
 Once you have checked that you will use the right Toolchain to build, you can start the build with the following command:
 ```
