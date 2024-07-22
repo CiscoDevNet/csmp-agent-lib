@@ -138,7 +138,7 @@ The configuration evolves two defines:
 
 The two options can be configured on the file *CsmpAgentLib_sample.h* that can be found under **csmp_agent_lib/sample** if you are using the skeleton project and in the project root if you are using the sample application, following is a screen shot of the sample application configuration file in studio.
 
-![Cisco FND and CSMP agent configuration](resources/02_configure_cisco_fnd_and_agent.png)
+![Cisco FND and CSMP agent configuration](resources/configure_cisco_fnd_and_agent.png)
 
 
 ### Projects Build and Flash
@@ -176,10 +176,10 @@ Following is a screenshot of the node connecting to the Border Router and starti
 
 #### Csmp Agent Sample Application CLI
 
-![build-output](resources/04_cli_output_of_sample_app.png)
+![build-output](resources/cli_output_of_sample_app.png)
 
 Once registered we can check the node on the FND UI, following is a screenshot of the FND UI after the node have connected to FND.
 
 #### The Wi-SUN node connected to Cisco FND
 
-![build-output](resources/05_FND_output.png)
+![build-output](resources/FND_output.png)
