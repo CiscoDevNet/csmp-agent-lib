@@ -315,28 +315,18 @@ void osal_trickle_timer_start(osal_timerid_t timerid, uint32_t imin, uint32_t im
   }
 
   osal_gettime(&tv, NULL);
-  
+
+  seed = (((uint16_t)g_csmplib_eui64[6] << 8) | g_csmplib_eui64[7]);
+  srand(seed);
+  timers[timerid].t0 = tv.tv_sec + (rand()%imin);
   timers[timerid].icur = imin;
   timers[timerid].imin = imin;
   timers[timerid].imax = imax;
   timers[timerid].is_running = true;
   timer_fired[timerid] = trickle_timer_fired;
-
-  // periodic timer
-  if (imin == imax) {
-    xTimerChangePeriod(timers[timerid].timer, pdMS_TO_TICKS(imin * 1000), 0);
-    timers[timerid].t0 = tv.tv_sec;
-    timers[timerid].tfire = timers[timerid].t0 + imin;
-  } else {
-    seed = (((uint16_t)g_csmplib_eui64[6] << 8) | g_csmplib_eui64[7]);
-    srand(seed);
-    timers[timerid].t0 = tv.tv_sec + (rand()%imin);
-    min = timers[timerid].icur >> 1;
-    timers[timerid].tfire = timers[timerid].t0 + min + (rand() % (timers[timerid].icur - min));
-  }
-
+  min = timers[timerid].icur >> 1;
+  timers[timerid].tfire = timers[timerid].t0 + min + (rand() % (timers[timerid].icur - min));
   xTimerStart(timers[timerid].timer, 0);
-
   osal_update_timer();
 }
 
@@ -351,16 +341,14 @@ void osal_trickle_timer_stop(osal_timerid_t timerid)
   else if(timerid == rpt_timer) {
     DPRINTF("metrics report trickle timer stop\n");
   }
-  
-  xTimerStop(timers[timerid].timer, 0);
-
   for(i = 0; i < timer_num; i++) {
     if(timers[i].is_running)
       return;
   }
-
   m_timert_isrunning = false;
+  xTimerStop(timers[timerid].timer, 0);
 }
+
 
 void *osal_malloc(size_t size)
 {
@@ -392,7 +380,7 @@ static void osal_update_timer() {
   struct timeval tv = {0};
   uint8_t i;
 
-  m_remaining = ((1UL << 31) - 1) / 1000; /* max int32_t */
+  m_remaining = ((1UL << 31) - 1) / 1000;
   osal_gettime(&tv, NULL);
   now = tv.tv_sec;
 
@@ -402,11 +390,6 @@ static void osal_update_timer() {
 
     if (timer->is_running == false)
       continue;
-
-    // periodic timer
-    if (timer->imin == timer->imax)
-      continue;
-
     remaining = timer->tfire - now;
     if (remaining < m_remaining) {
       m_remaining = remaining;
@@ -442,13 +425,6 @@ static void osal_alarm_fired(TimerHandle_t xTimer)
 
     if ((int32_t)(timer->tfire - now) > 0)
       continue;
-
-    // periodic timer
-    if (timer->imin == timer->imax) {
-      timer_fired[i]();
-      timer->tfire = now + timer->imin;
-      continue;
-    }
 
     // update t0 to next interval
     timer->t0 += timer->icur;
