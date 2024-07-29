@@ -1,7 +1,8 @@
 #define your own gcc here if you need cross-compile the code
 CC = gcc -Wall -Wextra
+OUTPUT_DIR = ../build/debug
 
-CFLAGS += -I ../include -I ../osal/linux/
+CFLAGS += -I ../include -I ../osal/ -I ../osal/linux/ -I ./
 CFLAGS += -DOSAL_LINUX
 LIBS += -lpthread
 
@@ -11,21 +12,26 @@ LIBS += -lpthread
 #LIBS += -lcrypto
 #LIBS += -ldl
 
-OBJ = CsmpAgentLib_sample.o CsmpAgentLib_sample_util.o signature_verify.o
+OBJ = \
+CsmpAgentLib_sample.o \
+CsmpAgentLib_sample_tlvs.o \
+signature_verify.o \
+linux_tlvs.o
 
-LIB_OBJECT = csmp_agent_lib.a
+CSMP_AGENT_LIB = csmp_agent_lib.a
 OBJECT = CsmpAgentLib_sample
-CFLAGS += -I ../osal/
-ifeq ($(OS), Linux)
-	CFLAGS += -I ../osal/linux/
-else
-	CFLAGS += -I ../osal/freertos/
-endif
 
 
-$(OBJECT):$(OBJ)
-	$(CC) -o $@ $^ $(LIB_OBJECT) $(LIBS)
+$(OBJECT): $(addprefix $(OUTPUT_DIR)/, $(OBJ))
+	@echo 'Building $@'
+	$(CC) -o $@ $^ $(CSMP_AGENT_LIB) $(LIBS)
 
-.c.o:
-	$(CC) -c $< $(CFLAGS)
+$(OUTPUT_DIR)/linux_tlvs.o: tlvs/linux_tlvs.c
+	@echo 'Building $<'
+	@mkdir -p $(@D)
+	@$(CC) $(CFLAGS) -c -o $@ $<
 
+$(OUTPUT_DIR)/%.o: %.c
+	@echo 'Building $<'
+	@mkdir -p $(@D)
+	@$(CC) $(CFLAGS) -c -o $@ $<

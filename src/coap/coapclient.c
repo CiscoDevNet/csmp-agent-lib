@@ -32,8 +32,11 @@ static osal_basetype_t m_sock = 0;
 static bool m_client_opened = false;
 static uint16_t m_transaction_id = 0;
 static osal_task_t recvt_id_task;
-
-void *recv_fn(void*);
+#if defined(OSAL_LINUX)
+static void *recv_fn(void*);
+#else
+static void recv_fn(void*);
+#endif
 int write_option( uint8_t *buf, uint16_t buf_len, coap_option_t this_option, coap_option_t *last_option,
     const uint8_t* option_buf, uint32_t option_len, uint32_t *written_len );
 void process_response(uint8_t* data, uint16_t len, struct sockaddr_in6 *from);
@@ -233,53 +236,39 @@ void coap_option_map(uint32_t val, uint8_t *map)
   else if (val <= 0xffff + 269)
     *map = 14;
 }
-
-void *recv_fn(void* arg)
+#if defined(OSAL_LINUX)
+static void *recv_fn(void* arg)
+#else
+static void recv_fn(void* arg)
+#endif
 {
   (void)arg; // Disable un-used argument compiler warning.
   DPRINTF("coapclient receive thread is serving now...\n");
-
-  osal_ssize_t rv;
   osal_sockaddr_t from = {0};
   socklen_t socklen = sizeof(struct sockaddr_in6);
-  uint8_t data[1024];
+  static uint8_t data[1024];
   osal_basetype_t len;
 
   osal_task_setcanceltype();
 
-  fd_set readset;
-  fd_set tempset;
-
-  osal_sd_zero(&readset);
-  osal_sd_zero(&tempset);
-  osal_sd_set(m_sock, &tempset);
-
   while (1)
   {
-    osal_sd_zero(&readset);
-    readset = tempset;
-    rv = osal_select(m_sock+1, &readset, NULL, NULL, NULL);
-
-    if (rv < 0) {
-    //perror("select");
+    len = osal_recvfrom(m_sock, data, sizeof(data), 0, &from, &socklen);
+    if (len < 0) {
+      DPRINTF("coapserver_listen recv_fn recvmsg error!\n");
+      // Dispatch for non-blocking socket
+      osal_sleep_ms(1000);
       continue;
     }
 
-    if (osal_sd_isset(m_sock, &readset))
-    {
-      len = osal_recvfrom(m_sock, data, sizeof(data), 0, &from, &socklen);
-      if (len < 0) {
-        DPRINTF("coapserver_listen recv_fn recvmsg error!\n");
-        continue;
-      }
+    DPRINTF("coapclient.Socket.recvfrom - Got %u-byte response from ",len);
+    osal_print_formatted_ip(&from);
 
-      DPRINTF("coapclient.Socket.recvfrom - Got %u-byte response from ",len);
-      osal_print_formatted_ip(&from);
-
-      process_response(data, len, &from );
-      continue;
-   }
+    process_response(data, len, &from ); 
  }
+#if defined(OSAL_LINUX)
+  return NULL;
+#endif
 }
 
 void process_response(uint8_t* data, uint16_t len, struct sockaddr_in6 *from)

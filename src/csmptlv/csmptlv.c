@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include "protobuf-c.h"
 #include "ProtobufVarint.h"
@@ -181,10 +182,10 @@ const uint8_t *csmptlv_find(const uint8_t *buf, size_t len, tlvid_t qtlvid, uint
 
 int csmptlv_str2id(const char *str, tlvid_t *ptlvid) {
   int rv;
-  rv = sscanf(str,"e%u.%u",&ptlvid->vendor,&ptlvid->type);
+  rv = sscanf(str,"e%" SCNu32 ".%" SCNu32, &ptlvid->vendor,&ptlvid->type);
   if (rv == 0) {
     ptlvid->vendor = 0;
-    rv = sscanf(str,"%u",&ptlvid->type);
+    rv = sscanf(str,"%" SCNu32 ,&ptlvid->type);
   }
   return rv;
 }
@@ -192,10 +193,10 @@ int csmptlv_str2id(const char *str, tlvid_t *ptlvid) {
 int csmptlv_id2str(char *str, size_t str_size, const tlvid_t *ptlvid) {
   int rv;
   if (ptlvid->vendor != 0) {
-    rv = snprintf(str,str_size,"e%u.%u",ptlvid->vendor,ptlvid->type);
+    rv = snprintf(str,str_size,"e%" PRIuLEAST32 ".%" PRIuLEAST32 ,ptlvid->vendor,ptlvid->type);
   }
   else {
-    rv = snprintf(str,str_size,"%u",ptlvid->type);
+    rv = snprintf(str,str_size,"%" PRIuLEAST32 ,ptlvid->type);
   }
   return rv;
 }

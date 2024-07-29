@@ -51,7 +51,7 @@ osal_basetype_t osal_task_create(osal_task_t * thread,
                                  const char * name,
                                  uint32_t priority,
                                  size_t stacksize,
-                                 void* (*entry) (void * arg),
+                                 osal_task_fnc_t entry,
                                  void * arg);
 
 /****************************************************************************

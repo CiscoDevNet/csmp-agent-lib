@@ -1,7 +1,7 @@
 ## Overview
 CoAP Simple Management Protocol (CSMP) is a device lifecycle management protocol optimized for resource constrained devices deployed within large-scale, bandwidth constrained IoT networks.
 
-There are multiple target platforms supported by using OSAL (Operating System Abstraction Layer). The repository provides Linux and FreeRTOS support. FreeRTOS initialised as a submodule and it is built with POSIX port.
+There are multiple target platforms supported by using OSAL (Operating System Abstraction Layer). The repository provides Linux, FreeRTOS and Silicon Labs EFR32 Wi-SUN device support. FreeRTOS initialised as a submodule and it is built with POSIX port. You can find details about Silicon Labs EFR32 Wi-SUN technology and products on [silabs.com](https://www.silabs.com/wireless/wi-sun).
 
 These instructions describe the build/run process for a C implementation of a sample CSMP Agent which incorporates the Cisco CSMP library `csmp-agent-lib`.
 
@@ -13,28 +13,40 @@ It is assumed a snapshot of the CSMP agent's source repository has been acquired
 
 Change your default directory to the root of the CSMP Agent directory structure.
 
-1. Install build tools.
+### Install build tools.
 Install build-essential package (gcc compiler, make, etc.) as described here ... https://help.ubuntu.com/community/InstallingCompilers
 
-2. Confirm build target platform
+### Confirm build target platform
 If you are going to build for a different target platform, please set the correct gcc compiler for your target platform by modifying the line "CC=gcc" in "Makefile".
 
-3. Build
+### Build
 >   chmod 777 build.sh
-- Linux
+
+#### Linux
 >  ./build.sh linux
 
-- FreeRTOS
+#### FreeRTOS
 > git submodule update --init --recursive
 > ./build.sh freertos
 
 If everything goes well, you should see "CsmpAgentLib_sample" executable in "sample" directory.
 
-4. clean
+#### Silicon Labs - Wi-SUN EFR32 Platforms
+
+Silicon Labs Wi-SUN EFR32 platforms support the CSMP Agent with the Simplicity SDK version 2024.6.0. 
+
+The demonstration requires using a Silicon Labs Wi-SUN Linux Border Router plus the Silicon Labs Wi-SUN node that will connect to Cisco FND.  
+
+Demonstration setup and detailed configuration can be found under the [/Vendors/Silabs/](/Vendors/Silabs/Readme.md) folder.
+
+
+
+### Clean
 If you want to clean the build files prior to a subsequent build ...
 >  ./build.sh clean
 
-5. Additional debug output is enabled by modifying Makefile to include the line 'CFLAGS += -DPRINTDEBUG'
+### Debug output
+Additional debug output is enabled by modifying Makefile to include the line 'CFLAGS += -DPRINTDEBUG'
 
 ## Running CSMP Agent Sample
 1. Run "CsmpAgentLib_sample" to start CSMP agent either with:
@@ -87,4 +99,3 @@ Go to src/csmpagent/tlvs/ and `make` to verify protoc-c is operating successfull
 
 ## Further Information for Developers
 A CSMP Developer Guide can be found in the /docs folder.  This guide describes how to install, build, and run the CSMP agent which will register and report metrics to an instance of Cisco Field Network Director.
-

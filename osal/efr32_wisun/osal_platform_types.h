@@ -17,44 +17,39 @@
 #ifndef __OSAL_PLATFORM_TYPES_H
 #define __OSAL_PLATFORM_TYPES_H
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <limits.h>
 #include <assert.h>
 #include <errno.h>
-#include <unistd.h>
-#include <arpa/inet.h>
 #include <stdint.h>
-#include <pthread.h>
-#include <semaphore.h>
-#include <signal.h>
+#include <stdlib.h>
 #include <sys/time.h>
-#include <sys/syscall.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/select.h>
-#include <netinet/in.h>
-#include <stdbool.h>
-#include "../../src/lib/debug.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
+#include "timers.h"
+#include "socket/socket.h"
+#include "sl_memory_manager.h"
+#include "sl_sleeptimer.h"
+#include "sl_wisun_ntp_timesync_config.h"
 
 typedef void (*osal_sighandler_t)(int);
 
 typedef struct sockaddr_in6 osal_sockaddr_t;
-typedef sem_t osal_sem_t;
-typedef sigset_t osal_sigset_t;
+typedef SemaphoreHandle_t osal_sem_t;
+typedef int osal_sigset_t;
 typedef socklen_t osal_socklen_t;
-typedef pthread_t osal_task_t;
-typedef void* (*osal_task_fnc_t) (void * arg);
-typedef uint64_t osal_time_t;
+typedef TaskHandle_t osal_task_t;
+typedef TaskFunction_t osal_task_fnc_t;
 typedef ssize_t osal_ssize_t;
-typedef int osal_basetype_t;
+typedef uint64_t osal_time_t;
+typedef BaseType_t osal_basetype_t;
 typedef int osal_socket_handle_t;
-typedef fd_set osal_sd_set_t;
+typedef int osal_sd_set_t;
 
-#define OSAL_AF_INET6 AF_INET6 
+#define OSAL_AF_INET6 AF_INET6
 #define OSAL_SOCK_DGRAM SOCK_DGRAM
 
-
+#define s6_addr address
 
 #endif

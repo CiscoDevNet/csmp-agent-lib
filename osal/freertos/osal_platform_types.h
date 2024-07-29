@@ -43,7 +43,7 @@ typedef SemaphoreHandle_t osal_sem_t;
 typedef sigset_t osal_sigset_t;
 typedef socklen_t osal_socklen_t;
 typedef TaskHandle_t osal_task_t;
-
+typedef TaskFunction_t osal_task_fnc_t;
 typedef ssize_t osal_ssize_t;
 typedef uint64_t osal_time_t;
 typedef BaseType_t osal_basetype_t;

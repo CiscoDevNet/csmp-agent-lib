@@ -1,17 +1,17 @@
-#include <stdio.h>
+#include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <string.h>
 #include <stdio.h>
+#include "CsmpAgentLib_sample_tlvs.h"
 #include "CsmpAgentLib_sample.h"
-#include "CsmpAgentLib_sample_util.h"
 #include "csmp_service.h"
 #include "csmp_info.h"
 #include "signature_verify.h"
 #include "osal.h"
+#include "sl_wisun_app_core.h"
 
 #define nexthop_IP "fe80::a00:27ff:fe3b:2ab1"
-#define CSMP_NON_VENDOR_ID 0
-#define VENDOR_DATA_LEN 64
 
 /** \brief eui64, should come from the HW*/
 uint8_t g_eui64[8] = {0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb2};
@@ -55,8 +55,8 @@ Signature_Settings g_SignatureSettings = SIGNATURE_SETTINGS_INIT;
 /** \brief the vendor specific data */
 Vendor_Specific g_VendorData[VENDOR_SUBTYPE_NUM] = {VENDOR_INIT};
 
-char *SSID = "Cisco Systems";
-char vendorhwid[32] = "vendor hardware ID";
+char *SSID = "Silabs EFR32 Wi-SUN";
+char vendorhwid[32] = "brd4401c";
 uint32_t g_init_time;
 uint8_t neighbor_eui64[2][8] = {{0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb1},
                              {0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb0}};
@@ -106,9 +106,9 @@ void* hardware_desc_get(uint32_t *num) {
   g_hardwareDesc.has_entphysicalfunction = true;
 
   g_hardwareDesc.entphysicalindex = 1;
-  sprintf(g_hardwareDesc.entphysicaldescr,"CSMP Agent Lib test node");
+  sprintf(g_hardwareDesc.entphysicaldescr,"CSMP Agent Lib EFR32 Wi-SUN test node");
   g_hardwareDesc.entphysicalclass = MODULE;
-  sprintf(g_hardwareDesc.entphysicalname,"lowpan");
+  sprintf(g_hardwareDesc.entphysicalname,"wisun");
   sprintf(g_hardwareDesc.entphysicalhardwarerev,"1.0");
   sprintf(g_hardwareDesc.entphysicalfirmwarerev,"1.0.0");
   snprintf(g_hardwareDesc.entphysicalserialnum,sizeof(g_hardwareDesc.entphysicalserialnum),
@@ -163,10 +163,11 @@ void* interface_desc_get(uint32_t *num) {
  * @return void* pointer to global variable g_ipAddress
  */
 void* ipaddress_get(uint32_t *num) {
-  int i;
-
+  static sl_wisun_app_core_current_addr_t wisun_addrs = { 0 };
+  
   *num = 3;
-  for(i=0;i<3;i++) {
+
+  for(int i=0;i<3;i++) {
     g_ipAddress[i].has_ipaddressindex = true;
     g_ipAddress[i].has_ipaddressaddrtype = true;
     g_ipAddress[i].has_ipaddressaddr = true;
@@ -179,6 +180,8 @@ void* ipaddress_get(uint32_t *num) {
     g_ipAddress[i].ipaddressindex = i+1;
   }
 
+  sl_wisun_app_core_get_current_addresses(&wisun_addrs);
+
   g_ipAddress[0].ipaddressaddrtype = IPV6;
   g_ipAddress[0].ipaddressaddr.len = 16;
   osal_inet_pton(AF_INET6, "0::1", &g_ipAddress[0].ipaddressaddr.data);
@@ -190,7 +193,7 @@ void* ipaddress_get(uint32_t *num) {
 
   g_ipAddress[1].ipaddressaddrtype = IPV6;
   g_ipAddress[1].ipaddressaddr.len = 16;
-  osal_inet_pton(AF_INET6, "fe80::207:8109:dc:c8d", &g_ipAddress[1].ipaddressaddr.data);
+  memcpy(g_ipAddress[1].ipaddressaddr.data, wisun_addrs.link_local.address, sizeof(in6_addr_t));
   g_ipAddress[1].ipaddressifindex = 2;
   g_ipAddress[1].ipaddresstype = UNICAST;
   g_ipAddress[1].ipaddressorigin = LINKLAYER;
@@ -199,7 +202,7 @@ void* ipaddress_get(uint32_t *num) {
 
   g_ipAddress[2].ipaddressaddrtype = IPV6;
   g_ipAddress[2].ipaddressaddr.len = 16;
-  osal_inet_pton(AF_INET6, "2001:a:b:c::9", &g_ipAddress[2].ipaddressaddr.data);
+  memcpy(g_ipAddress[2].ipaddressaddr.data, wisun_addrs.global.address, sizeof(in6_addr_t));
   g_ipAddress[2].ipaddressifindex = 2;
   g_ipAddress[2].ipaddresstype = UNICAST;
   g_ipAddress[2].ipaddressorigin = DHCP;
@@ -264,7 +267,7 @@ void currenttime_post(Current_Time *tlv) {
   struct timeval tv = {0};
   if(tlv->has_posix) {
     tv.tv_sec = tlv->posix;
-    settimeofday(&tv, NULL);
+    osal_settime(&tv, NULL);
   }
 }
 
@@ -559,112 +562,4 @@ void signature_settings_post(Signature_Settings *tlv) {
   g_SignatureSettings.has_cert = true;
   g_SignatureSettings.cert.len = tlv->cert.len;
   memcpy(g_SignatureSettings.cert.data,tlv->cert.data,g_SignatureSettings.cert.len);
-}
-
-/**
- * @brief csmp get TLV request
- *
- * @param tlvid the tlvid to handle
- * @param num returned amount of instances
- * @return void* pointer to the global variable containing the return data
- */
-void* csmptlvs_get(tlvid_t tlvid, uint32_t *num) {
-  if (tlvid.vendor == CSMP_NON_VENDOR_ID)
-  {
-    switch(tlvid.type) {
-    case HARDWARE_DESC_ID:
-      return hardware_desc_get(num);
-    case INTERFACE_DESC_ID:
-      return interface_desc_get(num);
-    case IPADDRESS_ID:
-      return ipaddress_get(num);
-    case IPROUTE_ID:
-      return iproute_get(num);
-    case CURRENT_TIME_ID:
-      return currenttime_get(num);
-    case UPTIME_ID:
-      return uptime_get(num);
-    case INTERFACE_METRICS_ID:
-      return interface_metrics_get(num);
-    case IPROUTE_RPLMETRICS_ID:
-      return iproute_rplmetrics_get(num);
-    case WPANSTATUS_ID:
-      return wpanstatus_get(num);
-    case RPLINSTANCE_ID:
-      return rplinstance_get(num);
-    case FIRMWARE_IMAGE_INFO_ID:
-      return firmware_image_info_get(num);
-    case SIGNATURE_SETTINGS_ID:
-      return signature_settings_get(num);
-
-    default:
-      break;
-    }
-  }
-  else
-  {
-    return vendorspecificdata_get(tlvid, num);
-  }
-  return NULL;
-}
-
-/**
- * @brief csmp post TLV request
- *
- * @param tlvid the tlvid to handle
- * @param tlv the request data
- */
-void csmptlvs_post(tlvid_t tlvid, void *tlv) {
-  if (tlvid.vendor == CSMP_NON_VENDOR_ID)
-  {
-    switch(tlvid.type) {
-    case CURRENT_TIME_ID:
-      currenttime_post((Current_Time*)tlv);
-      break;
-    case SIGNATURE_SETTINGS_ID:
-      signature_settings_post((Signature_Settings*)tlv);
-      break;
-    default:
-      break;
-    }
-  }
-  else
-  {
-    vendorspecificdata_post(tlvid, (Vendor_Specific*)tlv);
-  }
-}
-
-int8_t char2hex(char ch) {
-  if ((ch >= '0') && (ch <= '9')) {
-    return ch - '0';
-  } else if ((ch >= 'a') && (ch <= 'f')) {
-    return ch - 'a' + 10;
-  } else if ((ch >= 'A') && (ch <= 'F')) {
-    return ch - 'A' + 10;
-  } else {
-    return -1;
-  }
-}
-
-int str2addr(char *str, uint8_t *addr) {
-  uint32_t len;
-  uint8_t offset = 0;
-  int8_t i, ch;
-
-  len = strlen(str);
-  if ((len != 16))
-    return -1;
-
-  offset = 15;
-  for (i = len - 1; i >= 0; i--) {
-    ch = char2hex(str[i]);
-    if (ch < 0)
-      return -1;
-
-    addr[offset / 2] |= (offset % 2)? ch: ch << 4;
-
-    offset--;
-  }
-
-  return 0;
 }

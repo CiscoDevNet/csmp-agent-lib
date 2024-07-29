@@ -1,21 +1,40 @@
 #define your own gcc here if you need cross-compile the code
 CC = gcc -Wall -Wextra
+OUTPUT_DIR = ../build/debug
+FREERTOS_KERNEL = ../osal/freertos/FreeRTOS-Kernel
 
-CFLAGS += -I ../include
+CFLAGS += -I ../include -I ./
+CFLAGS += -DOSAL_FREERTOS_LINUX
 
-OBJ = CsmpAgentLib_sample.o CsmpAgentLib_sample_util.o signature_verify.o
+OBJ = \
+CsmpAgentLib_sample.o \
+CsmpAgentLib_sample_tlvs.o \
+signature_verify.o \
+freertos_tlvs.o
 
-LIB_OBJECT = csmp_agent_lib.a
+CSMP_AGENT_LIB = csmp_agent_lib_freertos.a
 OBJECT = CsmpAgentLib_sample
+
 CFLAGS +=  \
 -I ../osal \
 -I ../osal/freertos/ \
--I ../osal/freertos/FreeRTOS-Kernel/include \
--I ../osal/freertos/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/ \
--I ../osal/freertos/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/utils/
-
-CFLAGS += -DOSAL_FREERTOS_LINUX
+-I $(FREERTOS_KERNEL)/include \
+-I $(FREERTOS_KERNEL)/portable/ThirdParty/GCC/Posix/ \
+-I $(FREERTOS_KERNEL)/portable/ThirdParty/GCC/Posix/utils/
 
 
-$(OBJECT):$(OBJ)
-	$(CC) -o $@ $^ $(LIB_OBJECT) $(LIBS)
+
+$(OBJECT): $(addprefix $(OUTPUT_DIR)/, $(OBJ))
+	@echo 'Building $@'
+	$(CC) -o $@ $^ $(CSMP_AGENT_LIB)
+
+$(OUTPUT_DIR)/freertos_tlvs.o: tlvs/freertos_tlvs.c
+	@echo 'Building $<'
+	@mkdir -p $(@D)
+	@$(CC) $(CFLAGS) -c -o $@ $<
+
+
+$(OUTPUT_DIR)/%.o: %.c
+	@echo 'Building $<'
+	@mkdir -p $(@D)
+	@$(CC) $(CFLAGS) -c -o $@ $<

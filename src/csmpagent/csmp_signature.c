@@ -39,7 +39,7 @@ int checkSignature(const uint8_t *buf, uint32_t len, bool agent)
   struct timeval tv = {0};
   uint8_t *sig = NULL;
   uint8_t *sigend = NULL;
-  size_t siglen;
+  size_t siglen = 0;
   tlvid_t tlvid = {0,SIGNATURE_TLVID};
 
   if ((agent && !g_csmp_signature_settings.reqsignedresp) || (!agent && !g_csmp_signature_settings.reqsignedpost))

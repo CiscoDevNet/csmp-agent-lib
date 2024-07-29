@@ -24,8 +24,10 @@ build_sample()
 build_lib()
 {
   make $OS -C $DESTDIR
-  rm *.o
-  mv csmp_agent_lib.a sample/
+  rm -f *.o
+  [ ! -f csmp_agent_lib.a ] || mv csmp_agent_lib.a sample/
+  [ ! -f csmp_agent_lib_freertos.a ] || mv csmp_agent_lib_freertos.a sample/
+  [ ! -f csmp_agent_lib_efr32_wisun.a ] || mv csmp_agent_lib_efr32_wisun.a sample/
 }
 
 clean_all()
@@ -33,6 +35,9 @@ clean_all()
   make clean -C $DESTDIR
   make clean -C $SAMPLEDIR
 #  make clean -C $TLVPROTODIR
+  rm -rf $DESTDIR/build
+  rm -f $DESTDIR/*.a
+  rm -f $SAMPLEDIR/*.a
 }
 
 if [ "$1"x = "clean"x ];then

@@ -36,8 +36,11 @@ static recv_handler_t m_recv_handler = NULL;
 void process_datagram(void *data, uint16_t len, struct sockaddr_in6 *from );
 void send_internal_response(const struct sockaddr_in6 *from, uint16_t tx_id,
                             uint8_t token_length, uint8_t *token, uint16_t status);
-
-void *recv_thread(void* arg);
+#if defined(OSAL_LINUX)
+static void *recv_thread(void* arg);
+#else
+static void recv_thread(void* arg);
+#endif
 
 int coapserver_stop()
 {
@@ -89,61 +92,48 @@ int coapserver_listen(uint16_t sport, recv_handler_t recv_handler)
   return 0;
 }
 
-void *recv_thread(void* arg)
+#ifdef OSAL_LINUX
+static void *recv_thread(void* arg)
+#else
+static void recv_thread(void* arg)
+#endif
 {
   (void)arg; // Disable un-used argument compiler warning.
   DPRINTF("coapserver receive thread is serving now...\n");
 
-  int rv;
   osal_sockaddr_t from = {0};
   socklen_t socklen = sizeof(struct sockaddr_in6);
-  uint8_t data[1024];
+  static uint8_t data[1024];
   osal_basetype_t len;
 
   osal_task_setcanceltype();
 
-  fd_set readset;
-  fd_set tempset;
-
-  osal_sd_zero(&readset);
-  osal_sd_zero(&tempset);
-  osal_sd_set(m_sockfd, &tempset);
-
   while (1)
   {
-    osal_sd_zero(&readset);
-    readset = tempset;
-    rv = osal_select(m_sockfd+1, &readset, NULL, NULL, NULL);
-
-    if (rv < 0) {
-    //perror("select");
+    len = osal_recvfrom(m_sockfd, data, sizeof(data), 0, &from, &socklen);
+    if (len < 0) {
+      DPRINTF("coapserver_listen recv_fn recvmsg error!\n");
+      osal_sleep_ms(1000);
       continue;
     }
 
-    if (osal_sd_isset(m_sockfd, &readset))
-    {
-      len = osal_recvfrom(m_sockfd, data, sizeof(data), 0, &from, &socklen);
-      if (len < 0) {
-        DPRINTF("coapserver_listen recv_fn recvmsg error!\n");
-        continue;
-      }
+    DPRINTF("coapserver.Socket.recvfrom - Got %u-byte request from [%x:%x:%x:%x:%x:%x:%x:%x%%%u]:%hu\n",
+        len,
+        ((uint16_t)from.sin6_addr.s6_addr[0] << 8) | from.sin6_addr.s6_addr[1],
+        ((uint16_t)from.sin6_addr.s6_addr[2] << 8) | from.sin6_addr.s6_addr[3],
+        ((uint16_t)from.sin6_addr.s6_addr[4] << 8) | from.sin6_addr.s6_addr[5],
+        ((uint16_t)from.sin6_addr.s6_addr[6] << 8) | from.sin6_addr.s6_addr[7],
+        ((uint16_t)from.sin6_addr.s6_addr[8] << 8) | from.sin6_addr.s6_addr[9],
+        ((uint16_t)from.sin6_addr.s6_addr[10] << 8) | from.sin6_addr.s6_addr[11],
+        ((uint16_t)from.sin6_addr.s6_addr[12] << 8) | from.sin6_addr.s6_addr[13],
+        ((uint16_t)from.sin6_addr.s6_addr[14] << 8) | from.sin6_addr.s6_addr[15],
+        from.sin6_scope_id, ntohs(from.sin6_port));
 
-      DPRINTF("coapserver.Socket.recvfrom - Got %u-byte request from [%x:%x:%x:%x:%x:%x:%x:%x%%%u]:%hu\n",
-          len,
-          ((uint16_t)from.sin6_addr.s6_addr[0] << 8) | from.sin6_addr.s6_addr[1],
-          ((uint16_t)from.sin6_addr.s6_addr[2] << 8) | from.sin6_addr.s6_addr[3],
-          ((uint16_t)from.sin6_addr.s6_addr[4] << 8) | from.sin6_addr.s6_addr[5],
-          ((uint16_t)from.sin6_addr.s6_addr[6] << 8) | from.sin6_addr.s6_addr[7],
-          ((uint16_t)from.sin6_addr.s6_addr[8] << 8) | from.sin6_addr.s6_addr[9],
-          ((uint16_t)from.sin6_addr.s6_addr[10] << 8) | from.sin6_addr.s6_addr[11],
-          ((uint16_t)from.sin6_addr.s6_addr[12] << 8) | from.sin6_addr.s6_addr[13],
-          ((uint16_t)from.sin6_addr.s6_addr[14] << 8) | from.sin6_addr.s6_addr[15],
-          from.sin6_scope_id, ntohs(from.sin6_port));
-
-      process_datagram(data, len, &from );
-      continue;
-    }
+    process_datagram(data, len, &from );
   }
+#if defined(OSAL_LINUX)
+  return NULL;
+#endif
 }
 
 int coapserver_response(const struct sockaddr_in6 *to,

@@ -98,7 +98,8 @@ int doSendtlvs(tlvid_t *list, uint32_t list_cnt, coap_transaction_type_t txn_typ
                            uint8_t token_length, uint8_t *token) {
   uint8_t *pbuf = g_outbuf;
   coap_uri_seg_t url;
-  int rvi, used = 0;
+  int rvi = 0;
+  int used = 0;
   uint32_t i;
   tlvid_t list_pre[2] = {{0,SESSION_ID_TLVID},{0,CURRENT_TIME_TLVID}};
 
