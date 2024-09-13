@@ -211,6 +211,14 @@ csmp_service_stats_t* csmp_service_stats();
 bool csmp_service_stop();
 
 /**
+ * @brief Reboot service and register with NMS
+ *
+ * @return true
+ * @return false
+ */
+bool csmp_service_reboot(dev_config_t *devconfig);
+
+/**
  * @brief externally defined stats
  *
  */

@@ -121,3 +121,16 @@ csmp_service_status_t csmp_service_status() {
 csmp_service_stats_t* csmp_service_stats() {
   return &g_csmplib_stats;
 }
+
+/**
+ * @brief re-register agent and simulate reboot
+ *        g_reboot_request flag should be set to true before calling
+ *        this function
+ * @return true
+ * @return false
+ */
+bool csmp_service_reboot(dev_config_t *devconfig){
+  //Clearing stats; Note:  main() thread will pause priting stats until reboot completes.
+  memset(&g_csmplib_stats, 0, sizeof(g_csmplib_stats));
+  return register_start(&devconfig->NMSaddr, true);
+}

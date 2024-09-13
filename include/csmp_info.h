@@ -108,7 +108,7 @@ enum {
 
 // IMAGE SLOT INFO
 #define CSMP_FWMGMT_ACTIVE_SLOTS      3          // 0-RUN, 1-UPLOAD, 2-BACKUP
-#define CSMP_FWMGMT_SLOTIMG_SIZE      (650*1024) // ~650 Kb
+#define CSMP_FWMGMT_SLOTIMG_SIZE      (30*1024) // ~30 Kb
 #define CSMP_FWMGMT_BLKMAP_CNT        (32)
 
 // IMAGE SLOT ID
@@ -682,21 +682,24 @@ struct _Firmware_Image_Info
   { 0,0, 0,{0,{0}}, 0,{0}, 0,{0}, 0,0, 0,0, 0, 0,{0,{0}}, 0,0, 0,0, 0,0, 0,{0,{0}, \
   0,{0}}, 0,{0}, 0,{0}, 0,0, 0,0, 0 }
 
+// Image app header
+typedef struct {
+  uint32_t hdr_version;
+  uint32_t hdr_len;
+  uint32_t app_rev_major;
+  uint32_t app_rev_minor;
+  uint32_t app_build;
+  uint32_t app_len;  // Includes header, app and checksum
+  char app_name[FILE_NAME_SIZE];
+  char app_git_branch[32];
+  char app_git_commit[8];
+  uint32_t app_git_flag;
+  char app_build_date[16];
+  char hwid[HWID_SIZE];
+} _Apphdr;
 // Image slot header
 struct _Csmp_Slothdr
 {
-  // Image app header
-  struct {
-    uint32_t hdrversion;
-    uint32_t hdrlen;
-    uint32_t major;
-    uint32_t minor;
-    uint32_t build;
-    char name[FILE_NAME_SIZE];
-    char builddate[VERSION_SIZE];
-    char hwid[HWID_SIZE];
-  } apphdr;
-  // Image slot header
   uint8_t filehash[SHA256_HASH_SIZE];
   char filename[FILE_NAME_SIZE];
   char version[VERSION_SIZE];

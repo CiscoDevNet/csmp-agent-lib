@@ -21,7 +21,6 @@
 #include "csmptlv.h"
 #include "csmpagent.h"
 #include "CsmpTlvs.pb-c.h"
-
 extern bool g_downloadbusy;
 
 // TLV65 TRANSFER_REQUEST_TLVID
@@ -50,8 +49,8 @@ int csmp_get_transferRequest(tlvid_t tlvid, uint8_t *buf, size_t len,
     if(xfer_req) {
         // Firmware status check
         if (!xfer_req->has_status || xfer_req->status != FWHDR_STATUS_DOWNLOAD) {
-          DPRINTF("csmpagent_firmwaremgmt: Transfer request status error! (%x)\n", 
-                  xfer_req->status);  
+          DPRINTF("csmpagent_firmwaremgmt: Transfer request status error! (%x)\n",
+                  xfer_req->status);
           return CSMP_OP_TLV_RD_EMPTY;
         }
         DPRINTF("Transfer Request: GET\n");
@@ -142,11 +141,12 @@ int csmp_put_transferRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
     const uint8_t *pbuf = buf;
     size_t rv;
     int used = 0;
+    uint8_t filehash_data[SHA256_HASH_SIZE] = {0};
 
-    TransferRequest TransferRequestMsg = TRANSFER_REQUEST__INIT;
+    TransferRequest *TransferRequestMsg = NULL;
     TransferResponse TransferResponseMsg = TRANSFER_RESPONSE__INIT;
     Transfer_Request xfer_req = TRANSFER_REQUEST_INIT;
-
+    TransferResponseMsg.filehash.data = filehash_data;
     rv = csmptlv_readTL(pbuf, len, &tlvid_in, &tlvlen);
     if ((rv == 0) || (tlvid_in.type != TRANSFER_REQUEST_TLVID)) {
         DPRINTF("csmpagent_firmwaremgmt: csmptlv %d read error!\n", tlvid.type);
@@ -154,7 +154,7 @@ int csmp_put_transferRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
     }
     pbuf += rv; used += rv;
 
-    rv = csmptlv_readV(pbuf, tlvlen, (ProtobufCMessage **)&TransferRequestMsg, 
+    rv = csmptlv_readV(pbuf, tlvlen, (ProtobufCMessage **)&TransferRequestMsg,
                        &transfer_request__descriptor);
     if (rv == 0) {
         DPRINTF("csmpagent_firmwaremgmt: csmptlv %d read error!\n", tlvid.type);
@@ -163,72 +163,72 @@ int csmp_put_transferRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
     pbuf += rv; used += rv;
 
     DPRINTF("Transfer Request: POST\n");
-    DPRINTF("hwid=%s\n", TransferRequestMsg.hwinfo->hwid);
+    DPRINTF("hwid=%s\n", TransferRequestMsg->hwinfo->hwid);
     DPRINTF("filehash=");
     DPRINTF("[len=%lu, data=(0x%02x,0x%02x,0x%02x...0x%02x,0x%02x,0x%02x)]\n",
-            TransferRequestMsg.filehash.len,
-            TransferRequestMsg.filehash.data[0],
-            TransferRequestMsg.filehash.data[1],
-            TransferRequestMsg.filehash.data[2],
-            TransferRequestMsg.filehash.data[17],
-            TransferRequestMsg.filehash.data[18],
-            TransferRequestMsg.filehash.data[19]);
-    DPRINTF("filename=%s\n", TransferRequestMsg.filename); 
-    DPRINTF("version=%s\n", TransferRequestMsg.version); 
-    DPRINTF("filesize=%u\n", TransferRequestMsg.filesize); 
-    DPRINTF("blocksize=%u\n", TransferRequestMsg.blocksize); 
-    DPRINTF("reportintervalMin(%c)=%u\n", (TransferRequestMsg.report_interval_min_present_case) ?
-            'y' : 'n', TransferRequestMsg.reportintervalmin);
-    DPRINTF("reportintervalMax(%c)=%u\n", (TransferRequestMsg.report_interval_max_present_case) ?
-            'y' : 'n', TransferRequestMsg.reportintervalmax);
+            TransferRequestMsg->filehash.len,
+            TransferRequestMsg->filehash.data[0],
+            TransferRequestMsg->filehash.data[1],
+            TransferRequestMsg->filehash.data[2],
+            TransferRequestMsg->filehash.data[17],
+            TransferRequestMsg->filehash.data[18],
+            TransferRequestMsg->filehash.data[19]);
+    DPRINTF("filename=%s\n", TransferRequestMsg->filename);
+    DPRINTF("version=%s\n", TransferRequestMsg->version);
+    DPRINTF("filesize=%u\n", TransferRequestMsg->filesize);
+    DPRINTF("blocksize=%u\n", TransferRequestMsg->blocksize);
+    DPRINTF("reportintervalMin(%c)=%u\n", (TransferRequestMsg->report_interval_min_present_case) ?
+            'y' : 'n', TransferRequestMsg->reportintervalmin);
+    DPRINTF("reportintervalMax(%c)=%u\n", (TransferRequestMsg->report_interval_max_present_case) ?
+            'y' : 'n', TransferRequestMsg->reportintervalmax);
 
     memset(&xfer_req, 0, sizeof(xfer_req));
 
     // Hardware Info
-    if (TransferRequestMsg.hwinfo->hw_id_present_case ||
-            TransferRequestMsg.hwinfo->vendor_hw_id_present_case) {
+    if (TransferRequestMsg->hwinfo->hw_id_present_case ||
+            TransferRequestMsg->hwinfo->vendor_hw_id_present_case) {
         xfer_req.hwinfo.has_hwid = true;
     }
-    if (TransferRequestMsg.hwinfo->hw_id_present_case) {
+    if (TransferRequestMsg->hwinfo->hw_id_present_case) {
         xfer_req.has_hwinfo = true;
-        memcpy(&xfer_req.hwinfo.hwid, &TransferRequestMsg.hwinfo->hwid,
+        memcpy(xfer_req.hwinfo.hwid, TransferRequestMsg->hwinfo->hwid,
                sizeof(xfer_req.hwinfo.hwid));
     }
-    if (TransferRequestMsg.hwinfo->vendor_hw_id_present_case) {
+    if (TransferRequestMsg->hwinfo->vendor_hw_id_present_case) {
         xfer_req.hwinfo.has_vendorhwid = true;
-        memcpy(&xfer_req.hwinfo.vendorhwid, &TransferRequestMsg.hwinfo->vendorhwid,
+        memcpy(xfer_req.hwinfo.vendorhwid, TransferRequestMsg->hwinfo->vendorhwid,
                sizeof(xfer_req.hwinfo.vendorhwid));
     }
     // File details
-    if (TransferRequestMsg.file_hash_present_case) {
+    if (TransferRequestMsg->file_hash_present_case) {
         xfer_req.has_filehash = true;
-        xfer_req.filehash.len = TransferRequestMsg.filehash.len;
-        memcpy(xfer_req.filehash.data, TransferRequestMsg.filehash.data, TransferRequestMsg.filehash.len);
+        xfer_req.filehash.len = TransferRequestMsg->filehash.len;
+        memcpy(xfer_req.filehash.data, TransferRequestMsg->filehash.data, TransferRequestMsg->filehash.len);
     }
-    if (TransferRequestMsg.file_name_present_case) {
+    if (TransferRequestMsg->file_name_present_case) {
         xfer_req.has_filename = true;
-        memcpy(xfer_req.filename, TransferRequestMsg.filename, FILE_NAME_SIZE);
+        strncpy(xfer_req.filename, TransferRequestMsg->filename, FILE_NAME_SIZE);
     }
-    if (TransferRequestMsg.version_present_case) {
+    if (TransferRequestMsg->version_present_case) {
         xfer_req.has_version = true;
-        strncpy(xfer_req.version, TransferRequestMsg.version, sizeof(xfer_req.version));
+        strncpy(xfer_req.version, TransferRequestMsg->version, sizeof(xfer_req.version));
     }
-    if (TransferRequestMsg.file_size_present_case) {
+    if (TransferRequestMsg->file_size_present_case) {
         xfer_req.has_filesize = true;
-        xfer_req.filesize = TransferRequestMsg.filesize;
+        xfer_req.filesize = TransferRequestMsg->filesize;
     }
-    if (TransferRequestMsg.block_size_present_case) {
+    if (TransferRequestMsg->block_size_present_case) {
         xfer_req.has_blocksize = true;
-        xfer_req.blocksize = TransferRequestMsg.blocksize;
+        xfer_req.blocksize = TransferRequestMsg->blocksize;
     }
     // Report interval
-    if (TransferRequestMsg.report_interval_min_present_case) {
+    if (TransferRequestMsg->report_interval_min_present_case) {
         xfer_req.has_report_int_min = true;
-        xfer_req.report_int_min = TransferRequestMsg.reportintervalmin;
+        xfer_req.report_int_min = TransferRequestMsg->reportintervalmin;
     }
-    if (TransferRequestMsg.report_interval_max_present_case) {
+    if (TransferRequestMsg->report_interval_max_present_case) {
         xfer_req.has_report_int_max = true;
-        xfer_req.report_int_max = TransferRequestMsg.reportintervalmax;
+        xfer_req.report_int_max = TransferRequestMsg->reportintervalmax;
     }
 
     g_csmptlvs_post(tlvid, &xfer_req);
@@ -270,9 +270,9 @@ int csmp_put_transferRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
             case RESPONSE_OK:
                 TransferResponseMsg.response = xfer_req.response;
                 TransferResponseMsg.file_hash_present_case = TRANSFER_RESPONSE__FILE_HASH_PRESENT_FILE_HASH;
-                TransferResponseMsg.filehash.len = TransferRequestMsg.filehash.len;
-                memcpy(TransferResponseMsg.filehash.data, TransferRequestMsg.filehash.data,
-                        TransferRequestMsg.filehash.len);
+                TransferResponseMsg.filehash.len = TransferRequestMsg->filehash.len;
+                memcpy(TransferResponseMsg.filehash.data, TransferRequestMsg->filehash.data,
+                        TransferRequestMsg->filehash.len);
                 DPRINTF("csmpagent_firmwaremgmt: Response Ok, Starting new transfer.\n");
                 break;
 
@@ -314,7 +314,7 @@ int csmp_put_imageBlock(tlvid_t tlvid, const uint8_t *buf, size_t len,
   size_t rv;
   int used = 0;
 
-  ImageBlock CurrentBlkMsg = IMAGE_BLOCK__INIT;
+  ImageBlock *CurrentBlkMsg = NULL;
   Image_Block image_blk = IMAGE_BLOCK_INIT;
 
   rv = csmptlv_readTL(pbuf, len, &tlvid_in, &tlvlen);
@@ -341,35 +341,35 @@ int csmp_put_imageBlock(tlvid_t tlvid, const uint8_t *buf, size_t len,
   DPRINTF("Image Block: POST\n");
   DPRINTF("filehash=");
   DPRINTF("[len=%lu, data=(0x%02x,0x%02x,0x%02x...0x%02x,0x%02x,0x%02x)]\n",
-          CurrentBlkMsg.filehash.len,
-          CurrentBlkMsg.filehash.data[0],
-          CurrentBlkMsg.filehash.data[1],
-          CurrentBlkMsg.filehash.data[2],
-          CurrentBlkMsg.filehash.data[17],
-          CurrentBlkMsg.filehash.data[18],
-          CurrentBlkMsg.filehash.data[19]);
-  DPRINTF("blocknum=%u\n", CurrentBlkMsg.blocknum);
+          CurrentBlkMsg->filehash.len,
+          CurrentBlkMsg->filehash.data[0],
+          CurrentBlkMsg->filehash.data[1],
+          CurrentBlkMsg->filehash.data[2],
+          CurrentBlkMsg->filehash.data[17],
+          CurrentBlkMsg->filehash.data[18],
+          CurrentBlkMsg->filehash.data[19]);
+  DPRINTF("blocknum=%u\n", CurrentBlkMsg->blocknum);
   DPRINTF("blockdata=");
   DPRINTF("[len=%lu, data=(0x%02x...)]\n",
-          CurrentBlkMsg.blockdata.len,
-          CurrentBlkMsg.blockdata.data[0]);
+          CurrentBlkMsg->blockdata.len,
+          CurrentBlkMsg->blockdata.data[0]);
   DPRINTF("g_downloadbusy(before)=%d\n", g_downloadbusy);
 
-  if (CurrentBlkMsg.file_hash_present_case) {
+  if (CurrentBlkMsg->file_hash_present_case) {
     g_downloadbusy = true;
     memset(&image_blk, 0, sizeof(image_blk));
     image_blk.has_filehash = true;
-    image_blk.filehash.len = (CurrentBlkMsg.filehash.len <= sizeof(image_blk.filehash.data)) ?
-                              CurrentBlkMsg.filehash.len : sizeof(image_blk.filehash.data);
-    memcpy(&image_blk.filehash.data, CurrentBlkMsg.filehash.data, image_blk.filehash.len);
+    image_blk.filehash.len = (CurrentBlkMsg->filehash.len <= sizeof(image_blk.filehash.data)) ?
+                              CurrentBlkMsg->filehash.len : sizeof(image_blk.filehash.data);
+    memcpy(image_blk.filehash.data, CurrentBlkMsg->filehash.data, image_blk.filehash.len);
 
     image_blk.has_blocknum = true;
-    image_blk.blocknum = CurrentBlkMsg.blocknum;
+    image_blk.blocknum = CurrentBlkMsg->blocknum;
 
     image_blk.has_blockdata = true;
-    image_blk.blockdata.len = (CurrentBlkMsg.blockdata.len <= sizeof(image_blk.blockdata.data)) ?
-                              CurrentBlkMsg.blockdata.len : sizeof(image_blk.blockdata.data);
-    memcpy(&image_blk.blockdata.data, CurrentBlkMsg.blockdata.data, image_blk.blockdata.len);
+    image_blk.blockdata.len = (CurrentBlkMsg->blockdata.len <= sizeof(image_blk.blockdata.data)) ?
+                              CurrentBlkMsg->blockdata.len : sizeof(image_blk.blockdata.data);
+    memcpy(image_blk.blockdata.data, CurrentBlkMsg->blockdata.data, image_blk.blockdata.len);
 
     g_csmptlvs_post(tlvid, &image_blk);
 
@@ -390,7 +390,7 @@ done:
 // TLV68 LOAD_REQUEST_TLVID
 // GET: supported
 // PUT: supported
-int csmp_get_loadRequest(tlvid_t tlvid, uint8_t *buf, size_t len, 
+int csmp_get_loadRequest(tlvid_t tlvid, uint8_t *buf, size_t len,
                         int32_t tlvindex)
 {
   DPRINTF("** csmpagent_firmwaremgmt: GET for TLV %d.\n", tlvid.type);
@@ -451,11 +451,11 @@ int csmp_put_loadRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
   const uint8_t *pbuf = buf;
   size_t rv;
   int used = 0;
-
-  LoadRequest LoadRequestMsg = LOAD_REQUEST__INIT;
+  uint8_t filehash_data[SHA256_HASH_SIZE]={0};
+  LoadRequest *LoadRequestMsg = NULL;
   LoadResponse LoadResponseMsg = LOAD_RESPONSE__INIT;
   Load_Request lrc = LOAD_REQUEST_INIT;
-
+  LoadResponseMsg.filehash.data = filehash_data;
   rv = csmptlv_readTL(pbuf, len, &tlvid_in, &tlvlen);
   if ((rv == 0) || (tlvid_in.type != LOAD_REQUEST_TLVID)) {
     DPRINTF("csmpagent_firmwaremgmt: csmptlv %d read error!\n", tlvid.type);
@@ -474,18 +474,18 @@ int csmp_put_loadRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
   DPRINTF("Load Request: PUT\n");
   DPRINTF("filehash=");
   DPRINTF("[len=%lu, data=(0x%02x,0x%02x,0x%02x...0x%02x,0x%02x,0x%02x)]\n",
-          LoadRequestMsg.filehash.len,
-          LoadRequestMsg.filehash.data[0],
-          LoadRequestMsg.filehash.data[1],
-          LoadRequestMsg.filehash.data[2],
-          LoadRequestMsg.filehash.data[17],
-          LoadRequestMsg.filehash.data[18],
-          LoadRequestMsg.filehash.data[19]);
-  DPRINTF("loadtime=%u\n", (LoadRequestMsg.load_time_present_case) ?
-          LoadRequestMsg.loadtime : 0);
+          LoadRequestMsg->filehash.len,
+          LoadRequestMsg->filehash.data[0],
+          LoadRequestMsg->filehash.data[1],
+          LoadRequestMsg->filehash.data[2],
+          LoadRequestMsg->filehash.data[17],
+          LoadRequestMsg->filehash.data[18],
+          LoadRequestMsg->filehash.data[19]);
+  DPRINTF("loadtime=%u\n", (LoadRequestMsg->load_time_present_case) ?
+          LoadRequestMsg->loadtime : 0);
 
-  if ((!LoadRequestMsg.file_hash_present_case) ||
-      (LoadRequestMsg.filehash.len != SHA256_HASH_SIZE)
+  if ((!LoadRequestMsg->file_hash_present_case) ||
+      (LoadRequestMsg->filehash.len != SHA256_HASH_SIZE)
      ) {
     LoadResponseMsg.response = RESPONSE_INVALID_REQ;
     goto respond;
@@ -493,17 +493,17 @@ int csmp_put_loadRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
 
   LoadResponseMsg.response = RESPONSE_OK;
   LoadResponseMsg.file_hash_present_case = LOAD_RESPONSE__FILE_HASH_PRESENT_FILE_HASH;
-  LoadResponseMsg.filehash.len = LoadRequestMsg.filehash.len;
-  memcpy(LoadResponseMsg.filehash.data, LoadRequestMsg.filehash.data,
-         LoadRequestMsg.filehash.len);
+  LoadResponseMsg.filehash.len = LoadRequestMsg->filehash.len;
+  memcpy(LoadResponseMsg.filehash.data, LoadRequestMsg->filehash.data,
+         LoadRequestMsg->filehash.len);
 
   memset(&lrc, 0, sizeof(lrc));
   lrc.has_filehash = true;
-  lrc.filehash.len = (LoadRequestMsg.filehash.len <= sizeof(lrc.filehash.data)) ?
-                      LoadRequestMsg.filehash.len : sizeof(lrc.filehash.data);
-  memcpy(&lrc.filehash.data, LoadRequestMsg.filehash.data, lrc.filehash.len);
-  lrc.loadtime = (LoadRequestMsg.load_time_present_case) ?
-                  LoadRequestMsg.loadtime : 0;
+  lrc.filehash.len = (LoadRequestMsg->filehash.len <= sizeof(lrc.filehash.data)) ?
+                      LoadRequestMsg->filehash.len : sizeof(lrc.filehash.data);
+  memcpy(&lrc.filehash.data, LoadRequestMsg->filehash.data, lrc.filehash.len);
+  lrc.loadtime = (LoadRequestMsg->load_time_present_case) ?
+                  LoadRequestMsg->loadtime : 0;
   lrc.response = RESPONSE_OK;
 
   g_csmptlvs_post(tlvid, &lrc);
@@ -511,7 +511,7 @@ int csmp_put_loadRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
   LoadResponseMsg.response = lrc.response;
   if (LoadResponseMsg.response == RESPONSE_OK) {
     LoadResponseMsg.load_time_present_case = LOAD_RESPONSE__LOAD_TIME_PRESENT_LOAD_TIME;
-    LoadResponseMsg.loadtime = LoadRequestMsg.loadtime;
+    LoadResponseMsg.loadtime = LoadRequestMsg->loadtime;
   }
 
 respond:
@@ -548,11 +548,11 @@ int csmp_put_cancelLoadRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
   const uint8_t *pbuf = buf;
   size_t rv;
   int used = 0;
-
-  CancelLoadRequest XLoadRequestMsg = CANCEL_LOAD_REQUEST__INIT;
+  uint8_t filehash_data[SHA256_HASH_SIZE] = {0};
+  CancelLoadRequest *XLoadRequestMsg = NULL;
   CancelLoadResponse XLoadResponseMsg = CANCEL_LOAD_RESPONSE__INIT;
   Cancel_Load_Request clrc = CANCEL_LOAD_REQUEST_INIT;
-
+  XLoadResponseMsg.filehash.data = filehash_data;
   rv = csmptlv_readTL(pbuf, len, &tlvid_in, &tlvlen);
   if ((rv == 0) || (tlvid_in.type != CANCEL_LOAD_REQUEST_TLVID)) {
     DPRINTF("csmpagent_firmwaremgmt: csmptlv %d read error!\n", tlvid.type);
@@ -571,22 +571,22 @@ int csmp_put_cancelLoadRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
   DPRINTF("Cancel Load Request: PUT\n");
   DPRINTF("filehash=");
   DPRINTF("[len=%lu, data=(0x%02x,0x%02x,0x%02x...0x%02x,0x%02x,0x%02x)]\n",
-          XLoadRequestMsg.filehash.len,
-          XLoadRequestMsg.filehash.data[0],
-          XLoadRequestMsg.filehash.data[1],
-          XLoadRequestMsg.filehash.data[2],
-          XLoadRequestMsg.filehash.data[17],
-          XLoadRequestMsg.filehash.data[18],
-          XLoadRequestMsg.filehash.data[19]);
+          XLoadRequestMsg->filehash.len,
+          XLoadRequestMsg->filehash.data[0],
+          XLoadRequestMsg->filehash.data[1],
+          XLoadRequestMsg->filehash.data[2],
+          XLoadRequestMsg->filehash.data[17],
+          XLoadRequestMsg->filehash.data[18],
+          XLoadRequestMsg->filehash.data[19]);
 
-  if (!XLoadRequestMsg.file_hash_present_case) {
+  if (!XLoadRequestMsg->file_hash_present_case) {
     DPRINTF("csmpagent_firmwaremgmt: Received unspecific cancel load request.\n");
     XLoadResponseMsg.response = RESPONSE_INVALID_REQ;
     goto respond;
   }
 
-  if (XLoadRequestMsg.file_hash_present_case &&
-      (XLoadRequestMsg.filehash.len != SHA256_HASH_SIZE)) {
+  if (XLoadRequestMsg->file_hash_present_case &&
+      (XLoadRequestMsg->filehash.len != SHA256_HASH_SIZE)) {
     DPRINTF("csmpagent_firmwaremgmt: Received invalid cancel load request.\n");
     XLoadResponseMsg.response = RESPONSE_INVALID_REQ;
     goto respond;
@@ -594,15 +594,15 @@ int csmp_put_cancelLoadRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
 
   XLoadResponseMsg.response = RESPONSE_OK;
   XLoadResponseMsg.file_hash_present_case = CANCEL_LOAD_RESPONSE__FILE_HASH_PRESENT_FILE_HASH;
-  XLoadResponseMsg.filehash.len = XLoadRequestMsg.filehash.len;
-  memcpy(XLoadResponseMsg.filehash.data, XLoadRequestMsg.filehash.data, 
-         XLoadRequestMsg.filehash.len);
+  XLoadResponseMsg.filehash.len = XLoadRequestMsg->filehash.len;
+  memcpy(XLoadResponseMsg.filehash.data, XLoadRequestMsg->filehash.data,
+         XLoadRequestMsg->filehash.len);
 
   memset(&clrc, 0, sizeof(clrc));
   clrc.has_filehash = true;
-  clrc.filehash.len = (XLoadRequestMsg.filehash.len <= sizeof(clrc.filehash.data)) ? 
-                       XLoadRequestMsg.filehash.len : sizeof(clrc.filehash.data);
-  memcpy(&clrc.filehash.data, XLoadRequestMsg.filehash.data, clrc.filehash.len);
+  clrc.filehash.len = (XLoadRequestMsg->filehash.len <= sizeof(clrc.filehash.data)) ?
+                       XLoadRequestMsg->filehash.len : sizeof(clrc.filehash.data);
+  memcpy(&clrc.filehash.data, XLoadRequestMsg->filehash.data, clrc.filehash.len);
   clrc.response = RESPONSE_OK;
 
   g_csmptlvs_post(tlvid, &clrc);
@@ -620,7 +620,7 @@ respond:
     return CSMP_OP_TLV_WR_ERROR;
   }
 
-  *out_len = rv; 
+  *out_len = rv;
   DPRINTF("response=%u\n", XLoadResponseMsg.response);
   DPRINTF("csmpagent_firmwaremgmt: csmptlv %d wrote [%ld] bytes to buffer!\n", tlvid_out.type, rv);
   DPRINTF("** csmpagent_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
@@ -643,11 +643,11 @@ int csmp_put_setBackupRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
     const uint8_t *pbuf = buf;
     size_t rv;
     int used = 0;
-
-    SetBackupRequest SetBackupRequestMsg = SET_BACKUP_REQUEST__INIT;
+    uint8_t filehash_data[SHA256_HASH_SIZE] = {0};
+    SetBackupRequest *SetBackupRequestMsg = NULL;
     SetBackupResponse SetBackupResponseMsg = SET_BACKUP_RESPONSE__INIT;
     Set_Backup_Request sbrc = SET_BACKUP_REQUEST_INIT;
-
+    SetBackupResponseMsg.filehash.data = filehash_data;
     rv = csmptlv_readTL(pbuf, len, &tlvid_in, &tlvlen);
     if ((rv == 0) || (tlvid_in.type != SET_BACKUP_REQUEST_TLVID)) {
         DPRINTF("csmpagent_firmwaremgmt: csmptlv %d read error!\n", tlvid.type);
@@ -655,7 +655,7 @@ int csmp_put_setBackupRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
     }
     pbuf += rv; used += rv;
 
-    rv = csmptlv_readV(pbuf, tlvlen, (ProtobufCMessage **)&SetBackupRequestMsg, 
+    rv = csmptlv_readV(pbuf, tlvlen, (ProtobufCMessage **)&SetBackupRequestMsg,
                        &set_backup_request__descriptor);
     if (rv == 0) {
         DPRINTF("csmpagent_firmwaremgmt: csmptlv %d read error!\n", tlvid.type);
@@ -666,16 +666,16 @@ int csmp_put_setBackupRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
     DPRINTF("Set Backup Request: PUT\n");
     DPRINTF("filehash=");
     DPRINTF("[len=%lu, data=(0x%02x,0x%02x,0x%02x...0x%02x,0x%02x,0x%02x)]\n",
-            SetBackupRequestMsg.filehash.len,
-            SetBackupRequestMsg.filehash.data[0],
-            SetBackupRequestMsg.filehash.data[1],
-            SetBackupRequestMsg.filehash.data[2],
-            SetBackupRequestMsg.filehash.data[17],
-            SetBackupRequestMsg.filehash.data[18],
-            SetBackupRequestMsg.filehash.data[19]);
+            SetBackupRequestMsg->filehash.len,
+            SetBackupRequestMsg->filehash.data[0],
+            SetBackupRequestMsg->filehash.data[1],
+            SetBackupRequestMsg->filehash.data[2],
+            SetBackupRequestMsg->filehash.data[17],
+            SetBackupRequestMsg->filehash.data[18],
+            SetBackupRequestMsg->filehash.data[19]);
 
-    if ((!SetBackupRequestMsg.file_hash_present_case) || 
-        (SetBackupRequestMsg.filehash.len != SHA256_HASH_SIZE)
+    if ((!SetBackupRequestMsg->file_hash_present_case) ||
+        (SetBackupRequestMsg->filehash.len != SHA256_HASH_SIZE)
        ) {
         SetBackupResponseMsg.response = RESPONSE_INVALID_REQ;
         DPRINTF("csmpagent_firmwaremgmt: Received invalid set backup request.\n");
@@ -684,15 +684,15 @@ int csmp_put_setBackupRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
 
     SetBackupResponseMsg.response = RESPONSE_OK;
     SetBackupResponseMsg.file_hash_present_case = SET_BACKUP_RESPONSE__FILE_HASH_PRESENT_FILE_HASH;
-    SetBackupResponseMsg.filehash.len = SetBackupRequestMsg.filehash.len;
-    memcpy(SetBackupResponseMsg.filehash.data, SetBackupRequestMsg.filehash.data,
-           SetBackupRequestMsg.filehash.len);
+    SetBackupResponseMsg.filehash.len = SetBackupRequestMsg->filehash.len;
+    memcpy(SetBackupResponseMsg.filehash.data, SetBackupRequestMsg->filehash.data,
+           SetBackupRequestMsg->filehash.len);
 
     memset(&sbrc, 0, sizeof(sbrc));
     sbrc.has_filehash = true;
-    sbrc.filehash.len = (SetBackupRequestMsg.filehash.len <= sizeof(sbrc.filehash.data)) ?
-                         SetBackupRequestMsg.filehash.len : sizeof(sbrc.filehash.data);
-    memcpy(&sbrc.filehash.data, SetBackupRequestMsg.filehash.data, sbrc.filehash.len);
+    sbrc.filehash.len = (SetBackupRequestMsg->filehash.len <= sizeof(sbrc.filehash.data)) ?
+                         SetBackupRequestMsg->filehash.len : sizeof(sbrc.filehash.data);
+    memcpy(&sbrc.filehash.data, SetBackupRequestMsg->filehash.data, sbrc.filehash.len);
     sbrc.response = RESPONSE_OK;
 
     g_csmptlvs_post(tlvid, &sbrc);
@@ -840,17 +840,15 @@ int csmp_get_firmwareImageInfo(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t 
       FirmwareImageInfoMsg.subkernelversion = fii[idx].subkernelversion;
     }
     */
-    if(fii[idx].status == FWHDR_STATUS_COMPLETE) {
-      rv = csmptlv_write(pbuf, len - used, tlvid, (ProtobufCMessage *)&FirmwareImageInfoMsg);
-      DPRINTF("csmpagent_firmwaremgmt: TLV75 id=%d rv=%ld len=%ld used=%ld\n", idx, rv, len, used);
-      if (rv == 0) {
-        DPRINTF("csmpagent_firmwaremgmt: csmptlv %d write error!\n", tlvid.type);
-        return CSMP_OP_TLV_WR_ERROR;
-      }
-      DPRINTF("csmpagent_firmwaremgmt: csmptlv %d wrote [%ld] bytes to buffer!\n", tlvid.type, rv);
-      pbuf += rv;
-      used += rv;
+    rv = csmptlv_write(pbuf, len - used, tlvid, (ProtobufCMessage *)&FirmwareImageInfoMsg);
+    DPRINTF("csmpagent_firmwaremgmt: TLV75 id=%d rv=%ld len=%ld used=%ld\n", idx, rv, len, used);
+    if (rv == 0) {
+      DPRINTF("csmpagent_firmwaremgmt: csmptlv %d write error!\n", tlvid.type);
+      return CSMP_OP_TLV_WR_ERROR;
     }
+    DPRINTF("csmpagent_firmwaremgmt: csmptlv %d wrote [%ld] bytes to buffer!\n", tlvid.type, rv);
+    pbuf += rv;
+    used += rv;
     idx++;
     if (tlvindex > 0) {
       DPRINTF("csmpagent_firmwaremgmt: Firmware Image Info tlvindex > 0\n");
@@ -864,6 +862,72 @@ int csmp_get_firmwareImageInfo(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t 
 
   DPRINTF("csmpagent_firmwaremgmt: csmptlv %d wrote [%ld] bytes to buffer!\n", tlvid.type, used);
   DPRINTF("** csmpagent_firmwaremgmt: GET for TLV %d done.\n", tlvid.type);
+  return used;
+}
+
+// TLV8 DESCRIPTION_REQUEST_TLVID
+// GET: unsupported
+// PUT: supported
+int csmp_put_descriptionRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
+                             uint8_t *out_buf, size_t out_size, size_t *out_len,
+                             int32_t tlvindex)
+{
+  DescriptionRequest *DescriptionRequestMsg = NULL;
+  tlvid_t tlvid0;
+  uint32_t tlvlen;
+  const uint8_t *pbuf = buf;
+  int rv;
+  int used = 0;
+  long unsigned int i;
+  (void) tlvid; // Suppress unused param compiler warning.
+  (void) out_buf; // Suppress unused param compiler warning.
+  (void) out_size; // Suppress unused param compiler warning.
+  (void) out_len; // Suppress unused param compiler warning.
+  (void) tlvindex; // Suppress unused param compiler warning.
+
+  DPRINTF("Received POST descriptionRequest TLV8 \n");
+
+  rv = csmptlv_readTL(pbuf, len, &tlvid0, &tlvlen);
+  if ((rv == 0) || (tlvid0.type != DESCRIPTION_REQUEST_TLVID)) {
+    return -1;
+  }
+  pbuf += rv; used+=rv;
+
+  rv = csmptlv_readV(pbuf, tlvlen, (ProtobufCMessage **)&DescriptionRequestMsg,&description_request__descriptor);
+  if (rv == 0) {
+    return -1;
+  }
+  pbuf += rv; used+=rv;
+
+  DPRINTF("DescriptionRequest: n_tlvids=%lu \n",DescriptionRequestMsg->n_tlvid);
+  for(i=0; i< DescriptionRequestMsg->n_tlvid; i++){
+    tlvid_t tlvData;
+    int result;
+    result = csmptlv_str2id(DescriptionRequestMsg->tlvid[i],&tlvData);
+    DPRINTF("DescrptionRequest: GET e%u.%u \n",tlvData.vendor,tlvData.type);
+    if (result == 0)
+      continue;
+    rv = csmpagent_get(tlvData, out_buf, out_size-(*out_len), tlvindex);
+    if (rv < 0) {
+      DPRINTF("DescriptionRequest: Unable to write TLV %u.%u\n",tlvData.vendor,tlvData.type);
+      if (rv == CSMP_OP_TLV_WR_ERROR) {
+        DPRINTF("DescriptionRequest: Current Buffer is insufficient. TLV %u.%u\n",tlvData.vendor,tlvData.type);
+        break;
+      } else if (rv == CSMP_OP_UNSUPPORTED) {
+        DPRINTF("DescriptionRequest: Unsupported TLV %u.%u\n",tlvData.vendor,tlvData.type);
+        rv = 0;  // ignore unsupported tlvs
+      } else {
+        DPRINTF("DescriptionRequest: Unable to get TLV %u.%u\n",tlvData.vendor,tlvData.type);
+        rv = 0;
+      }
+    }
+    out_buf += rv; (*out_len)+= rv;
+
+  }
+
+  DPRINTF("Processed POST %s TLV with size=%lu\n", DescriptionRequestMsg->base.descriptor->name, *out_len);
+
+  csmptlv_free((ProtobufCMessage *)DescriptionRequestMsg);
   return used;
 }
 

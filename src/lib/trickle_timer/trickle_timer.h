@@ -29,7 +29,8 @@ typedef enum {
  reg_timer = 0,  /**< register timer */
  rpt_timer = 1,  /**< reporting timer */
  lrq_timer = 2,  /**< firmware load request timer */
- timer_num = 3   /**< max amount of timers */
+ async_timer = 3,  /**< async response timer for description/load/backup request */
+ timer_num = 4   /**< max amount of timers */
 }timerid_t;
 
 /**

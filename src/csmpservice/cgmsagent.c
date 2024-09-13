@@ -138,7 +138,6 @@ int doSendtlvs(tlvid_t *list, uint32_t list_cnt, coap_transaction_type_t txn_typ
         DPRINTF("CgmsAgent: Unable to get TLV %u.%u\n",list[i].vendor,list[i].type);
         rvi = 0;
       }
-      return -1;
     }
     pbuf += rvi; used += rvi;
   }
@@ -332,4 +331,16 @@ bool register_start(struct in6_addr *NMSaddr, bool update)
   trickle_timer_start(reg_timer, g_csmplib_reginterval_min, g_csmplib_reginterval_max,
       (trickle_timer_fired_t)register_timer_fired);
   return true;
+}
+
+int sendAsyncResp(uint8_t *obuf, size_t outlen){
+  const char name='c';
+  coap_uri_seg_t url = {1, (uint8_t*) &name};
+  int rv=0;
+  rv =  coapclient_request(&NMS_addr, COAP_NON, COAP_POST, 0, NULL,
+                            &url,1,NULL,0,obuf,outlen);
+  if (rv<0) {
+    DPRINTF("CsmpAgent: Failed to send async response!\n");
+  }
+  return rv;
 }

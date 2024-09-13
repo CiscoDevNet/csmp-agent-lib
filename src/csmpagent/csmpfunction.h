@@ -90,5 +90,7 @@ int csmp_put_setBackupRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
 int csmp_put_vendorTlv(tlvid_t tlvid, const uint8_t *buf, size_t len,
                          uint8_t *out_buf, size_t out_size, size_t *out_len,
                          int32_t tlvindex);
-
+int csmp_put_descriptionRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
+                         uint8_t *out_buf, size_t out_size, size_t *out_len,
+                         int32_t tlvindex);
 #endif  // __CSMPFUNCTION_H
