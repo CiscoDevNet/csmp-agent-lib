@@ -578,7 +578,7 @@ message ImageBlock {
   uint32 blockNum = 2;
   }
   oneof blockData_present {
-  bytes blockData = 3;
+  bytes blockData = 4;
   }
 }
 

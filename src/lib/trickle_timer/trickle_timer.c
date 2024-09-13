@@ -105,6 +105,9 @@ void alarm_fired(void)
       case lrq_timer: DPRINTF("Firmware load request timer fired\n");
       break;
 
+      case async_timer: DPRINTF("Async CSMP Reponse timer fired\n");
+      break;
+
       default: DPRINTF("Error: Invalid trickle timer id\n");
     }
 
@@ -169,6 +172,9 @@ void trickle_timer_start(timerid_t timerid, uint32_t imin, uint32_t imax, trickl
     case lrq_timer: DPRINTF("Firmware load request timer start\n");
     break;
 
+    case async_timer: DPRINTF("Async CSMP Reponse timer start\n");
+    break;
+
     default: DPRINTF("Error: Invalid trickle timer id\n");
   }
 
@@ -202,6 +208,9 @@ void trickle_timer_stop(timerid_t timerid)
     break;
 
     case lrq_timer: DPRINTF("Firmware load request timer stop\n");
+    break;
+
+    case async_timer: DPRINTF("Async CSMP Reponse timer stop\n");
     break;
 
     default: DPRINTF("Error: Invalid trickle timer id\n");

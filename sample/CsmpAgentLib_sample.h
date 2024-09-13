@@ -120,8 +120,12 @@
 /** \brief NMS ip address*/
 #define NMS_IP "2001:a:b:c::ffaa"
 
-/** \brief eui64, should come from the HW*/
+/** \brief eui64, should come from the HW */
 uint8_t g_eui64[8] = {0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb2};
+
+/** \brief Agent's IPv6 addr, can also be set via cli param -ip */
+char g_ipv6[46]="1:1:1::202";
+
 /************************ end *********************************************/
 
 /** \brief  minium registation interval*/
@@ -138,13 +142,17 @@ uint8_t g_eui64[8] = {0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb2};
 
 #define nexthop_IP "fe80::a00:27ff:fe3b:2ab1"
 
-#define DEVICE_TYPE CSMP_AGENT
+#define DEVICE_TYPE OPENCSMP
 enum {
   GENERIC_HW = 0,
-  CSMP_AGENT = 1,
+  OPENCSMP = 1,
   CISCO_IR510 = 2,
   ITRON_METER = 3
 };
+// Sample running slot csmp slot hdr which is used by FND to identify running fw on the node.
+#define CSMP_SLOTHDR_RUN_IMAGE {{0x61,0xe7,0xe1,0x76,0xe2,0xfb,0xcc,0x3e,0x1c,0xc8,0x5b,0xb1,0xf4,\
+0x99,0xa4,0x02,0x6d,0x28,0xcf,0x1d,0x66,0x16,0x76,0x91,0x91,0x3f,0xd9,0x80,0x5b,0xe5,0x5b,0xa1},\
+"opencsmp-node","6.2.99", "OPENCSMP", 27904, 0, 0, 0, 0, 0, 0, {0},0, 0, {0}}
 
 char *SSID = "CISCO";
 char vendorhwid[32] = "Vendor Hardware-ID";
@@ -153,7 +161,7 @@ uint8_t neighbor_eui64[2][8] = {{0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb1}
                              {0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb0}};
 dev_config_t g_devconfig;
 csmp_handle_t g_csmp_handle;
-
+bool g_reboot_request = false; //Flag to track ongoing reboot request
 // Firmware upgrade globals
 bool g_downloadbusy       = false;  // Track ongoing download
 bool g_initxfer           = false;  // Track transfer request
@@ -163,7 +171,7 @@ uint32_t g_curloadslot    = 0xFFU;  // Track current load slot
 uint32_t g_curbackupslot  = 0xFFU;  // Track current backup slot
 
 // Firmware image slots (Slot-id: 0-RUN, 1-UPLOAD, 2-BACKUP)
-Csmp_Slothdr g_slothdr[CSMP_FWMGMT_ACTIVE_SLOTS] = {CSMP_SLOTHDR_INIT};
+Csmp_Slothdr g_slothdr[CSMP_FWMGMT_ACTIVE_SLOTS] = {0};
 
 /* public key */
 //new key
@@ -234,5 +242,7 @@ Signature_Settings g_SignatureSettings = SIGNATURE_SETTINGS_INIT;
 
 /** \brief Vendor tlv data */
 Vendor_Tlv g_vendorTlv[VENDOR_MAX_SUBTYPES] = {VENDOR_TLV_INIT};
+
+int write_fw_img(uint8_t slotid);
 
 #endif

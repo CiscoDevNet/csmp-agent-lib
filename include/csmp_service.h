@@ -220,4 +220,12 @@ csmp_service_stats_t* csmp_service_stats();
  */
 bool csmp_service_stop();
 
+/**
+ * @brief reboot the csmp service
+ *
+ * @return true
+ * @return false
+ */
+bool csmp_service_reboot(dev_config_t *devconfig);
+
 #endif

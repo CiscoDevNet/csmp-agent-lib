@@ -73,4 +73,13 @@ int checkSignature(const uint8_t *buf, uint32_t len, bool agent);
  */
 bool checkGroup(const uint8_t *buf, uint32_t len);
 
+/**
+ * @brief sendAsyncResp
+ *
+ * @param obuf Output Buffer
+ * @param outlen Output Buffer length
+ * @return int -1 if failed else 0 for success
+ */
+int sendAsyncResp(uint8_t *obuf, size_t outlen);
+
 #endif

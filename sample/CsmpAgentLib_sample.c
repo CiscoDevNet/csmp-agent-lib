@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021, 2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -49,20 +49,20 @@ void* hardware_desc_get(tlvid_t tlvid, uint32_t *num) {
   g_hardwareDesc.has_entphysicalfunction = true;
 
     switch (DEVICE_TYPE) {
-    case CSMP_AGENT:
-    DPRINTF("sample_hw_desc: DEVICE_TYPE = CSMP_AGENT\n");
+    case OPENCSMP:
+    DPRINTF("sample_hw_desc: DEVICE_TYPE = OPENCSMP\n");
     g_hardwareDesc.entphysicalindex = 1;
     sprintf(g_hardwareDesc.entphysicaldescr,"CSMP-Agent Library");
     g_hardwareDesc.entphysicalclass = CLASS_MODULE;
     sprintf(g_hardwareDesc.entphysicalname,"lowpan");
     sprintf(g_hardwareDesc.entphysicalhardwarerev,"1.0");
-    sprintf(g_hardwareDesc.entphysicalfirmwarerev,"1.0.0");
+    memcpy(g_hardwareDesc.entphysicalfirmwarerev, g_slothdr[RUN_IMAGE].version, sizeof(g_hardwareDesc.entphysicalfirmwarerev));
     snprintf(g_hardwareDesc.entphysicalserialnum,sizeof(g_hardwareDesc.entphysicalserialnum),
              "%02X%02X%02X%02X%02X%02X%02X%02X",
              g_eui64[0],g_eui64[1],g_eui64[2],g_eui64[3],
              g_eui64[4],g_eui64[5],g_eui64[6],g_eui64[7]);
-    sprintf(g_hardwareDesc.entphysicalmfgname,"Cisco IoTG");
-    sprintf(g_hardwareDesc.entphysicalmodelname,"CSMP_AGENT");
+    sprintf(g_hardwareDesc.entphysicalmfgname,"Cisco IIoT");
+    sprintf(g_hardwareDesc.entphysicalmodelname,"OPENCSMP");
     g_hardwareDesc.entphysicalfunction = FUNCTION_METER; // Meter
     break;
 
@@ -73,7 +73,7 @@ void* hardware_desc_get(tlvid_t tlvid, uint32_t *num) {
     g_hardwareDesc.entphysicalclass = CLASS_MODULE;
     sprintf(g_hardwareDesc.entphysicalname,"lowpan");
     sprintf(g_hardwareDesc.entphysicalhardwarerev,"1.0");
-    sprintf(g_hardwareDesc.entphysicalfirmwarerev,"6.5(6.5.9)");
+    memcpy(g_hardwareDesc.entphysicalfirmwarerev, g_slothdr[RUN_IMAGE].version, sizeof(g_hardwareDesc.entphysicalfirmwarerev));
     snprintf(g_hardwareDesc.entphysicalserialnum,sizeof(g_hardwareDesc.entphysicalserialnum),
              "%02X%02X%02X%02X%02X%02X%02X%02X",
              g_eui64[0],g_eui64[1],g_eui64[2],g_eui64[3],
@@ -90,7 +90,7 @@ void* hardware_desc_get(tlvid_t tlvid, uint32_t *num) {
     g_hardwareDesc.entphysicalclass = CLASS_MODULE;
     sprintf(g_hardwareDesc.entphysicalname,"lowpan");
     sprintf(g_hardwareDesc.entphysicalhardwarerev,"3.1");
-    sprintf(g_hardwareDesc.entphysicalfirmwarerev,"6.2(6.2.33)");
+    memcpy(g_hardwareDesc.entphysicalfirmwarerev, g_slothdr[RUN_IMAGE].version, sizeof(g_hardwareDesc.entphysicalfirmwarerev));
     snprintf(g_hardwareDesc.entphysicalserialnum,sizeof(g_hardwareDesc.entphysicalserialnum),
              "%02X%02X%02X%02X%02X%02X%02X%02X",
              g_eui64[0],g_eui64[1],g_eui64[2],g_eui64[3],
@@ -183,7 +183,7 @@ void* ipaddress_get(uint32_t *num) {
 
   g_ipAddress[2].ipaddressaddrtype = IPV6;
   g_ipAddress[2].ipaddressaddr.len = 16;
-  inet_pton(AF_INET6, "2001:a:b:c::9", &g_ipAddress[2].ipaddressaddr.data);
+  inet_pton(AF_INET6, g_ipv6, &g_ipAddress[2].ipaddressaddr.data);
   g_ipAddress[2].ipaddressifindex = 2;
   g_ipAddress[2].ipaddresstype = UNICAST;
   g_ipAddress[2].ipaddressorigin = DHCP;
@@ -536,6 +536,7 @@ void sample_put_transferRequest(tlvid_t tlvid, Transfer_Request *tlv) {
   }
 
   // Initiliase new transfer - start
+  tlv->has_response = true;
   tlv->response = RESPONSE_OK;
   memcpy(&g_transferRequest, tlv, sizeof(g_transferRequest));
   if (!g_initxfer) {
@@ -611,7 +612,7 @@ void sample_put_imageBlock(tlvid_t tlvid, Image_Block *tlv) {
     uint32_t word = g_imageBlock.blocknum >> 5;
     uint32_t bit = 31 - (g_imageBlock.blocknum & 31);
     uint32_t mapval = 0xFFFFFFFFUL;
-    uint32_t offset = (g_imageBlock.blocknum - 1) * g_slothdr[UPLOAD_IMAGE].blocksize;
+    uint32_t offset = g_imageBlock.blocknum * g_slothdr[UPLOAD_IMAGE].blocksize;
     DPRINTF("sample_firmwaremgmt: Image block blocknum=%u offset=%u [word=%x bit=%x]\n",
            g_imageBlock.blocknum, offset, word, bit);
 
@@ -637,6 +638,10 @@ void sample_put_imageBlock(tlvid_t tlvid, Image_Block *tlv) {
       DPRINTF("sample_firmwaremgmt: Image block %u already written\n",
              g_imageBlock.blocknum);
       // Check for transfer completion
+      if (g_slothdr[UPLOAD_IMAGE].status == FWHDR_STATUS_COMPLETE) {
+        DPRINTF("sample_firmwaremgmt: Transfer completed, skipping redundant image block\n");
+        return;
+      }
       // Check slot header bitmap for download completion
       uint32_t blk_i = 0, blk_j = 0, shift = 31;
       uint32_t blk_whole_cnt;
@@ -668,6 +673,11 @@ void sample_put_imageBlock(tlvid_t tlvid, Image_Block *tlv) {
       DPRINTF("sample_firmwaremgmt: Image block transfer complete, filehash matched!\n");
       g_slothdr[UPLOAD_IMAGE].status = FWHDR_STATUS_COMPLETE;
       g_downloadbusy = false;
+      if (write_fw_img(UPLOAD_IMAGE) < 0)
+        DPRINTF("sample_firmwaremgmt: Failed to write upload image to file\n");
+      else{
+        printf("sample_firmwaremgmt: Sucessfully wrote upload image to file\n");
+      }
       return;
     }
     // Write image block to slot at valid offset
@@ -741,11 +751,24 @@ void* sample_get_loadRequest(tlvid_t tlvid, uint32_t *num) {
  * @brief   LOAD REQUEST TIMER HANDLER
  */
 void loadreq_timer_fired() {
+  bool ret = false;
+  struct timeval tv = {0};
   DPRINTF("sample_firmwaremgmt: Load request timer fired for slot=%d with delay=%u\n",
          g_curloadslot, g_curloadtime);
 
   memcpy(&g_slothdr[RUN_IMAGE], &g_slothdr[g_curloadslot],
          sizeof(g_slothdr[RUN_IMAGE]));
+
+  trickle_timer_stop(lrq_timer);
+  g_reboot_request = true;
+  ret = csmp_service_reboot(&g_devconfig);
+  gettimeofday(&tv, NULL);
+  g_init_time = tv.tv_sec;
+  if(ret == true)
+    printf("\nCSMP-Agent service reboot: success!\nService registration in progress...\n\n");
+  else
+    printf("\nCSMP-Agent service reboot: failed!\n\n");
+  g_reboot_request = false;
 }
 
 /**
@@ -827,7 +850,7 @@ void sample_put_loadRequest(tlvid_t tlvid, Load_Request *tlv) {
     gettimeofday(&tv, NULL);
 
     if (g_loadRequest.loadtime > tv.tv_sec) {
-      delay = (g_loadRequest.loadtime - tv.tv_sec) * 1000;
+      delay = (g_loadRequest.loadtime - tv.tv_sec);
     } else {
       DPRINTF("sample_firmwaremgmt: Load request valid, local clock invalid\n");
       tlv->response = RESPONSE_INVALID_REQ;
@@ -845,8 +868,7 @@ void sample_put_loadRequest(tlvid_t tlvid, Load_Request *tlv) {
   g_curloadtime = g_loadRequest.loadtime;
   trickle_timer_start(lrq_timer, delay, delay,
                       (trickle_timer_fired_t)loadreq_timer_fired);
-  DPRINTF("sample_firmwaremgmt: Load request timer started for slot=%d with delay=%u\n",
-         g_curloadslot, g_curloadtime);
+  DPRINTF("sample_firmwaremgmt: Load request timer started for slot=%d with delay=%u at epoch time=%u s\n", g_curloadslot, delay, g_curloadtime);
 
   DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
 }
@@ -887,7 +909,11 @@ void sample_put_cancelLoadRequest(tlvid_t tlvid, Cancel_Load_Request *tlv) {
     default:
     DPRINTF("sample_firmwaremgmt: Received cancel load request for invalid slot (%u)\n",
            g_curloadslot);
-    tlv->response = RESPONSE_INVALID_REQ;
+    if (g_curloadslot != 0xFFU) {
+      tlv->response = RESPONSE_INVALID_REQ;
+    } else {
+      DPRINTF("sample_firmwaremgmt: Redundant Cancel Load Request\n");
+    }
     return;
   }
 
@@ -996,8 +1022,6 @@ void* sample_get_firmwareImageInfo(tlvid_t tlvid, uint32_t *num) {
       // Reset g_firmwareImageInfo[slotid] structure
       memset(&g_firmwareImageInfo[idx], 0, sizeof(g_firmwareImageInfo[idx]));
 
-    // Check for image download status
-    if (g_slothdr[idx].status == FWHDR_STATUS_COMPLETE) {
       // Track number of inuse active slots
       (*num)++;
       DPRINTF("sample_firmwaremgmt: Reading firmware image info for slot id:%d\n", idx);
@@ -1027,10 +1051,31 @@ void* sample_get_firmwareImageInfo(tlvid_t tlvid, uint32_t *num) {
       // Blockcount
       g_firmwareImageInfo[idx].blockcnt = g_slothdr[idx].blockcnt;
       // Bitmap
-      g_firmwareImageInfo[idx].has_bitmap = true;
-      g_firmwareImageInfo[idx].bitmap.len = sizeof(g_slothdr[idx].nblkmap);
-      memcpy(g_firmwareImageInfo[idx].bitmap.data, g_slothdr[idx].nblkmap,
-             sizeof(g_slothdr[idx].nblkmap));
+      //Invert the nblkmap and storein bitmap data
+      if (g_slothdr[idx].status == FWHDR_STATUS_DOWNLOAD) {
+        uint32_t i, j;
+        uint32_t blkmapCnt = (g_slothdr[idx].blockcnt + 31) / 32;
+
+        if (blkmapCnt > CSMP_FWMGMT_BLKMAP_CNT) {
+          blkmapCnt = CSMP_FWMGMT_BLKMAP_CNT;
+        }
+        g_firmwareImageInfo[idx].has_bitmap = true;
+        for (i = 0, j = 0; (i < blkmapCnt) &&
+            (j < sizeof(g_firmwareImageInfo[idx].bitmap.data)); i++, j += 4) {
+          uint32_t val = ~g_slothdr[idx].nblkmap[i];
+          g_firmwareImageInfo[idx].bitmap.data[j] = (val >> 24) & 0xFF;
+          g_firmwareImageInfo[idx].bitmap.data[j+1] = (val >> 16) & 0xFF;
+          g_firmwareImageInfo[idx].bitmap.data[j+2] = (val >> 8) & 0xFF;
+          g_firmwareImageInfo[idx].bitmap.data[j+3] = (val) & 0xFF;
+        }
+        if (j > ((g_slothdr[idx].blockcnt + 7) / 8)) {
+          j = (g_slothdr[idx].blockcnt + 7) / 8;
+        }
+        g_firmwareImageInfo[idx].bitmap.len = j;
+      }
+      else {
+        g_firmwareImageInfo[idx].has_bitmap = false;
+      }
       // Default image?
       g_firmwareImageInfo[idx].has_isdefault = (idx == BACKUP_IMAGE) ? true : false;
       g_firmwareImageInfo[idx].isdefault = g_firmwareImageInfo[idx].has_isdefault;
@@ -1059,7 +1104,6 @@ void* sample_get_firmwareImageInfo(tlvid_t tlvid, uint32_t *num) {
 
       // Download status
       g_firmwareImageInfo[idx].status = g_slothdr[idx].status;
-    }
   }
 
   DPRINTF("## sample_firmwaremgmt: GET for TLV %d done.\n", tlvid.type);
@@ -1290,6 +1334,43 @@ int str2addr(char *str, uint8_t *addr) {
 }
 
 /**
+ * @brief Write g_slothdr.image data to file based on slot id
+ *
+ * @param slotid pointing to which g_slothdr data to write to file
+ * @return int 0 for success -1 for failure
+ */
+int write_fw_img(uint8_t slotid) {
+    FILE *file = NULL;
+
+    switch(slotid){
+      case RUN_IMAGE:
+        file = fopen("opencsmp-sample-run-image.bin", "wb");
+        break;
+      case UPLOAD_IMAGE:
+        file = fopen("opencsmp-sample-upload-image.bin", "wb");
+        break;
+      case BACKUP_IMAGE:
+        file = fopen("opencsmp-sample-backup-image.bin", "wb");
+        break;
+      default:
+        printf("write_fw_img: Errori, wrong slot id\n");
+        return -1;
+    }
+    if (file == NULL) {
+        printf("write_fw_img: Error opening file\n");
+        return -1;
+    }
+    size_t written = fwrite(g_slothdr[slotid].image, sizeof(uint8_t), g_slothdr[slotid].filesize, file);
+    if (written != g_slothdr[slotid].filesize) {
+        printf("write_fw_img: Error writing to file\n");
+        fclose(file);
+        return -1;
+    }
+    fclose(file);
+    return 0;
+}
+
+/**
  * @brief  Initialize sample data before CSMP service start
  *
  * @param  void
@@ -1299,6 +1380,10 @@ void sample_data_init() {
   DPRINTF("sample_data_init: Initialize sample data\n");
 
   int idx;
+  Csmp_Slothdr runslot = CSMP_SLOTHDR_RUN_IMAGE;
+
+  //Init running csmp slot hdr with sample data
+  memcpy(&g_slothdr[RUN_IMAGE], &runslot, sizeof(Csmp_Slothdr));
 
   // Init sample Vendor Tlv data
   for (idx = 0; idx < VENDOR_MAX_SUBTYPES; idx++) {
@@ -1328,8 +1413,9 @@ int main(int argc, char **argv)
                        "Service registration in progress...\n",
                        "Service registration with NMS successful\n"};
   int ret, i;
-  char *endptr;
+  char *endptr = NULL;
   bool sigFlag = false;
+  uint8_t addr_buf[16] = {0};
 
   gettimeofday(&tv, NULL);
   g_init_time = tv.tv_sec;
@@ -1363,10 +1449,11 @@ int main(int argc, char **argv)
       if (++i >= argc)
         goto start_error;
       memset(g_devconfig.ieee_eui64.data, 0, sizeof(g_devconfig.ieee_eui64.data));
-      if (str2addr(argv[i], g_devconfig.ieee_eui64.data) < 0)
+      if (str2addr(argv[i], g_devconfig.ieee_eui64.data) < 0) {
+        printf("Invalid EID\n");
         goto start_error;
-      if (*endptr != '\0')
-        goto start_error;
+      }
+      memcpy(g_eui64, g_devconfig.ieee_eui64.data, sizeof(g_eui64));
     } else if (strcmp(argv[i], "-d") == 0) {  // NMS address
       if (++i >= argc)
         goto start_error;
@@ -1381,6 +1468,14 @@ int main(int argc, char **argv)
         printf("Setting signature settings to TRUE\n");
         sigFlag = true;
       }
+    } else if (strcmp(argv[i], "-ip") == 0) { // Agent IPv6 Addr
+        if (++i >= argc)
+          goto start_error;
+        if (inet_pton(AF_INET6, argv[i], addr_buf) <= 0) {
+          printf("Agent IPv6 address is in incorrect format\n");
+          goto start_error;
+        }
+        strcpy(g_ipv6, argv[i]);
     }
   }
 
@@ -1444,6 +1539,10 @@ int main(int argc, char **argv)
   printf("Reg intervals: min : %d, max = %d\n",g_devconfig.reginterval_min, g_devconfig.reginterval_max);
 
   while(1) {
+    //Check for ongoing reboot request
+    if (g_reboot_request == true)
+      continue;
+
     sleep(g_devconfig.reginterval_min);
 
     // get the service status

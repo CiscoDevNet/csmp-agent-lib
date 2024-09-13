@@ -4351,7 +4351,7 @@ static const ProtobufCFieldDescriptor image_block__field_descriptors[3] =
   },
   {
     "blockData",
-    3,
+    4,
     PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_BYTES,
     offsetof(ImageBlock, block_data_present_case),
@@ -4367,9 +4367,10 @@ static const unsigned image_block__field_indices_by_name[] = {
   1,   /* field[1] = blockNum */
   0,   /* field[0] = fileHash */
 };
-static const ProtobufCIntRange image_block__number_ranges[1 + 1] =
+static const ProtobufCIntRange image_block__number_ranges[2 + 1] =
 {
   { 1, 0 },
+  { 4, 2 },
   { 0, 3 }
 };
 const ProtobufCMessageDescriptor image_block__descriptor =
@@ -4383,7 +4384,7 @@ const ProtobufCMessageDescriptor image_block__descriptor =
   3,
   image_block__field_descriptors,
   image_block__field_indices_by_name,
-  1,  image_block__number_ranges,
+  2,  image_block__number_ranges,
   (ProtobufCMessageInit) image_block__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
