@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021, 2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -218,7 +218,7 @@ void process_reg(const uint8_t *buf,size_t len, bool preload_only) {
  *
  * Desired list of TLVs to be sent to NMS during registration:
  *
- * DEVICE_ID_TLVID, SESSION_ID_TLVID, CURRENT_TIME_TLVID,
+ * DEVICE_ID_TLVID, CURRENT_TIME_TLVID,
  * HARDWARE_DESC_TLVID, INTERFACE_DESC_TLVID, IPADDRESS_TLVID
  * CGMSSTATUS_TLVID, IEEE8021X_STATUS_TLVID, WPANSTATUS_TLVID,
  * RPLSETTINGS_TLVID, GROUP_INFO_TLVID, REPORT_SUBSCRIBE_TLVID,
@@ -228,7 +228,7 @@ void process_reg(const uint8_t *buf,size_t len, bool preload_only) {
  * processed by FND/NMS.
  */
 void register_timer_fired() {
-  tlvid_t list[] = {{0,DEVICE_ID_TLVID},{0,SESSION_ID_TLVID},{0,CURRENT_TIME_TLVID},
+  tlvid_t list[] = {{0,DEVICE_ID_TLVID},{0,CURRENT_TIME_TLVID},
                     {0,HARDWARE_DESC_TLVID},{0,INTERFACE_DESC_TLVID},{0,IPADDRESS_TLVID},
                     {0,IPROUTE_TLVID},{0,INTERFACE_METRICS_TLVID},{0,IPROUTE_RPLMETRICS_TLVID},
                     {0,WPANSTATUS_TLVID},{0,GROUP_INFO_TLVID},{0,REPORT_SUBSCRIBE_TLVID},

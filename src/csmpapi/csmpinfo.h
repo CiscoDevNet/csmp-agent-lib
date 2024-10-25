@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021, 2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -61,7 +61,6 @@ typedef struct _Set_Backup_Request Set_Backup_Request;
 typedef struct _Firmware_Image_Info Firmware_Image_Info;
 typedef struct _Signature_Settings Signature_Settings;
 typedef struct _Vendor_Tlv Vendor_Tlv;
-
 typedef struct _Csmp_Slothdr Csmp_Slothdr;
 
 // CSMP OP RETURN CODES
@@ -731,14 +730,16 @@ struct _Csmp_Slothdr
   uint32_t magicU;
   uint32_t magicL;
   // Image
-  char image[CSMP_FWMGMT_SLOTIMG_SIZE];
+  uint8_t image[CSMP_FWMGMT_SLOTIMG_SIZE];
 };
+
+#define APPHDR_INIT \
+{0, 0, 0, 0, 0, 0, {0}, {0}, {0}, 0, {0}, {0}}
+
 #define CSMP_SLOTHDR_INIT \
-  {{0, 0, 0, 0, 0, {0}, {0}, {0}}, {0}, {0}, {0}, {0}, 0, 0, 0, 0, 0, 0, 0, {0}, \
+  {{0}, {0}, {0}, {0}, 0, 0, 0, 0, 0, 0, 0, {0}, \
     0, 0, {0}}
 
-
-// SIGNATURE SETTINGS TLV
 struct _Signature_Settings
 {
     bool has_reqsignedpost;
@@ -765,7 +766,6 @@ struct _Signature_Settings
 };
 #define SIGNATURE_SETTINGS_INIT \
    { 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,{0,{0}} }
-
 
 // VENDOR TLV
 struct _Vendor_Tlv

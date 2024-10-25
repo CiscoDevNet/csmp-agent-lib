@@ -23,4 +23,4 @@ $(OBJECT):$(OBJ)
 	$(CC) -c $< $(CFLAGS)
 
 clean:
-	-rm -rf *.o CsmpAgentLib_sample
+	-rm -rf *.o $(LIB_OBJECT) CsmpAgentLib_sample

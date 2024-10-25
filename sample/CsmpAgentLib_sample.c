@@ -48,7 +48,7 @@ void* hardware_desc_get(tlvid_t tlvid, uint32_t *num) {
   g_hardwareDesc.has_entphysicalmodelname = true;
   g_hardwareDesc.has_entphysicalfunction = true;
 
-    switch (DEVICE_TYPE) {
+  switch (DEVICE_TYPE) {
     case OPENCSMP:
     DPRINTF("sample_hw_desc: DEVICE_TYPE = OPENCSMP\n");
     g_hardwareDesc.entphysicalindex = 1;
@@ -61,7 +61,7 @@ void* hardware_desc_get(tlvid_t tlvid, uint32_t *num) {
              "%02X%02X%02X%02X%02X%02X%02X%02X",
              g_eui64[0],g_eui64[1],g_eui64[2],g_eui64[3],
              g_eui64[4],g_eui64[5],g_eui64[6],g_eui64[7]);
-    sprintf(g_hardwareDesc.entphysicalmfgname,"Cisco IIoT");
+    sprintf(g_hardwareDesc.entphysicalmfgname,"Cisco IoTG");
     sprintf(g_hardwareDesc.entphysicalmodelname,"OPENCSMP");
     g_hardwareDesc.entphysicalfunction = FUNCTION_METER; // Meter
     break;
@@ -78,7 +78,7 @@ void* hardware_desc_get(tlvid_t tlvid, uint32_t *num) {
              "%02X%02X%02X%02X%02X%02X%02X%02X",
              g_eui64[0],g_eui64[1],g_eui64[2],g_eui64[3],
              g_eui64[4],g_eui64[5],g_eui64[6],g_eui64[7]);
-        sprintf(g_hardwareDesc.entphysicalmfgname,"Cisco IoTG");
+    sprintf(g_hardwareDesc.entphysicalmfgname,"Cisco IoTG");
     sprintf(g_hardwareDesc.entphysicalmodelname,"CISCO_IR510");
     g_hardwareDesc.entphysicalfunction = FUNCTION_DAG; // Gateway
     break;
@@ -432,6 +432,7 @@ void* rplinstance_get(uint32_t *num) {
 
 /**
  * @brief   GET TLV65 TRANSFER_REQUEST_TLVID
+ *
  * @param   tlvid tlvid structure
  * @param   num amount of instances of g_firmwareImageInfo
  * @return  void* pointer to global g_transferRequest
@@ -574,7 +575,6 @@ void sample_put_transferRequest(tlvid_t tlvid, Transfer_Request *tlv) {
 
   // Initiliase new transfer - done
   g_initxfer = false;
-
   DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
 }
 
@@ -638,8 +638,10 @@ void sample_put_imageBlock(tlvid_t tlvid, Image_Block *tlv) {
       DPRINTF("sample_firmwaremgmt: Image block %u already written\n",
              g_imageBlock.blocknum);
       // Check for transfer completion
-      if (g_slothdr[UPLOAD_IMAGE].status == FWHDR_STATUS_COMPLETE) {
+      if(g_slothdr[UPLOAD_IMAGE].status == FWHDR_STATUS_COMPLETE)
+      {
         DPRINTF("sample_firmwaremgmt: Transfer completed, skipping redundant image block\n");
+        g_downloadbusy = false;
         return;
       }
       // Check slot header bitmap for download completion
@@ -673,7 +675,7 @@ void sample_put_imageBlock(tlvid_t tlvid, Image_Block *tlv) {
       DPRINTF("sample_firmwaremgmt: Image block transfer complete, filehash matched!\n");
       g_slothdr[UPLOAD_IMAGE].status = FWHDR_STATUS_COMPLETE;
       g_downloadbusy = false;
-      if (write_fw_img(UPLOAD_IMAGE) < 0)
+      if(write_fw_img(UPLOAD_IMAGE)<0)
         DPRINTF("sample_firmwaremgmt: Failed to write upload image to file\n");
       else{
         printf("sample_firmwaremgmt: Sucessfully wrote upload image to file\n");
@@ -751,24 +753,17 @@ void* sample_get_loadRequest(tlvid_t tlvid, uint32_t *num) {
  * @brief   LOAD REQUEST TIMER HANDLER
  */
 void loadreq_timer_fired() {
-  bool ret = false;
-  struct timeval tv = {0};
-  DPRINTF("sample_firmwaremgmt: Load request timer fired for slot=%d with delay=%u\n",
+  DPRINTF("sample_firmwaremgmt: Load request timer fired for slot=%d with delay=%u\n", 
          g_curloadslot, g_curloadtime);
 
   memcpy(&g_slothdr[RUN_IMAGE], &g_slothdr[g_curloadslot],
          sizeof(g_slothdr[RUN_IMAGE]));
-
+  DPRINTF("loadreq_timer: Writing Run Slot to disk\n");
+  write_fw_img(RUN_IMAGE);
   trickle_timer_stop(lrq_timer);
-  g_reboot_request = true;
-  ret = csmp_service_reboot(&g_devconfig);
-  gettimeofday(&tv, NULL);
-  g_init_time = tv.tv_sec;
-  if(ret == true)
-    printf("\nCSMP-Agent service reboot: success!\nService registration in progress...\n\n");
-  else
-    printf("\nCSMP-Agent service reboot: failed!\n\n");
-  g_reboot_request = false;
+  g_curloadtime = 0;
+  g_curloadslot = 0xFF;
+  sample_app_reboot();
 }
 
 /**
@@ -868,7 +863,8 @@ void sample_put_loadRequest(tlvid_t tlvid, Load_Request *tlv) {
   g_curloadtime = g_loadRequest.loadtime;
   trickle_timer_start(lrq_timer, delay, delay,
                       (trickle_timer_fired_t)loadreq_timer_fired);
-  DPRINTF("sample_firmwaremgmt: Load request timer started for slot=%d with delay=%u at epoch time=%u s\n", g_curloadslot, delay, g_curloadtime);
+  DPRINTF("sample_firmwaremgmt: Load request timer started for slot=%d with delay=%u at epoch time =%u s\n", 
+         g_curloadslot, delay, g_curloadtime);
 
   DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
 }
@@ -909,9 +905,10 @@ void sample_put_cancelLoadRequest(tlvid_t tlvid, Cancel_Load_Request *tlv) {
     default:
     DPRINTF("sample_firmwaremgmt: Received cancel load request for invalid slot (%u)\n",
            g_curloadslot);
-    if (g_curloadslot != 0xFFU) {
+    if(g_curloadslot != 0xFFU){
       tlv->response = RESPONSE_INVALID_REQ;
-    } else {
+    }
+    else{
       DPRINTF("sample_firmwaremgmt: Redundant Cancel Load Request\n");
     }
     return;
@@ -999,6 +996,7 @@ void sample_put_setBackupRequest(tlvid_t tlvid, Set_Backup_Request *tlv) {
       tlv->response = RESPONSE_INVALID_REQ;
       return;
   }
+  write_fw_img(BACKUP_IMAGE);
   g_curbackupslot = 0xFFU;
 
   DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
@@ -1022,6 +1020,7 @@ void* sample_get_firmwareImageInfo(tlvid_t tlvid, uint32_t *num) {
       // Reset g_firmwareImageInfo[slotid] structure
       memset(&g_firmwareImageInfo[idx], 0, sizeof(g_firmwareImageInfo[idx]));
 
+    // Check for image download status
       // Track number of inuse active slots
       (*num)++;
       DPRINTF("sample_firmwaremgmt: Reading firmware image info for slot id:%d\n", idx);
@@ -1072,7 +1071,7 @@ void* sample_get_firmwareImageInfo(tlvid_t tlvid, uint32_t *num) {
           j = (g_slothdr[idx].blockcnt + 7) / 8;
         }
         g_firmwareImageInfo[idx].bitmap.len = j;
-      }
+      } 
       else {
         g_firmwareImageInfo[idx].has_bitmap = false;
       }
@@ -1130,7 +1129,7 @@ void* signature_settings_get(uint32_t *num) {
 void signature_settings_post(Signature_Settings *tlv) {
   g_SignatureSettings.has_reqsignedpost = true;
   g_SignatureSettings.reqsignedpost = tlv->reqsignedpost;
-
+  
   g_SignatureSettings.has_reqvalidcheckpost = true;
   g_SignatureSettings.reqvalidcheckpost = tlv->reqvalidcheckpost;
 
@@ -1218,11 +1217,11 @@ void sample_put_vendorTlv(tlvid_t tlvid, Vendor_Tlv *tlv) {
 }
 
 /**
- * @brief  csmp get TLV request
+ * @brief csmp get TLV request
  *
- * @param  tlvid the tlvid to handle
- * @param  num returned amount of instances
- * @return void* pointer to the global variable containing the return data
+ * @param   tlvid the tlvid to handle
+ * @param   num returned amount of instances
+ * @return  void* pointer to the global variable containing the return data
  */
 void* csmptlvs_get(tlvid_t tlvid, uint32_t *num) {
   switch(tlvid.type) {
@@ -1265,10 +1264,10 @@ void* csmptlvs_get(tlvid_t tlvid, uint32_t *num) {
 }
 
 /**
- * @brief csmp post TLV request
+ * @brief   csmp post TLV request
  *
- * @param tlvid the tlvid to handle
- * @param tlv the request data
+ * @param   tlvid the tlvid to handle
+ * @param   tlv the request data
  */
 void csmptlvs_post(tlvid_t tlvid, void *tlv) {
   switch(tlvid.type) {
@@ -1334,57 +1333,31 @@ int str2addr(char *str, uint8_t *addr) {
 }
 
 /**
- * @brief Write g_slothdr.image data to file based on slot id
+ * @brief Initialize sample data before CSMP service start
  *
- * @param slotid pointing to which g_slothdr data to write to file
- * @return int 0 for success -1 for failure
- */
-int write_fw_img(uint8_t slotid) {
-    FILE *file = NULL;
-
-    switch(slotid){
-      case RUN_IMAGE:
-        file = fopen("opencsmp-sample-run-image.bin", "wb");
-        break;
-      case UPLOAD_IMAGE:
-        file = fopen("opencsmp-sample-upload-image.bin", "wb");
-        break;
-      case BACKUP_IMAGE:
-        file = fopen("opencsmp-sample-backup-image.bin", "wb");
-        break;
-      default:
-        printf("write_fw_img: Errori, wrong slot id\n");
-        return -1;
-    }
-    if (file == NULL) {
-        printf("write_fw_img: Error opening file\n");
-        return -1;
-    }
-    size_t written = fwrite(g_slothdr[slotid].image, sizeof(uint8_t), g_slothdr[slotid].filesize, file);
-    if (written != g_slothdr[slotid].filesize) {
-        printf("write_fw_img: Error writing to file\n");
-        fclose(file);
-        return -1;
-    }
-    fclose(file);
-    return 0;
-}
-
-/**
- * @brief  Initialize sample data before CSMP service start
- *
- * @param  void
+ * @param void
  * @return void
  */
 void sample_data_init() {
+  int idx=0, ret=0;
+  struct timeval tv = {0};
   DPRINTF("sample_data_init: Initialize sample data\n");
-
-  int idx;
-  Csmp_Slothdr runslot = CSMP_SLOTHDR_RUN_IMAGE;
-
-  //Init running csmp slot hdr with sample data
-  memcpy(&g_slothdr[RUN_IMAGE], &runslot, sizeof(Csmp_Slothdr));
-
+  gettimeofday(&tv, NULL);
+  g_init_time = tv.tv_sec;
+  ret=read_fw_img(RUN_IMAGE);
+  if(ret < 0){
+    memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
+    DPRINTF("sample_data_init: Run Slot not found default values will be used\n");
+  }
+  ret=read_fw_img(UPLOAD_IMAGE);
+  if(ret<0){
+    DPRINTF("sample_data_init: Upload slot not found!\n");
+  }
+  ret=read_fw_img(BACKUP_IMAGE);
+  if(ret<0){
+    DPRINTF("sample_data_init: Backup slot not found!\n");
+  }
+  
   // Init sample Vendor Tlv data
   for (idx = 0; idx < VENDOR_MAX_SUBTYPES; idx++) {
     g_vendorTlv[idx].has_subtype = true;
@@ -1393,7 +1366,24 @@ void sample_data_init() {
     g_vendorTlv[idx].value.len = VENDOR_MAX_DATA_LEN;
     memset(g_vendorTlv[idx].value.data, idx+1, VENDOR_MAX_DATA_LEN);
   }
+  
 
+}
+
+/**
+ * @brief   This function re-initializes the application variables, reboots the app and re-registers the agent with NMS
+ * @return  void
+ */
+void sample_app_reboot() {
+  bool ret = false;
+  g_reboot_request = true;
+  sample_data_init();
+  ret = csmp_service_reboot(&g_devconfig);
+  if(ret == true)
+    printf("\n\nCSMP-Agent service reboot: success!\nService registration in progress...\n\n");
+  else
+    printf("CSMP-Agent service reboot: failed!\\n");
+  g_reboot_request = false;
 }
 
 /**************************************************************
@@ -1408,15 +1398,14 @@ int main(int argc, char **argv)
   struct timeval tv = {0};
   csmp_service_status_t status;
   csmp_service_stats_t *stats_ptr;
-  char *status_msg[] = {"Service is not started\n",
+  char *status_msg[] = {"Service not started\n",
                        "Service failed to start\n",
                        "Service registration in progress...\n",
                        "Service registration with NMS successful\n"};
   int ret, i;
   char *endptr = NULL;
   bool sigFlag = false;
-  uint8_t addr_buf[16] = {0};
-
+  uint8_t addr_buf[16]={0};
   gettimeofday(&tv, NULL);
   g_init_time = tv.tv_sec;
 
@@ -1449,7 +1438,7 @@ int main(int argc, char **argv)
       if (++i >= argc)
         goto start_error;
       memset(g_devconfig.ieee_eui64.data, 0, sizeof(g_devconfig.ieee_eui64.data));
-      if (str2addr(argv[i], g_devconfig.ieee_eui64.data) < 0) {
+      if (str2addr(argv[i], g_devconfig.ieee_eui64.data) < 0){
         printf("Invalid EID\n");
         goto start_error;
       }
@@ -1462,20 +1451,29 @@ int main(int argc, char **argv)
         goto start_error;
       }
     } else if (strcmp(argv[i], "-sig") == 0) {  // Signature Settings
-      if (++i >= argc)
-        goto start_error;
-      if (strcmp(argv[i], "true") == 0) {
-        printf("Setting signature settings to TRUE\n");
-        sigFlag = true;
-      }
-    } else if (strcmp(argv[i], "-ip") == 0) { // Agent IPv6 Addr
+      #if defined(OPENSSL)
         if (++i >= argc)
           goto start_error;
-        if (inet_pton(AF_INET6, argv[i], addr_buf) <= 0) {
-          printf("Agent IPv6 address is in incorrect format\n");
-          goto start_error;
+        if (strcmp(argv[i], "true") == 0) {
+          printf("setting signature settings to TRUE\n");
+          sigFlag = true;
         }
-        strcpy(g_ipv6, argv[i]);
+        else{
+          printf("Signature settings is disabled\n");
+          sigFlag = false;
+        }
+      #else
+        printf("Enable crypto libs to use Signature settings\n");
+        goto start_error;
+      #endif
+    } else if (strcmp(argv[i], "-ip") == 0) { // Agent IPv6 Addr
+      if (++i >= argc)
+        goto start_error;
+      if (inet_pton(AF_INET6, argv[i], addr_buf) <= 0) {
+        printf("Agent IPv6 address is in incorrect format\n");
+        goto start_error;
+      }
+      strcpy(g_ipv6, argv[i]);
     }
   }
 
@@ -1509,7 +1507,7 @@ int main(int argc, char **argv)
   if (g_devconfig.reginterval_max < g_devconfig.reginterval_min
       || g_devconfig.reginterval_min == 0
       || g_devconfig.reginterval_max > 36000) {
-    printf("Reg interval error!\n");
+    printf("reg interval error\n");
 
     goto start_error;
   }
@@ -1536,19 +1534,18 @@ int main(int argc, char **argv)
     printf("CSMP-Agent service start: success!\n");
 
   // get the regmin and regmax
-  printf("Reg intervals: min : %d, max = %d\n",g_devconfig.reginterval_min, g_devconfig.reginterval_max);
+  printf("Registration intervals: min = %d, max = %d\n", g_devconfig.reginterval_min, g_devconfig.reginterval_max);
 
   while(1) {
     //Check for ongoing reboot request
     if (g_reboot_request == true)
       continue;
-
     sleep(g_devconfig.reginterval_min);
 
     // get the service status
     status = csmp_service_status();
     printf("\n============== CSMP-service ==============\n");
-    printf("\n%s\n",status_msg[status]);
+    printf("\n %s\n",status_msg[status]);
 
     // get the stats of CSMP agent service
     stats_ptr = csmp_service_stats();
@@ -1565,16 +1562,90 @@ int main(int argc, char **argv)
     printf("------------------ end -------------------\n\n");
   }
 
-  //stop csmp agent service
+  // stop csmp agent service
   ret = csmp_service_stop();
   if(ret)
     printf("CSMP-Agent service stop: success!\n");
   else
     printf("CSMP-Agent service stop: failed!\n");
-
   return 0;
 
 start_error:
   printf("CSMP-Agent service start: failed!\n");
 }
+/**
+ * @brief Write g_slothdr.image data to file based on slot id
+ *
+ * @param slotid pointing to which g_slothdr data to write to file
+ * @return int 0 for success -1 for failure
+ */
+int write_fw_img(uint8_t slotid) {
+  FILE *file = NULL;
+  size_t written = 0;
+  (void) written; 
+  switch(slotid){
+    case RUN_IMAGE:
+      file = fopen("opencsmp-run-slot.bin", "wb");
+      break;
+    case UPLOAD_IMAGE:
+      file = fopen("opencsmp-upload-slot.bin", "wb");
+      break;
+    case BACKUP_IMAGE:
+      file = fopen("opencsmp-backup-slot.bin", "wb");
+      break;
+    default:
+      printf("write_fw_img: Error wrong slot id\n");
+      return -1;
+  }
+  if (file == NULL) {
+      printf("write_fw_img: Error opening file\n");
+      return -1;
+  }
+  //Writing entire APP FW along with CSMP header data so that slot_hdr data persists upon agent reboot
+  written = fwrite(&g_slothdr[slotid], sizeof(uint8_t), sizeof(Csmp_Slothdr), file);
+  DPRINTF("write_fw_img: Wrote %ld bytes\n",written);
+  fclose(file);
+  // Writing just the firmware exluding csmp header to disk for upload slot only to verify OTA file integrity
+  if(slotid == UPLOAD_IMAGE){
+    file = fopen("opencsmp-upload-image.bin", "wb");
+    if(file == NULL){
+      printf("write_fw_img: Error opening file\n");
+      return -1;
+    }
+    written = fwrite(g_slothdr[slotid].image, sizeof(uint8_t), g_slothdr[slotid].filesize, file);
+    DPRINTF("write_fw_img: Wrote %ld bytes\n",written);
+    fclose(file);
+  }
+  return 0;
+}
 
+/**
+ * @brief Read g_slothdr.image data to file based on slot id
+ *
+ * @param slotid pointing to which g_slothdr data to write to file
+ * @return int 0 for success -1 for failure
+ */
+int read_fw_img(uint8_t slotid) {
+  FILE *file = NULL;
+  switch(slotid){
+    case RUN_IMAGE:
+      file = fopen("opencsmp-run-slot.bin", "rb");
+      break;
+    case UPLOAD_IMAGE:
+      file = fopen("opencsmp-upload-slot.bin", "rb");
+      break;
+    case BACKUP_IMAGE:
+      file = fopen("opencsmp-backup-slot.bin", "rb");
+      break;
+    default:
+      printf("read_fw_img: Error wrong slot id\n");
+      return -1;
+  }
+  if (file == NULL) {
+      printf("read_fw_img: Requested slot file missing\n");
+      return -1;
+  }
+  fread(&g_slothdr[slotid], sizeof(Csmp_Slothdr), 1, file);
+  fclose(file);
+  return 0;
+}
