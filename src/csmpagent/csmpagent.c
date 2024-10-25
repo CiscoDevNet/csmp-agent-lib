@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021-2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,12 +18,8 @@
 #include "csmpagent.h"
 #include "csmpfunction.h"
 
-#define CSMP_NON_VENDOR_ID 0
-
 int csmpagent_get(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
 {
-  if (tlvid.vendor == CSMP_NON_VENDOR_ID)
-  {
     switch (tlvid.type) {
       case TLV_INDEX_TLVID:
         return csmp_get_tlvindex(tlvid, buf, len, tlvindex);
@@ -61,29 +57,29 @@ int csmpagent_get(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
         return csmp_get_cgmsStats(tlvid, buf, len, tlvindex);
       case RPLINSTANCE_TLVID:
         return csmp_get_rplInstance(tlvid, buf, len, tlvindex);
-      case FIRMWARE_IMAGE_INFO_TLVID:
-        return csmp_get_firmwareImageInfo(tlvid, buf, len, tlvindex);
       case SIGNATURE_TLVID:
         return csmp_get_signature(tlvid, buf, len, tlvindex);
       case SIGNATURE_VALIDITY_TLVID:
         return csmp_get_signatureValidity(tlvid, buf, len, tlvindex);
       case SIGNATURE_SETTINGS_TLVID:
         return csmp_get_signatureSettings(tlvid, buf, len, tlvindex);
+      case VENDOR_TLVID:
+        return csmp_get_vendorTlv(tlvid, buf, len, tlvindex);
+      case TRANSFER_REQUEST_TLVID:
+        return csmp_get_transferRequest(tlvid, buf, len, tlvindex);
+      case LOAD_REQUEST_TLVID:
+        return csmp_get_loadRequest(tlvid, buf, len, tlvindex);
+      case FIRMWARE_IMAGE_INFO_TLVID:
+        return csmp_get_firmwareImageInfo(tlvid, buf, len, tlvindex);
+
       default:
-        DPRINTF("csmpagent_get: doesn't support get option of tlv:%u.%u\n",tlvid.vendor,tlvid.type);
-        return CSMP_OP_TLV_RD_EMPTY;
+        DPRINTF("csmpagent_get: GET un-supported for TLV: %u.%u\n", tlvid.vendor, tlvid.type);
+        return CSMP_OP_UNSUPPORTED;
       }
-  }
-  else
-  {
-    return csmp_get_vendor(tlvid, buf, len, tlvindex);
-  }
 }
 
 int csmpagent_post(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_buf, size_t out_size, size_t *out_len, int32_t tlvindex)
 {
-  if (tlvid.vendor == CSMP_NON_VENDOR_ID)
-  {
     switch (tlvid.type) {
       case CURRENT_TIME_TLVID:
         return csmp_put_currenttime(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
@@ -101,13 +97,23 @@ int csmpagent_post(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_b
         return csmp_put_groupMatch(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
       case REPORT_SUBSCRIBE_TLVID:
         return csmp_put_reportSubscribe(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case VENDOR_TLVID:
+        return csmp_put_vendorTlv(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case TRANSFER_REQUEST_TLVID:
+        return csmp_put_transferRequest(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case IMAGE_BLOCK_TLVID:
+        return csmp_put_imageBlock(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case LOAD_REQUEST_TLVID:
+        return csmp_put_loadRequest(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case CANCEL_LOAD_REQUEST_TLVID:
+        return csmp_put_cancelLoadRequest(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case SET_BACKUP_REQUEST_TLVID:
+        return csmp_put_setBackupRequest(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case DESCRIPTION_REQUEST_TLVID:
+        return csmp_put_descriptionRequest(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+
       default:
-        DPRINTF("csmpagent_post: doesn't support post option of tlv:%u.%u\n",tlvid.vendor,tlvid.type);
-        return CSMP_OP_TLV_RD_EMPTY;
+        DPRINTF("csmpagent_post: POST un-supported for TLV: %u.%u\n", tlvid.vendor, tlvid.type);
+        return CSMP_OP_UNSUPPORTED;
     }
-  }
-  else
-  {
-    return csmp_put_vendor(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
-  }
 }

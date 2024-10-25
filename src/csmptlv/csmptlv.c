@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021-2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ size_t csmptlv_write(uint8_t *buf, size_t len, tlvid_t tlvid, const ProtobufCMes
   uint32_t used = 0, rv;
   uint32_t packsize = 0;
   if ((buf == NULL) || (msg == NULL)) {
+    DPRINTF("csmptlv_write error: (buf == NULL) || (msg == NULL)\n");
     return 0;
   }
 
@@ -37,39 +38,51 @@ size_t csmptlv_write(uint8_t *buf, size_t len, tlvid_t tlvid, const ProtobufCMes
   if (tlvid.vendor != 0) {
     rv = ProtobufVarint_encodeUINT32(p_cur,len - used,CSMP_TYPE_VENDOR);
     p_cur += rv; used += rv;
-    if ((rv == 0) || (used > len))
+    if ((rv == 0) || (used > len)) {
+      DPRINTF("csmptlv_write error: (rv == 0) || (used=%d > len=%ld)\n", used, len);
       return 0;
+    }
     rv = ProtobufVarint_encodeUINT32(p_cur,len - used,tlvid.vendor);
     p_cur += rv; used += rv;
-    if ((rv == 0) || (used > len))
+    if ((rv == 0) || (used > len)) {
+      DPRINTF("csmptlv_write error: (rv == 0) || (used=%d > len=%ld)\n", used, len);
       return 0;
-
+    }
   }
 
   rv = ProtobufVarint_encodeUINT32(p_cur,len - used,tlvid.type);
   p_cur += rv; used += rv;
-  if ((rv == 0) || (used > len))
+  if ((rv == 0) || (used > len)) {
+    DPRINTF("csmptlv_write error: (rv == 0) || (used=%d > len=%ld)\n", used, len);
     return 0;
+  }
 
   p_tlvlen = p_cur;
   p_cur += CSMP_LEN_SKIP; used += CSMP_LEN_SKIP;
 
   packsize = protobuf_c_message_get_packed_size(msg);
-  if ((len-used) < packsize)
+  DPRINTF("csmptlv_write: len=%ld used=%d packsize=%d\n", len, used, packsize);
+  if ((len-used) < packsize) {
+    DPRINTF("csmptlv_write error: (len-used)=%ld < packsize=%d)\n", len-used, packsize);
     return 0;
+  }
   else {
     protobuf_c_message_pack(msg, p_cur);
     rv = packsize;
   }
 
   p_cur += rv; used += rv;
-  if ((rv == 0) || (used > len))
+  if ((rv == 0) || (used > len)) {
+    DPRINTF("csmptlv_write error: (rv == 0) || (used=%d > len=%ld)\n", used, len);
     return 0;
+  }
 
   // Now go back and write the length
   rv = ProtobufVarint_encodeUINT32(p_tlvlen,CSMP_LEN_SKIP,rv);
-  if (rv == 0)
+  if (rv == 0) {
+    DPRINTF("csmptlv_write error: (rv == 0)\n");
     return 0;
+  }
 
   while (rv < CSMP_LEN_SKIP) {
     p_tlvlen[(rv - 1)] |= 0x80;

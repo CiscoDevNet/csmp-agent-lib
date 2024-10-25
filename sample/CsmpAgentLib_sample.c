@@ -38,11 +38,72 @@ typedef struct thread_argument {
   char **argv;
 } thread_argument_t;
 
+/* \brief CSMP running slot hdr info used by FND via TLV75 to identify running fw on the node*/
+Csmp_Slothdr default_run_slot_image = {{0x61,0xe7,0xe1,0x76,0xe2,0xfb,0xcc,0x3e,0x1c,0xc8,0x5b,0xb1,0xf4,\
+  0x99,0xa4,0x02,0x6d,0x28,0xcf,0x1d,0x66,0x16,0x76,0x91,0x91,0x3f,0xd9,0x80,0x5b,0xe5,0x5b,0xa1},\
+"opencsmp-node-6.6.99","6.6.99", "OPENCSMP", 27904, 0, 0, 0, 0, 0, 0, {0},0, 0, {0}};
 /**
  * @brief Character to hex conversion
- * @return int8_t hex value 
+ * @return int8_t hex value
  */
 static int8_t char2hex(char ch);
+
+/**
+ * @brief Initialize sample data before CSMP service start
+ *
+ * @param void
+ * @return void
+ */
+void sample_data_init() {
+  int idx=0, ret=0;
+  struct timeval tv = {0};
+  DPRINTF("sample_data_init: Initialize sample data\n");
+  gettimeofday(&tv, NULL);
+  g_init_time = tv.tv_sec;
+  #ifdef OSAL_LINUX
+    ret=read_fw_img(RUN_IMAGE);
+    if(ret < 0){
+      memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
+      DPRINTF("sample_data_init: Run Slot not found default values will be used\n");
+    }
+    ret=read_fw_img(UPLOAD_IMAGE);
+    if(ret<0){
+      DPRINTF("sample_data_init: Upload slot not found!\n");
+    }
+    ret=read_fw_img(BACKUP_IMAGE);
+    if(ret<0){
+      DPRINTF("sample_data_init: Backup slot not found!\n");
+    }
+  #else // Platforms other than linux cuurenlty do not support image read/write to disk function,
+        // run-slot will be initialized with default values during boot-up
+      if(!g_reboot_request)
+        memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
+  #endif
+  // Init sample Vendor Tlv data
+  for (idx = 0; idx < VENDOR_MAX_SUBTYPES; idx++) {
+    g_vendorTlv[idx].has_subtype = true;
+    g_vendorTlv[idx].subtype = idx + 1;
+    g_vendorTlv[idx].has_value = true;
+    g_vendorTlv[idx].value.len = VENDOR_MAX_DATA_LEN;
+    memset(g_vendorTlv[idx].value.data, idx+1, VENDOR_MAX_DATA_LEN);
+  }
+}
+/**
+ * @brief   This function re-initializes the application variables, reboots the app and re-registers the agent with NMS
+ * @return  void
+ */
+void sample_app_reboot() {
+  bool ret = false;
+  g_reboot_request = true;
+  sample_data_init();
+  ret = csmp_service_reboot(&g_devconfig);
+  if(ret == true)
+    printf("\n\nCSMP-Agent service reboot: success!\nService registration in progress...\n\n");
+  else
+    printf("CSMP-Agent service reboot: failed!\\n");
+  g_reboot_request = false;
+}
+
 
 #if defined(OSAL_LINUX)
 
@@ -56,13 +117,14 @@ static void *csmp_sample_app_thr_fnc(void *arg)
   struct timeval tv = {0};
   csmp_service_status_t status;
   csmp_service_stats_t *stats_ptr;
-  char *status_msg[] = {"CSMP service is not started\n",
-                       "Failed to start CSMP service\n",
-                       "Registration is in progress...\n",
-                       "Regist to the NMS successfully\n"};
+  char *status_msg[] = {"Service not started\n",
+                       "Service failed to start\n",
+                       "Service registration in progress...\n",
+                       "Service registration with NMS successful\n"};
   int ret, i;
-  char *endptr;
+  char *endptr = NULL;
   bool sigFlag = false;
+  uint8_t addr_buf[16]={0};
 
   osal_gettime(&tv, NULL);
   g_init_time = tv.tv_sec;
@@ -96,10 +158,11 @@ static void *csmp_sample_app_thr_fnc(void *arg)
       if (++i >= argc)
         goto start_error;
       memset(g_devconfig.ieee_eui64.data, 0, sizeof(g_devconfig.ieee_eui64.data));
-      if (str2addr(argv[i], g_devconfig.ieee_eui64.data) < 0)
+      if (str2addr(argv[i], g_devconfig.ieee_eui64.data) < 0) {
+        printf("Invalid EID\n");
         goto start_error;
-      if (*endptr != '\0')
-        goto start_error;
+      }
+      memcpy(g_eui64, g_devconfig.ieee_eui64.data, sizeof(g_eui64));
     } else if (strcmp(argv[i], "-d") == 0) {  // NMS address
       if (++i >= argc)
         goto start_error;
@@ -108,12 +171,30 @@ static void *csmp_sample_app_thr_fnc(void *arg)
         goto start_error;
       }
     } else if (strcmp(argv[i], "-sig") == 0) {  // Signature Settings
+/* -sig cli param is valid only when Agent is compiled with Crypto libs
+   else notify Signature settings is disabled to avoid confusion */
+#if defined(OPENSSL)
       if (++i >= argc)
         goto start_error;
       if (strcmp(argv[i], "true") == 0) {
-        printf("setting signature settings to TRUE\n");
+        printf("Signature settings is enabled\n");
         sigFlag = true;
+      } else {
+        printf("Signature settings is disabled\n");
+        sigFlag = false;
       }
+#else
+      printf("Enable crypto libs to use Signature settings\n");
+      goto start_error;
+#endif
+    } else if (strcmp(argv[i], "-ip") == 0) { // Agent IPv6 Addr
+      if (++i >= argc)
+        goto start_error;
+      if (inet_pton(AF_INET6, argv[i], addr_buf) <= 0) {
+        printf("Invalid IPv6 address\n");
+        goto start_error;
+      }
+      strcpy(g_ipv6, argv[i]);
     }
   }
 
@@ -162,26 +243,34 @@ static void *csmp_sample_app_thr_fnc(void *arg)
   g_csmp_handle.csmptlvs_post = (csmptlvs_post_t)csmptlvs_post;
   g_csmp_handle.signature_verify = (signature_verify_t)signature_verify;
 
+  // Initialize sample data: Sample app variables to be initialized
+  // with default/sample data will be done here
+  sample_data_init();
+
   // start csmp agent lib service
   ret = csmp_service_start(&g_devconfig, &g_csmp_handle);
   if(ret < 0)
-    printf("start csmp agent service: fail!\n");
+    printf("CSMP-Agent service start: failed!\n");
   else
-    printf("start csmp agent service: success!\n");
-
+    printf("CSMP-Agent service start: success!\n");
   // get the regmin and regmax
-  printf("min : %" PRIuLEAST32 ", max = %" PRIuLEAST32 "\n",g_devconfig.reginterval_min, g_devconfig.reginterval_max);
+  printf("Registration intervals: min : %" PRIuLEAST32 ", max = %" PRIuLEAST32 "\n",g_devconfig.reginterval_min, g_devconfig.reginterval_max);
 
   while(1) {
+    //Check for ongoing reboot request
+    if (g_reboot_request == true)
+      continue;
+
     osal_sleep_ms(g_devconfig.reginterval_min * 1000UL);
 
     // get the service status
     status = csmp_service_status();
-    printf("%s\n",status_msg[status]);
+    printf("\n============== CSMP-service ==============\n");
+    printf("\n %s\n",status_msg[status]);
 
     // get the stats of CSMP agent service
     stats_ptr = csmp_service_stats();
-    printf("-------------- CSMP service stats --------------\n");
+    printf("----------------- Stats ------------------\n");
     printf(" reg_succeed: %" PRIuLEAST32 "\n reg_attempts: %" PRIuLEAST32 "\n reg_fails: %" PRIuLEAST32 "\n\
         \n *** reg_fail reason ***\n  error_coap: %" PRIuLEAST32 "\n  error_signature: %" PRIuLEAST32 "\n  error_process: %" PRIuLEAST32 "\n\
         \n metrics_reports: %" PRIuLEAST32 "\n csmp_get_succeed: %" PRIuLEAST32 "\n csmp_post_succeed: %" PRIuLEAST32 "\n\
@@ -191,18 +280,19 @@ static void *csmp_sample_app_thr_fnc(void *arg)
         stats_ptr->reg_fails_stats.error_process,stats_ptr->metrics_reports,\
         stats_ptr->csmp_get_succeed,stats_ptr->csmp_post_succeed,stats_ptr->sig_ok,\
         stats_ptr->sig_no_signature,stats_ptr->sig_bad_auth,stats_ptr->sig_bad_validity);
-    printf("---------------------- end --------------------\n");
+    printf("------------------ end -------------------\n\n");
   }
 
-  //stop csmp agent service
+  // stop csmp agent service
   ret = csmp_service_stop();
   if(ret)
-    printf("stop csmp agent service: success!\n");
+    printf("CSMP-Agent service stop: success!\n");
   else
-    printf("stop csmp agent service: fail!\n");
+    printf("CSMP-Agent service stop: failed!\n");
+  return 0;
 
 start_error:
-  printf("start csmp agent service: fail!\n");
+  printf("CSMP-Agent service start: failed! Abort.\n");
   return NULL;
 }
 
@@ -217,13 +307,13 @@ static void csmp_sample_app_thr_fnc(void *arg)
   struct timeval tv = {0};
   csmp_service_status_t status;
   csmp_service_stats_t *stats_ptr;
-  char *status_msg[] = {"CSMP service is not started\n",
-                       "Failed to start CSMP service\n",
-                       "Registration is in progress...\n",
-                       "Regist to the NMS successfully\n"};
+  char *status_msg[] = {"Service not started\n",
+                       "Service failed to start\n",
+                       "Service registration in progress...\n",
+                       "Service registration with NMS successful\n"};
   int ret;
   bool sigFlag = false;
-  
+
   printf("Csmp Agent Lib Sample Application\n");
 
 #if defined(OSAL_EFR32_WISUN)
@@ -233,7 +323,7 @@ static void csmp_sample_app_thr_fnc(void *arg)
     printf("Warning: NTP Time Sync failed\n");
   }
 #endif
-  
+
   osal_gettime(&tv, NULL);
   g_init_time = tv.tv_sec;
 
@@ -268,8 +358,11 @@ static void csmp_sample_app_thr_fnc(void *arg)
 
 #if defined(CSMP_AGENT_SIGNATURE_SETTINGS)
   if (CSMP_AGENT_SIGNATURE_SETTINGS) {
-    printf("setting signature settings to TRUE\n");
+    printf("Signature settings is enabled\n");
     sigFlag = true;
+  } else {
+    printf("Signature settings is disabled\n");
+    sigFlag = false;
   }
 #endif
 
@@ -317,26 +410,35 @@ static void csmp_sample_app_thr_fnc(void *arg)
   g_csmp_handle.csmptlvs_post = (csmptlvs_post_t)csmptlvs_post;
   g_csmp_handle.signature_verify = (signature_verify_t)signature_verify;
 
+  // Initialize sample data: Sample app variables to be initialized
+  // with default/sample data will be done here
+  sample_data_init();
+
   // start csmp agent lib service
   ret = csmp_service_start(&g_devconfig, &g_csmp_handle);
   if(ret < 0)
-    printf("start csmp agent service: fail!\n");
+    printf("CSMP-Agent service start: failed!\n");
   else
-    printf("start csmp agent service: success!\n");
+    printf("CSMP-Agent service start: success!\n");
 
   // get the regmin and regmax
-  printf("min : %" PRIuLEAST32 ", max = %" PRIuLEAST32 "\n",g_devconfig.reginterval_min, g_devconfig.reginterval_max);
+  printf("Registration intervals: min : %" PRIuLEAST32 ", max = %" PRIuLEAST32 "\n",g_devconfig.reginterval_min, g_devconfig.reginterval_max);
 
   while(1) {
+    //Check for ongoing reboot request
+    if (g_reboot_request == true)
+      continue;
+
     osal_sleep_ms(g_devconfig.reginterval_min * 1000UL);
 
     // get the service status
     status = csmp_service_status();
-    printf("%s\n",status_msg[status]);
+    printf("\n============== CSMP-service ==============\n");
+    printf("\n %s\n",status_msg[status]);
 
     // get the stats of CSMP agent service
     stats_ptr = csmp_service_stats();
-    printf("-------------- CSMP service stats --------------\n");
+    printf("----------------- Stats ------------------\n");
     printf(" reg_succeed: %" PRIuLEAST32 "\n reg_attempts: %" PRIuLEAST32 "\n reg_fails: %" PRIuLEAST32 "\n\
         \n *** reg_fail reason ***\n  error_coap: %" PRIuLEAST32 "\n  error_signature: %" PRIuLEAST32 "\n  error_process: %" PRIuLEAST32 "\n\
         \n metrics_reports: %" PRIuLEAST32 "\n csmp_get_succeed: %" PRIuLEAST32 "\n csmp_post_succeed: %" PRIuLEAST32 "\n\
@@ -346,15 +448,15 @@ static void csmp_sample_app_thr_fnc(void *arg)
         stats_ptr->reg_fails_stats.error_process,stats_ptr->metrics_reports,\
         stats_ptr->csmp_get_succeed,stats_ptr->csmp_post_succeed,stats_ptr->sig_ok,\
         stats_ptr->sig_no_signature,stats_ptr->sig_bad_auth,stats_ptr->sig_bad_validity);
-    printf("---------------------- end --------------------\n");
+    printf("------------------ end -------------------\n");
   }
 
   //stop csmp agent service
   ret = csmp_service_stop();
   if(ret)
-    printf("stop csmp agent service: success!\n");
+    printf("CSMP-Agent service stop: success!\n");
   else
-    printf("stop csmp agent service: fail!\n");
+    printf("CSMP-Agent service stop: failed!\n");
 }
 #endif
 
@@ -389,11 +491,11 @@ int main(int argc, char **argv)
 #endif
 
 // Create Sample application task
-  ret = osal_task_create(&app_task, 
-                         NULL, 
-                         0, 
-                         0, 
-                         csmp_sample_app_thr_fnc, 
+  ret = osal_task_create(&app_task,
+                         NULL,
+                         0,
+                         CSMP_TASK_STACK_SIZE, //Non zero stack size is necessary to avoid STACKOVERFLOW.
+                         csmp_sample_app_thr_fnc,
                          args);
   assert(ret == 0);
 

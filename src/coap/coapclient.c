@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021-2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -93,7 +93,7 @@ int coapclient_request (const osal_sockaddr_t *to,
   uint32_t opt_buf_used = 0;
   uint32_t version = 1;
   uint32_t option_count = 0;
-  uint8_t outbuf[1024];
+  uint8_t outbuf[OUTBUF_SIZE];
   uint8_t *outbufp = outbuf;
   int outbuf_len = 0;
   int rv;

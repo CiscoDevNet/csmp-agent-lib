@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021-2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 #include "osal.h"
 
 #define MAX_CNT 15
-#define MAX_LEN 8
+#define MAX_LEN 12 //MAX_LEN to accomodate vendor-id.tlv-id extended TLV format
 
 csmp_subscription_list_t g_csmplib_report_list;
 
@@ -38,7 +38,11 @@ int csmp_get_reportSubscribe(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tl
 
   (void)tlvindex; // Suppress unused param compiler warning.
   
-  tlvlist = osal_malloc(MAX_CNT * sizeof(void *));
+  if (g_csmplib_report_list.cnt > MAX_CNT) {
+    DPRINTF("csmpagent_reportSubscribe: report subscribe list count greater than max count %d \n", MAX_CNT);
+    return -1;
+  }
+  tlvlist = osal_malloc(g_csmplib_report_list.cnt * sizeof(void *));
 
   DPRINTF("csmpagent_reportSubscribe: start working.\n");
   ReportSubscribeMsg.interval_present_case = REPORT_SUBSCRIBE__INTERVAL_PRESENT_INTERVAL;
@@ -52,6 +56,11 @@ int csmp_get_reportSubscribe(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tl
   ReportSubscribeMsg.tlvid = tlvlist;
 
   rv = csmptlv_write(pbuf,len - used,tlvid,(ProtobufCMessage *)&ReportSubscribeMsg);
+
+  for (i = 0;i < g_csmplib_report_list.cnt;i++)
+    osal_free(tlvlist[i]);
+  osal_free(tlvlist);
+
   if (rv == 0) {
     DPRINTF("csmpagent_reportSubscribe: csmptlv_write error!\n");
     return -1;
@@ -60,10 +69,6 @@ int csmp_get_reportSubscribe(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tl
   }
 
   pbuf += rv; used += rv;
-
-  for (i = 0;i < g_csmplib_report_list.cnt;i++)
-    osal_free(tlvlist[i]);
-  osal_free(tlvlist);
 
   return used;
 }

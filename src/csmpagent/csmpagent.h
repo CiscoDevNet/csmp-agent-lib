@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021-2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -71,5 +71,14 @@ int checkSignature(const uint8_t *buf, uint32_t len, bool agent);
  * @return false
  */
 bool checkGroup(const uint8_t *buf, uint32_t len);
+
+/**
+ * @brief sendAsyncResp
+ *
+ * @param obuf Output Buffer
+ * @param outlen Output Buffer length
+ * @return int -1 if failed else 0 for success
+ */
+int sendAsyncResp(uint8_t *obuf, size_t outlen);
 
 #endif

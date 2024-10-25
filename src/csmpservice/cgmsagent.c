@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021-2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@
 #include "csmpagent.h"
 #include "cgmsagent.h"
 #include "CsmpTlvs.pb-c.h"
+#include "../../include/iana_pen.h"
 #include "osal.h"
 
-#define OUTBUF_SIZE 1048
 static osal_sockaddr_t NMS_addr;
 static uint8_t g_outbuf[OUTBUF_SIZE];
 
@@ -131,7 +131,6 @@ int doSendtlvs(tlvid_t *list, uint32_t list_cnt, coap_transaction_type_t txn_typ
         DPRINTF("CgmsAgent: Unable to get TLV %u.%u\n",list[i].vendor,list[i].type);
         rvi = 0;
       }
-      return -1;
     }
     pbuf += rvi; used += rvi;
   }
@@ -207,11 +206,27 @@ void process_reg(const uint8_t *buf,size_t len, bool preload_only) {
   return;
 }
 
+/*
+ * NMS Registration timer handler
+ *
+ * Desired list of TLVs to be sent to NMS during registration:
+ *
+ * DEVICE_ID_TLVID, CURRENT_TIME_TLVID,
+ * HARDWARE_DESC_TLVID, INTERFACE_DESC_TLVID, IPADDRESS_TLVID
+ * CGMSSTATUS_TLVID, IEEE8021X_STATUS_TLVID, WPANSTATUS_TLVID,
+ * RPLSETTINGS_TLVID, GROUP_INFO_TLVID, REPORT_SUBSCRIBE_TLVID,
+ * OUTAGE_RECOVERY_TLVID
+ *
+ * Note: Additional TLVs sent during registration may not be
+ * processed by FND/NMS.
+ */
 void register_timer_fired() {
-  tlvid_t list[] = {{0,DEVICE_ID_TLVID},{0,CURRENT_TIME_TLVID},
+  tlvid_t list[] = {{0,DEVICE_ID_TLVID}, {0,CURRENT_TIME_TLVID},
                     {0,HARDWARE_DESC_TLVID},{0,INTERFACE_DESC_TLVID},{0,IPADDRESS_TLVID},
                     {0,IPROUTE_TLVID},{0,INTERFACE_METRICS_TLVID},{0,IPROUTE_RPLMETRICS_TLVID},
-                    {0,WPANSTATUS_TLVID}, {0,RPLINSTANCE_TLVID}, {0,FIRMWARE_IMAGE_INFO_TLVID}};
+                    {0,WPANSTATUS_TLVID},{0,GROUP_INFO_TLVID},{0,REPORT_SUBSCRIBE_TLVID},
+                    {0,FIRMWARE_IMAGE_INFO_TLVID},{VENDOR_ID,VENDOR_TLVID}};
+
   uint32_t list_cnt = sizeof(list)/sizeof(tlvid_t);
 
   g_csmplib_stats.reg_attempts++;
@@ -309,4 +324,16 @@ bool register_start(struct in6_addr *NMSaddr, bool update)
   osal_trickle_timer_start(reg_timer, g_csmplib_reginterval_min, g_csmplib_reginterval_max,
       (trickle_timer_fired_t)register_timer_fired);
   return true;
+}
+
+int sendAsyncResp(uint8_t *obuf, size_t outlen){
+  const char name='c';
+  coap_uri_seg_t url = {1, (uint8_t*) &name};
+  int rv=0;
+  rv =  coapclient_request(&NMS_addr, COAP_NON, COAP_POST, 0, NULL,
+                            &url,1,NULL,0,obuf,outlen);
+  if (rv<0) {
+    DPRINTF("CsmpAgent: Failed to send async response!\n");
+  }
+  return rv;
 }

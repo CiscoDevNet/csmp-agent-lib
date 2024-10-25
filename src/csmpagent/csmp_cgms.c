@@ -1,5 +1,5 @@
 /*
- *  Copyright 2023 Cisco Systems, Inc.
+ *  Copyright 2023-2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ int csmp_get_cgmsNotification(tlvid_t tlvid, uint8_t *buf, size_t len)
   uint32_t tlvIndex;
   uint8_t *pbuf = buf;
   size_t rv, used = 0;
+  uint32_t CGMSNotificationTlvs[MAX_NOTIFY_TLVID_CNT] = {0};
 
   DPRINTF("csmpagent_cgmsNotification: start working.\n");
 
@@ -41,14 +42,15 @@ int csmp_get_cgmsNotification(tlvid_t tlvid, uint8_t *buf, size_t len)
     uint8_t cnt = 0;
     for (tlvIndex = 0;tlvIndex < MAX_NOTIFY_TLVID_CNT;tlvIndex++) {
       if (m_tlvlist[tlvIndex] != 0){
-        CGMSNotificationMsg.tlvs[tlvIndex] = m_tlvlist[tlvIndex];
+        CGMSNotificationTlvs[tlvIndex] = m_tlvlist[tlvIndex];
         cnt++;
       }
       else {
         break;
       }
-      CGMSNotificationMsg.n_tlvs = cnt;
     }
+    CGMSNotificationMsg.n_tlvs = cnt;
+    CGMSNotificationMsg.tlvs=CGMSNotificationTlvs;
   }
 
   rv = csmptlv_write(pbuf, len-used, tlvid, (ProtobufCMessage *)&CGMSNotificationMsg);
@@ -60,7 +62,6 @@ int csmp_get_cgmsNotification(tlvid_t tlvid, uint8_t *buf, size_t len)
 
   DPRINTF("csmpagent_cgmsNotification: csmptlv_write [%ld] bytes to buffer!\n", used);
   return used;
-
 }
 
 int csmp_get_cgmsStats(tlvid_t tlvid, uint8_t *buf, size_t len)

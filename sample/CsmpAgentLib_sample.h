@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021-2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 #define _SAMPLE_H
 
 #include "csmp_info.h"
-
 
 /*! \file
  *
@@ -99,6 +98,17 @@
 /************************ start ********************************************/
 /*  modify the information before compile */
 
+/** \brief Set the device type */
+enum {
+  GENERIC_HW = 0,
+  OPENCSMP = 1,
+  CISCO_IR510 = 2,
+  ITRON_METER = 3
+};
+#define DEVICE_TYPE OPENCSMP
+
+#define CSMP_TASK_STACK_SIZE 2*1024 //Stack size of 2KB allocated to main thread to handle general/file operations to prevent SEGFAULT
+
 /** \brief Min Registration inetval in seconds*/
 #define CSMP_AGENT_REG_INTERVAL_MIN   10U
 
@@ -118,6 +128,9 @@
 /** \brief eui64, should come from the HW*/
 extern uint8_t g_eui64[8];
 
+/** \brief Agent IPv6 address*/
+extern char g_ipv6[46];
+
 /** \brief  minium registation interval*/
 #define reg_interval_min 10
 /** \brief  maximum registation interval*/
@@ -129,9 +142,6 @@ extern uint8_t g_eui64[8];
 #define ipaddress_max_num 3
 /** \brief max number of neighbor*/
 #define neighbor_max_num 2
-
-/** \brief  number of vendor subtype*/
-#define VENDOR_SUBTYPE_NUM 10
 
 /** \brief the hardware information */
 extern Hardware_Desc g_hardwareDesc;
@@ -163,15 +173,67 @@ extern WPAN_Status g_wpanStatus;
 /** \brief the rpl data */
 extern RPL_Instance g_rplInstance;
 
+/** \brief the transfer requst data */
+extern Transfer_Request g_transferRequest;
+
+/** \brief the image block data */
+extern Image_Block g_imageBlock;
+
+/** \brief the load request data */
+extern Load_Request g_loadRequest;
+
+/** \brief the cancel load request data */
+extern Cancel_Load_Request g_cancelLoadRequest;
+
+/** \brief the set backup request data */
+extern Set_Backup_Request setBackupRequest;
+
 /** \brief the firmware info data */
-extern Firmware_Image_Info g_firmwareImageInfo;
+extern Firmware_Image_Info g_firmwareImageInfo[CSMP_FWMGMT_ACTIVE_SLOTS];
 
 /** \brief the signature settings data */
 extern Signature_Settings g_SignatureSettings;
 
-/** \brief the vendor specific data */
-extern Vendor_Specific g_VendorData[VENDOR_SUBTYPE_NUM];
+/** \brief Vendor tlv data */
+extern Vendor_Tlv g_vendorTlv[VENDOR_MAX_SUBTYPES];
 
+/** \brief Csmp Slot Header Array for the 3 FW slots */
+extern Csmp_Slothdr g_slothdr[CSMP_FWMGMT_ACTIVE_SLOTS];
+
+/** \brief Flag to track ongoing reboot request */
+extern bool g_reboot_request;
+
+/**
+ * @brief Initialize sample data before CSMP service start
+ *
+ * @param void
+ * @return void
+ */
+extern void sample_data_init();
+
+/**
+ * @brief Initialize sample data before CSMP service start
+ *
+ * @param void
+ * @return void
+ */
+extern void sample_app_reboot();
+
+/**
+ * @brief Write fw image to file
+ *
+ * @param slotid
+ * @return int
+ */
+extern int write_fw_img(uint8_t slotid);
+
+/**
+ * @brief Read fw image from slot file
+ *
+ * @param slotid
+ * @return int
+ */
+extern int read_fw_img(uint8_t slotid);
 /**
  * @brief Convert a string to an address
  */

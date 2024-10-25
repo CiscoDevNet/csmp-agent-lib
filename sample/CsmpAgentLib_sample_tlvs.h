@@ -1,17 +1,32 @@
+/*
+ *  Copyright 2024 Cisco Systems, Inc.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 #ifndef _SAMPLE_TLVS_H_
 #define _SAMPLE_TLVS_H_
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include "csmp_service.h"
 #include "csmp_info.h"
 
-#define CSMP_NON_VENDOR_ID 0
-#define VENDOR_DATA_LEN 64
-
 extern dev_config_t g_devconfig;
 extern csmp_handle_t g_csmp_handle;
 extern uint32_t g_init_time;
+extern bool g_reboot_request;
 
 /**
  * @brief pubkey_get (portable)
@@ -69,22 +84,6 @@ void* currenttime_get(uint32_t *num);
 void currenttime_post(Current_Time *tlv);
 
 /**
- * @brief get the vendor specific data (portable)
- *
- * @param num amount of instances
- * @return void* pointer to g_VendorData
- */
-void* vendorspecificdata_get(tlvid_t tlvid, uint32_t *num);
-
-
-/**
- * @brief set the vendor specific data (portable)
- *
- * @param tlv
- */
-void vendorspecificdata_post(tlvid_t tlvid, Vendor_Specific *tlv);
-
-/**
  * @brief Get the uptime
  *
  * @param num amount of instances in g_uptime (portable)
@@ -132,11 +131,11 @@ void* rplinstance_get(uint32_t *num);
  * @param num amount of instances of g_firmwareImageInfo
  * @return void* pointer to global g_firmwareImageInfo
  */
-void* firmware_image_info_get(uint32_t *num);
+void* firmwareImageInfo_get(tlvid_t tlvid, uint32_t *num);
 
 
 /**
- * @brief get up the signature settings (portable)
+ * @brief get the signature settings (portable)
  *
  * @param num amount of instances
  * @return void* pointer to global g_SignatureSettings
@@ -150,6 +149,21 @@ void* signature_settings_get(uint32_t *num);
  */
 void signature_settings_post(Signature_Settings *tlv);
 
+/**
+ * @brief get vendor tlv (portable)
+ *
+ * @param num amount of instances
+ * @return void* pointer to global g_vendorTlv
+ */
+void* vendorTlv_get(tlvid_t tlvid, uint32_t *num);
+
+/**
+ * @brief set vendor tlv (portable)
+ *
+ * @param num amount of instances
+ * @return void* pointer to global g_vendorTlv
+ */
+void vendorTlv_post(tlvid_t tlvid, Vendor_Tlv *tlv);
 
 /**
  * @brief csmp get TLV request
@@ -167,5 +181,61 @@ void* csmptlvs_get(tlvid_t tlvid, uint32_t *num);
  * @param tlv the request data
  */
 void csmptlvs_post(tlvid_t tlvid, void *tlv);
+
+/**
+ * @brief transfer request get TLV request
+ *
+ * @param tlvid the tlvid to handle
+ * @param tlv the request data
+ */
+void* transferRequest_get(tlvid_t tlvid, uint32_t *num);
+
+/**
+ * @brief transfer request post TLV request
+ *
+ * @param tlvid the tlvid to handle
+ * @param tlv the request data
+ */
+void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv);
+
+/**
+ * @brief loadRequest get TLV request
+ *
+ * @param tlvid the tlvid to handle
+ * @param tlv the request data
+ */
+void* loadRequest_get(tlvid_t tlvid, uint32_t *num);
+
+/**
+ * @brief loadRequest post TLV request
+ *
+ * @param tlvid the tlvid to handle
+ * @param tlv the request data
+ */
+void loadRequest_post(tlvid_t tlvid, Load_Request *tlv);
+
+/**
+ * @brief cancelLoadRequest post TLV request
+ *
+ * @param tlvid the tlvid to handle
+ * @param tlv the request data
+ */
+void cancelLoadRequest_post(tlvid_t tlvid, Cancel_Load_Request *tlv);
+
+/**
+ * @brief image block post TLV request
+ *
+ * @param tlvid the tlvid to handle
+ * @param tlv the request data
+ */
+void imageBlock_post(tlvid_t tlvid, Image_Block *tlv);
+
+/**
+ * @brief setBackupRequest post TLV request
+ *
+ * @param tlvid the tlvid to handle
+ * @param tlv the request data
+ */
+void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv);
 
 #endif // _SAMPLE_TLVS_H_

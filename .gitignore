@@ -6,7 +6,6 @@ efr32_wisun/build/
 *.out
 *.map
 *.elf
-*.bin
 *.hex
 *.s37
 *.d

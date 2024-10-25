@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021-2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -117,4 +117,23 @@ csmp_service_status_t csmp_service_status() {
 
 csmp_service_stats_t* csmp_service_stats() {
   return &g_csmplib_stats;
+}
+
+/**
+ * @brief re-register agent and simulate reboot
+ *        g_reboot_request flag should be set to true before calling
+ *        this function
+ * @return true
+ * @return false
+ */
+bool csmp_service_reboot(dev_config_t *devconfig) {
+  //Clearing stats; Note:  main() thread will pause printing stats until reboot completes.
+  //Reset configuration TLVs. 
+  //After calling this function, reiniatilze your application variables.
+  memset(&g_csmplib_stats, 0, sizeof(g_csmplib_stats));
+  g_csmplib_report_list.cnt = 0;
+  g_csmplib_report_list.period = 0;
+  memset(&g_csmplib_report_list.list, 0, sizeof(g_csmplib_report_list.list));
+  gSessionIDVal.id=NULL;
+  return register_start(&devconfig->NMSaddr, true);
 }

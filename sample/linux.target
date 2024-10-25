@@ -5,6 +5,7 @@ OUTPUT_DIR = ../build/debug
 CFLAGS += -I ../include -I ../osal/ -I ../osal/linux/ -I ./
 CFLAGS += -DOSAL_LINUX
 LIBS += -lpthread
+#CFLAGS += -DPRINTDEBUG
 
 #if the openssl lib is availabe, please uncomment the following four lines
 #CFLAGS += -DOPENSSL

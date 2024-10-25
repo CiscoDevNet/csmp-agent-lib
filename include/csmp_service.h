@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021-2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -48,8 +48,14 @@ typedef enum {
   IPROUTE_RPLMETRICS_ID = 25, /**< rpl metrics request */
   WPANSTATUS_ID = 35, /**< wpan status request */
   RPLINSTANCE_ID = 53, /**< rpl instance info request */
+  TRANSFER_REQUEST_ID = 65,    /**< firmware transfer request */
+  IMAGE_BLOCK_ID = 67,         /**< firmware image block */
+  LOAD_REQUEST_ID = 68,        /**< firmware load request */
+  CANCEL_LOAD_REQUEST_ID = 69, /**< firmware cancel load request */
+  SET_BACKUP_REQUEST_ID = 70,  /**< firmware set backup request */
   FIRMWARE_IMAGE_INFO_ID = 75, /**< firmware info request */
-  SIGNATURE_SETTINGS_ID = 79 /**< signature settings request */
+  SIGNATURE_SETTINGS_ID = 79, /**< signature settings request */
+  VENDOR_TLV_ID = 127 /**< vendor tlv */
 } tlv_type_t;
 
 /**
@@ -213,5 +219,13 @@ csmp_service_stats_t* csmp_service_stats();
  * @return false
  */
 bool csmp_service_stop();
+
+/**
+ * @brief reboot the csmp service
+ *
+ * @return true
+ * @return false
+ */
+bool csmp_service_reboot(dev_config_t *devconfig);
 
 #endif

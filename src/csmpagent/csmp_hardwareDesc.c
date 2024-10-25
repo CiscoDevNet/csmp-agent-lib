@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021-2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ int csmp_get_hardwareDesc(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvin
 {
   size_t rv = 0;
   uint32_t num;
-  
+
   (void)tlvindex; // Suppress un-used param warning.
 
-  DPRINTF("csmpagent_hardwareDesc: start working.\n");
+  DPRINTF("** csmpagent_hardwareDesc: GET for TLV %d\n", tlvid.type);
 
   HardwareDesc HardwareDescMsg = HARDWARE_DESC__INIT;
 
@@ -112,11 +112,12 @@ int csmp_get_hardwareDesc(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvin
 
     rv = csmptlv_write(buf, len, tlvid, (ProtobufCMessage *)&HardwareDescMsg);
     if (rv == 0) {
-      DPRINTF("csmpagent_hardwareDesc: csmptlv_write error!\n");
-      return -1;
+      DPRINTF("csmpagent_hardwareDesc: csmptlv %d write error!\n", tlvid.type);
+      return CSMP_OP_TLV_WR_ERROR;
     }
   }
 
-  DPRINTF("csmpagent_hardwareDesc: csmptlv_write [%ld] bytes to buffer!\n", rv);
+  DPRINTF("csmpagent_hardwareDesc: csmptlv %d wrote [%ld] bytes to buffer!\n", tlvid.type, rv);
+  DPRINTF("** csmpagent_hardwareDesc: GET for TLV %d done.\n", tlvid.type);
   return rv;
 }

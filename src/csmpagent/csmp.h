@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021-2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -33,10 +33,10 @@
 #define CSMP_OP_UNSUPPORTED    -3
 #define CSMP_OP_FAILED         -4
 
-/* return codes */
+/* Common return codes */
 #define SUCCESS 1
 #define FAILURE 0
-#define ERROR -1
+#define ERROR  -1
 
 /**
  * @brief vendor info

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021-2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -27,14 +27,15 @@
 
 enum {
   URISEG_MAX_SIZE = 128,
-  OUTBUF_SIZE = 1048,
-  OUTBUF_MAX = 1024, // Provides margin to overflow
+  OUTBUF_SIZE = 2048,
+  OUTBUF_MAX = 2096, // Provides margin to overflow
   QRY_LIST_MAX = 20,
-  DEFAULT_DELAY = 30000, // 30 sec
+  DEFAULT_DELAY = 20, // 20 sec delay to trigger CSMP NON-CON POST async-response for
+                      // Description Request, LoadResponse, SetBackup Response
 };
 
 static uint8_t m_RespBuf[OUTBUF_SIZE];
-
+size_t m_outlen;
 uint32_t strntoul(char *str, char **endptr, uint32_t len, int base);
 bool getArgInt(char *key, const coap_uri_seg_t *list,
     uint32_t list_cnt, uint32_t *val);
@@ -42,7 +43,7 @@ bool getArgTlvList(char *key, const coap_uri_seg_t *list,
     uint32_t list_cnt, tlvid_t *vals, uint32_t *vals_cnt);
 bool getArgString(char *key, const coap_uri_seg_t *list,
     uint32_t list_cnt, char* s, uint32_t *slen);
-
+void async_timer_fired();
 extern void csmpNotify(bool is_reg, uint32_t code, uint32_t *errlist, uint8_t token_length, uint8_t *token);
 
 bool checkExempt(tlvid_t tlvid) {
@@ -82,6 +83,7 @@ void recv_request(struct sockaddr_in6 *from,
   uint32_t i;
   uint8_t err_tlvid_count = 0;
   uint32_t err_tlvid[MAX_NOTIFY_TLVID_CNT] = {0};
+  uint32_t delay = 0;
 
 #ifdef PRINTDEBUG
   printf("CsmpServer: ");
@@ -128,6 +130,11 @@ void recv_request(struct sockaddr_in6 *from,
   }
 
   out_buf = m_RespBuf;
+  if(tx_type == COAP_NON){
+    getArgInt("a=",query,query_cnt,&delay);
+    delay = (delay == 0)?DEFAULT_DELAY:delay;
+  }
+
   switch (method)
   {
     case COAP_GET:
@@ -136,7 +143,6 @@ void recv_request(struct sockaddr_in6 *from,
         tlvid_t tlvlist[QRY_LIST_MAX] = {{0,0}};
         uint32_t tlvcnt = QRY_LIST_MAX;
         uint32_t i;
-        bool vendorFlag = false;
 
         getArgInt("t1=",query,query_cnt,&t1);
         getArgInt("t2=",query,query_cnt,&t2);
@@ -150,31 +156,7 @@ void recv_request(struct sockaddr_in6 *from,
 
         for (i=0; i<tlvcnt; i++) {
           DPRINTF("CsmpServer: Getting %u.%u\n", tlvlist[i].vendor, tlvlist[i].type);
-          /*In case of vendor TLV i.e. 127, we're considering continuous three arguments
-          1st : vendor TLV (127)
-          2nd : vendor subtype
-          3rd : IANAEN i.e. vendorID
-          Once, we're encountering the vendor TLV (127), it's type is being overwritten by the subtype (2nd argument)
-          E.g. GetTLV 127 8 4
-          tlvid.type = 127
-          if (tlvid.type == 127)
-          {
-            tlvid.vendor = 4 //(tlvid+2).type
-            tlvid.type = 8   //(tlvid+1).type
-          }
-          Hence, for vendor TLV, the type would be equal to vendor subtype (instead of 127)*/
-          if (tlvlist[i].type == VENDOR_TLVID)
-          {
-            tlvlist[i].vendor = tlvlist[i+2].type;
-            tlvlist[i].type = tlvlist[i+1].type;
-            vendorFlag = true;
-          }
           rv = csmpagent_get(tlvlist[i], out_buf, OUTBUF_MAX - out_len, tlvindex);
-          if (vendorFlag)
-          {
-            i = i+2;
-            vendorFlag = false;
-          }
           if (rv < 0) {
             if (tlvcnt > 1)  {
               rv = 0;
@@ -221,17 +203,18 @@ void recv_request(struct sockaddr_in6 *from,
         }
 
         while (iused < body_len) {
+	  rvo = 0;
           rv = csmptlv_readTL(ibuf, body_len-iused, &tlvid, &tlvlen);
           if (rv == 0) {
             rv = -1;
             break;
           }
+          tlvlen += rv;
           switch (tlvid.type) {
 
           case SIGNATURE_TLVID:
           case SIGNATURE_VALIDITY_TLVID:
           case GROUP_MATCH_TLVID:
-            rv += tlvlen;
           break;
 
           default:
@@ -242,7 +225,7 @@ void recv_request(struct sockaddr_in6 *from,
             goto done;
           }
 
-          rv = csmpagent_post(tlvid, ibuf, rv + tlvlen, obuf, OUTBUF_MAX - oused, &rvo, tlvindex);
+          rv = csmpagent_post(tlvid, ibuf, tlvlen, obuf, OUTBUF_MAX - oused, &rvo, tlvindex);
           if (rv < 0) {
             if (tx_type == COAP_NON){
               err_tlvid[err_tlvid_count] = tlvid.type;
@@ -257,7 +240,7 @@ void recv_request(struct sockaddr_in6 *from,
             }
           }
          }
-          ibuf += rv; iused += rv;
+          ibuf += tlvlen; iused += tlvlen;
           obuf += rvo; oused += rvo;
           if (oused >= OUTBUF_MAX) {
             coap_status = COAP_CODE_INTERNAL_SERVER_ERROR;
@@ -297,6 +280,11 @@ done:
     if (tx_type == COAP_CON) {
       DPRINTF("CsmpServer: Sending Response [out_len=%u], [coap_status=%u]\n",(int)out_len, coap_status);
       coapserver_response(from, COAP_ACK, tx_id, token_length, token, coap_status, m_RespBuf, out_len);
+    }
+    else if (out_len) {
+      m_outlen=out_len;
+      DPRINTF("CsmpServer: Start async response timer for csmp msg with size %d, delay %d sec\n",(int)out_len, delay);
+      osal_trickle_timer_start(async_timer, delay, delay, (trickle_timer_fired_t)async_timer_fired);
     }
     else if (method == COAP_POST) {
       if (err_tlvid_count > 0) {
@@ -399,4 +387,14 @@ bool csmpserver_enable()
     return false;
   else
     return true;
+}
+
+void async_timer_fired(){
+  int rv=0;
+  DPRINTF("CsmpServer: async_timer_fired function fired\n");
+  rv=sendAsyncResp(m_RespBuf, m_outlen);
+  if(rv<0){
+    DPRINTF("CsmpServer: async_timer_fired failed to send async-response\n");
+  }
+  osal_trickle_timer_stop(async_timer);
 }

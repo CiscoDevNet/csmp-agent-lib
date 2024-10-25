@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021-2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 #include "osal.h"
 
+// CSMP GET functions
 int csmp_get_tlvindex(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 int csmp_get_deviceid(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 int csmp_get_sessionID(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
@@ -37,12 +38,15 @@ int csmp_get_wpanStatus(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvinde
 int csmp_get_cgmsNotification(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 int csmp_get_cgmsStats(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 int csmp_get_rplInstance(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
-int csmp_get_firmwareImageInfo(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 int csmp_get_signatureValidity(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 int csmp_get_signature(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 int csmp_get_signatureSettings(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
-int csmp_get_vendor(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
+int csmp_get_vendorTlv(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
+int csmp_get_transferRequest(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
+int csmp_get_loadRequest(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
+int csmp_get_firmwareImageInfo(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex);
 
+// CSMP PUT functions
 int csmp_put_currenttime(tlvid_t tlvid, const uint8_t *buf, size_t len,
                          uint8_t *out_buf, size_t out_size, size_t *out_len,
                          int32_t tlvindex);
@@ -67,8 +71,26 @@ int csmp_put_groupMatch(tlvid_t tlvid, const uint8_t *buf, size_t len,
 int csmp_put_reportSubscribe(tlvid_t tlvid, const uint8_t *buf, size_t len,
                          uint8_t *out_buf, size_t out_size, size_t *out_len,
                          int32_t tlvindex);
-int csmp_put_vendor(tlvid_t tlvid, const uint8_t *buf, size_t len,
+int csmp_put_vendorTlv(tlvid_t tlvid, const uint8_t *buf, size_t len,
+                         uint8_t *out_buf, size_t out_size, size_t *out_len,
+                         int32_t tlvindex);
+int csmp_put_transferRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
+                         uint8_t *out_buf, size_t out_size, size_t *out_len,
+                         int32_t tlvindex);
+int csmp_put_imageBlock(tlvid_t tlvid, const uint8_t *buf, size_t len,
+                         uint8_t *out_buf, size_t out_size, size_t *out_len,
+                         int32_t tlvindex);
+int csmp_put_loadRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
+                         uint8_t *out_buf, size_t out_size, size_t *out_len,
+                         int32_t tlvindex);
+int csmp_put_cancelLoadRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
+                         uint8_t *out_buf, size_t out_size, size_t *out_len,
+                         int32_t tlvindex);
+int csmp_put_setBackupRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
+                         uint8_t *out_buf, size_t out_size, size_t *out_len,
+                         int32_t tlvindex);
+int csmp_put_descriptionRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
                          uint8_t *out_buf, size_t out_size, size_t *out_len,
                          int32_t tlvindex);
 
-#endif
+#endif  //__CSMPFUNCTION_H

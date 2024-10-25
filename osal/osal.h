@@ -1,3 +1,19 @@
+/*
+ *  Copyright 2024 Cisco Systems, Inc.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 #ifndef __OSAL_H
 #define __OSAL_H
 
@@ -16,7 +32,9 @@
 typedef enum {
  reg_timer = 0,  /**< register timer */
  rpt_timer = 1,  /**< reporting timer */
- timer_num = 2   /**< max amount of timers */
+ lrq_timer = 2,  /**< firmware load request timer */
+ async_timer = 3,  /**< async response timer for description/load/backup request */
+ timer_num = 4   /**< max amount of timers */
 } osal_timerid_t;
 
 typedef void (*trickle_timer_fired_t) ();

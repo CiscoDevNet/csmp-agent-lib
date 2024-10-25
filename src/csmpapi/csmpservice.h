@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021-2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 #include "csmp.h"
 #include "osal.h"
+#include "CsmpTlvs.pb-c.h"
 
 /*! \file
  *
@@ -42,7 +43,14 @@ typedef enum {
   WPANSTATUS_ID = 35,       /**< wan status info */
   NEIGHBOR802154_G_ID = 52, /**< neighbor info */
   RPLINSTANCE_ID = 53,    /**< rpl instance info */
-  SIGNATURE_SETTINGS_ID = 79 /**< signature settings request */
+  TRANSFER_REQUEST_ID = 65,    /**< firmware transfer request */
+  IMAGE_BLOCK_ID = 67,         /**< firmware image block */
+  LOAD_REQUEST_ID = 68,        /**< firmware load request */
+  CANCEL_LOAD_REQUEST_ID = 69, /**< firmware cancel load request */
+  SET_BACKUP_REQUEST_ID = 70,  /**< firmware set backup request */
+  FIRMWARE_IMAGE_INFO_ID = 75,  /**< firmware info request */
+  SIGNATURE_SETTINGS_ID = 79, /**< signature settings request */
+  VENDOR_TLV_ID = 127 /**< vendor tlv */
 } tlv_type_t;
 
 /**
@@ -204,6 +212,14 @@ csmp_service_stats_t* csmp_service_stats();
 bool csmp_service_stop();
 
 /**
+ * @brief Reboot service and register with NMS
+ * @args  devconfig structure containing agent's configuration details
+ * @return true
+ * @return false
+ */
+bool csmp_service_reboot(dev_config_t *devconfig);
+
+/**
  * @brief externally defined stats
  *
  */
@@ -226,5 +242,15 @@ extern csmptlvs_post_t g_csmptlvs_post;
  *
  */
 extern signature_verify_t g_csmplib_signature_verify;
+/**
+ * @brief externally defined session ID
+ *
+ */
+extern SessionID gSessionIDVal;
+/**
+ * @brief externally defined csmp report subscribe list
+ *
+ */
+extern csmp_subscription_list_t g_csmplib_report_list;
 
 #endif
