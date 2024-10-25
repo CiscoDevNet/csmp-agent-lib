@@ -32,14 +32,13 @@
 #include "csmpagent.h"
 #include "CsmpTlvs.pb-c.h"
 #include "trickle_timer.h"
-
 enum {
   URISEG_MAX_SIZE = 128,
-  OUTBUF_SIZE     = 2048,
-  OUTBUF_MAX      = 2096,   // Provides margin to overflow
-  QRY_LIST_MAX    = 20,
-  DEFAULT_DELAY   = 20,     // 20 sec delay to trigger CSMP NON-CON POST async-response for
-                            // Description Request, LoadResponse, SetBackup Response
+  OUTBUF_SIZE = 2048,
+  OUTBUF_MAX = 2096, // Provides margin to overflow
+  QRY_LIST_MAX = 20,
+  DEFAULT_DELAY = 20, // 20 sec delay to trigger CSMP NON-CON POST async-response for
+                      // Description Request, LoadResponse, SetBackup Response
 };
 
 static uint8_t m_RespBuf[OUTBUF_SIZE];
@@ -92,8 +91,7 @@ void recv_request(struct sockaddr_in6 *from,
   uint32_t i;
   uint8_t err_tlvid_count = 0;
   uint32_t err_tlvid[MAX_NOTIFY_TLVID_CNT] = {0};
-  uint32_t delay = 0;
-
+  uint32_t delay =0;
 #ifdef PRINTDEBUG
   printf("CsmpServer: ");
   switch (method) {
@@ -139,11 +137,10 @@ void recv_request(struct sockaddr_in6 *from,
   }
 
   out_buf = m_RespBuf;
-  if (tx_type == COAP_NON) {
+  if(tx_type == COAP_NON){
     getArgInt("a=",query,query_cnt,&delay);
     delay = (delay == 0)?DEFAULT_DELAY:delay;
   }
-
   switch (method)
   {
     case COAP_GET:
@@ -212,6 +209,7 @@ void recv_request(struct sockaddr_in6 *from,
         }
 
         while (iused < body_len) {
+          rvo=0;
           rv = csmptlv_readTL(ibuf, body_len-iused, &tlvid, &tlvlen);
           if (rv == 0) {
             rv = -1;
@@ -289,8 +287,8 @@ done:
       DPRINTF("CsmpServer: Sending Response [out_len=%u], [coap_status=%u]\n",(int)out_len, coap_status);
       coapserver_response(from, COAP_ACK, tx_id, token_length, token, coap_status, m_RespBuf, out_len);
     }
-    else if (out_len) {
-      m_outlen = out_len;
+    else if(out_len){
+      m_outlen=out_len;
       DPRINTF("CsmpServer: Start async response timer for csmp msg with size %d, delay %d sec\n",(int)out_len, delay);
       trickle_timer_start(async_timer, delay, delay, (trickle_timer_fired_t)async_timer_fired);
     }
@@ -396,12 +394,10 @@ bool csmpserver_enable()
   else
     return true;
 }
-
-void async_timer_fired()
-{
-  int rv = 0;
-  rv = sendAsyncResp(m_RespBuf, m_outlen);
-  if ( rv < 0) {
+void async_timer_fired(){
+  int rv=0;
+  rv=sendAsyncResp(m_RespBuf, m_outlen);
+  if(rv<0){
     DPRINTF("CsmpServer: async_timer_fired failed to send async-response\n");
   }
   trickle_timer_stop(async_timer);

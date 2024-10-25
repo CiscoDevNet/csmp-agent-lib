@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021, 2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -120,12 +120,11 @@
 /** \brief NMS ip address*/
 #define NMS_IP "2001:a:b:c::ffaa"
 
-/** \brief eui64, should come from the HW */
-uint8_t g_eui64[8] = {0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb2};
+/** \brief eui64, should come from the HW*/
+uint8_t g_eui64[8] = {0x0a, 0x00, 0x27, 0xff, 0xfe, 0x3b, 0x2a, 0xb3};
 
-/** \brief Agent's IPv6 addr, can also be set via cli param -ip */
+/** \brief Agent's ipv6 addr*/
 char g_ipv6[46]="1:1:1::202";
-
 /************************ end *********************************************/
 
 /** \brief  minium registation interval*/
@@ -137,7 +136,7 @@ char g_ipv6[46]="1:1:1::202";
 #define interface_max_num 2
 /** \brief max number of ip addresses*/
 #define ipaddress_max_num 3
-/** \brief max number of neighbors*/
+/** \brief max number of neighbor*/
 #define neighbor_max_num 2
 
 #define nexthop_IP "fe80::a00:27ff:fe3b:2ab1"
@@ -150,9 +149,9 @@ enum {
   ITRON_METER = 3
 };
 // Sample running slot csmp slot hdr which is used by FND to identify running fw on the node.
-#define CSMP_SLOTHDR_RUN_IMAGE {{0x61,0xe7,0xe1,0x76,0xe2,0xfb,0xcc,0x3e,0x1c,0xc8,0x5b,0xb1,0xf4,\
+Csmp_Slothdr default_run_slot_image = {{0x61,0xe7,0xe1,0x76,0xe2,0xfb,0xcc,0x3e,0x1c,0xc8,0x5b,0xb1,0xf4,\
 0x99,0xa4,0x02,0x6d,0x28,0xcf,0x1d,0x66,0x16,0x76,0x91,0x91,0x3f,0xd9,0x80,0x5b,0xe5,0x5b,0xa1},\
-"opencsmp-node","6.2.99", "OPENCSMP", 27904, 0, 0, 0, 0, 0, 0, {0},0, 0, {0}}
+"opencsmp-node-6.6.99","6.6.99", "OPENCSMP", 27904, 0, 0, 0, 0, 0, 0, {0},0, 0, {0}};
 
 char *SSID = "CISCO";
 char vendorhwid[32] = "Vendor Hardware-ID";
@@ -243,6 +242,13 @@ Signature_Settings g_SignatureSettings = SIGNATURE_SETTINGS_INIT;
 /** \brief Vendor tlv data */
 Vendor_Tlv g_vendorTlv[VENDOR_MAX_SUBTYPES] = {VENDOR_TLV_INIT};
 
+/** \brief Write fw image to slot file */
 int write_fw_img(uint8_t slotid);
+
+/** \brief Read fw image from slot file */
+int read_fw_img(uint8_t slotid);
+
+/** \brief Initialize sample data before CSMP service start */
+void sample_app_reboot();
 
 #endif

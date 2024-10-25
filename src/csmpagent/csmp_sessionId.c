@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021, 2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 #include "csmpfunction.h"
 #include "CsmpTlvs.pb-c.h"
 
-static SessionID gSessionIDVal = SESSION_ID__INIT;
+SessionID gSessionIDVal = SESSION_ID__INIT;
 static char sessionID[17] = {0};
 
 int csmp_get_sessionID(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t tlvindex)
@@ -52,7 +52,7 @@ int csmp_put_sessionID(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *o
   const uint8_t *pbuf = buf;
   size_t rv;
   int used = 0;
-  
+
   (void) tlvid; // Suppress unused param compiler warning.
   (void) out_buf; // Suppress unused param compiler warning.
   (void) out_size; // Suppress unused param compiler warning.

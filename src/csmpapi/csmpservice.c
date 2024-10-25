@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021, 2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ csmptlvs_get_t g_csmptlvs_get;
 csmptlvs_post_t g_csmptlvs_post;
 signature_verify_t g_csmplib_signature_verify;
 
-csmp_cfg_t g_csmp_signature_settings;
+csmp_cfg_t g_csmp_signature_settings; 
 
 int csmp_service_start(dev_config_t *devconfig, csmp_handle_t *csmp_handle) {
   bool ret;
@@ -132,5 +132,9 @@ csmp_service_stats_t* csmp_service_stats() {
 bool csmp_service_reboot(dev_config_t *devconfig){
   //Clearing stats; Note:  main() thread will pause priting stats until reboot completes.
   memset(&g_csmplib_stats, 0, sizeof(g_csmplib_stats));
+  g_csmplib_report_list.cnt = 0;
+  g_csmplib_report_list.period = 0;
+  memset(&g_csmplib_report_list.list, 0, sizeof(g_csmplib_report_list.list));
+  gSessionIDVal.id=NULL;
   return register_start(&devconfig->NMSaddr, true);
 }

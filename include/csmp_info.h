@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Cisco Systems, Inc.
+ *  Copyright 2021, 2024 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -37,9 +37,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-
 #include "iana_pen.h"
-
 /** maximum CSMP cert length */
 #define MAX_SIGNATURE_CERT_LENGTH 512
 
@@ -61,14 +59,14 @@ typedef struct _Interface_Metrics Interface_Metrics;   /**< data related to TLV 
 typedef struct _IPRoute_RPLMetrics IPRoute_RPLMetrics; /**< data related to TLV 25 */
 typedef struct _WPAN_Status WPAN_Status;               /**< data related to TLV 35 */
 typedef struct _RPL_Instance RPL_Instance;             /**< data related to TLV 53 */
+typedef struct _Signature_Settings Signature_Settings; /**< data related to TLV 79 */
+typedef struct _Vendor_Tlv Vendor_Tlv;                 /**< data related to TLV 127 */
 typedef struct _Transfer_Request Transfer_Request;       /**< data related to TLV 65 */
 typedef struct _Image_Block Image_Block;                 /**< data related to TLV 67 */
 typedef struct _Load_Request Load_Request;               /**< data related to TLV 68 */
 typedef struct _Cancel_Load_Request Cancel_Load_Request; /**< data related to TLV 69 */
 typedef struct _Set_Backup_Request Set_Backup_Request;   /**< data related to TLV 70 */
 typedef struct _Firmware_Image_Info Firmware_Image_Info; /**< data related to TLV 75 */
-typedef struct _Signature_Settings Signature_Settings; /**< data related to TLV 79 */
-typedef struct _Vendor_Tlv Vendor_Tlv;                 /**< data related to TLV 127 */
 
 typedef struct _Csmp_Slothdr Csmp_Slothdr;               /**< firmware image slot */
 
@@ -519,6 +517,50 @@ struct  _RPL_Instance
 #define RPLINSTANCE_INIT \
  { 0,0, 0,0, 0,{0,{0}}, 0,0, 0,0, 0,0, 0,0 }
 
+
+// SIGNATURE_SETTINGS
+struct _Signature_Settings
+{
+    bool has_reqsignedpost;
+    bool reqsignedpost;
+    bool has_reqvalidcheckpost;
+    bool reqvalidcheckpost;
+    bool has_reqtimesyncpost;
+    bool reqtimesyncpost;
+    bool has_reqseclocalpost;
+    bool reqseclocalpost;
+    bool has_reqsignedresp;
+    bool reqsignedresp;
+    bool has_reqvalidcheckresp;
+    bool reqvalidcheckresp;
+    bool has_reqtimesyncresp;
+    bool reqtimesyncresp;
+    bool has_reqseclocalresp;
+    bool reqseclocalresp;
+    bool has_cert;
+    struct {
+      size_t len;
+      uint8_t data[MAX_SIGNATURE_CERT_LENGTH];
+    } cert;
+};
+
+#define SIGNATURE_SETTINGS_INIT \
+   { 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,{0,{0}} }
+
+// VENDOR TLV
+struct _Vendor_Tlv
+{
+  bool has_subtype; /* 'Y' */
+  uint32_t subtype; /* 'Y' */
+  bool has_value; /* 'Y' */
+  struct {
+    size_t len;
+    uint8_t data[VENDOR_MAX_DATA_LEN];
+  } value; /* 'Y' */
+};
+#define VENDOR_TLV_INIT \
+   { 0,0, 0,{0,{0}} }
+
 // TLV 65 TRANSFER_REQUEST_TLVID
 // TLV 71 TRANSFER_RESPONSE_TLVID
 struct _Transfer_Request
@@ -717,53 +759,12 @@ struct _Csmp_Slothdr
   // Image
   uint8_t image[CSMP_FWMGMT_SLOTIMG_SIZE];
 };
+
+#define APPHDR_INIT \
+{0, 0, 0, 0, 0, 0, {0}, {0}, {0}, 0, {0}, {0}}
+
 #define CSMP_SLOTHDR_INIT \
-  {{0, 0, 0, 0, 0, {0}, {0}, {0}}, {0}, {0}, {0}, {0}, 0, 0, 0, 0, 0, 0, 0, {0}, \
+  {{0}, {0}, {0}, {0}, 0, 0, 0, 0, 0, 0, 0, {0}, \
     0, 0, {0}}
-
-
-// SIGNATURE_SETTINGS
-struct _Signature_Settings
-{
-    bool has_reqsignedpost;
-    bool reqsignedpost;
-    bool has_reqvalidcheckpost;
-    bool reqvalidcheckpost;
-    bool has_reqtimesyncpost;
-    bool reqtimesyncpost;
-    bool has_reqseclocalpost;
-    bool reqseclocalpost;
-    bool has_reqsignedresp;
-    bool reqsignedresp;
-    bool has_reqvalidcheckresp;
-    bool reqvalidcheckresp;
-    bool has_reqtimesyncresp;
-    bool reqtimesyncresp;
-    bool has_reqseclocalresp;
-    bool reqseclocalresp;
-    bool has_cert;
-    struct {
-      size_t len;
-      uint8_t data[MAX_SIGNATURE_CERT_LENGTH];
-    } cert;
-};
-
-#define SIGNATURE_SETTINGS_INIT \
-   { 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,{0,{0}} }
-
-
-// VENDOR TLV
-struct _Vendor_Tlv
-{
-  bool has_subtype; /* 'Y' */
-  uint32_t subtype; /* 'Y' */
-  bool has_value; /* 'Y' */
-  struct {
-    size_t len;
-    uint8_t data[VENDOR_MAX_DATA_LEN];
-  } value; /* 'Y' */
-};
-#define VENDOR_TLV_INIT \
-   { 0,0, 0,{0,{0}} }
 
 #endif // CSMP_INFO_H
