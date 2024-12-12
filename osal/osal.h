@@ -520,4 +520,34 @@ void osal_free(void *ptr);
  *****************************************************************************/
 void osal_sleep_ms(uint64_t ms);
 
+/****************************************************************************
+ * @fn   osal_read_firmware
+ *
+ * @brief read firmware image from storage(file/flash)
+ *
+ * input parameters
+ *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
+ *  @param[in] pointer to _Csmp_Slothdr slot structure
+ *  @param[in] size of _Csmp_Slothdr slot structure
+ *
+ * output parameters
+ * @return returns 0 on success and -1 on error
+ *****************************************************************************/
+osal_basetype_t osal_read_firmware(uint8_t slotid, void* slot, uint32_t size);
+
+/****************************************************************************
+ * @fn   osal_write_firmware
+ *
+ * @brief write firmware image to storage(file/flash)
+ *
+ * input parameters
+ *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
+ *  @param[in] pointer to _Csmp_Slothdr slot structure
+ *  @param[in] size of _Csmp_Slothdr slot structure
+ *
+ * output parameters
+ * @return returns 0 on success and -1 on error
+ *****************************************************************************/
+osal_basetype_t osal_write_firmware(uint8_t slotid, void* slot, uint32_t size);
+
 #endif
