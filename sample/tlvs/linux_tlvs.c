@@ -841,7 +841,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       fclose(upload_slot);
       upload_slot = NULL;
       g_downloadbusy = false;
-      osal_write_slothdr(UPLOAD_IMAGE, g_slothdr);
+      if (osal_write_firmware(UPLOAD_IMAGE, g_slothdr, sizeof(Csmp_Slothdr)) < 0)
       return;
     }
     if(upload_slot == NULL){
@@ -1334,14 +1334,10 @@ void signature_settings_post(Signature_Settings *tlv) {
   g_SignatureSettings.cert.len = tlv->cert.len;
   memcpy(g_SignatureSettings.cert.data,tlv->cert.data,g_SignatureSettings.cert.len);
 }
-
-/**
  * @brief   POST TLV32 REBOOT_REQUEST_TLVID
- *
  * @param   tlvid tlvid structure
  * @param   tlv Vendor_Tlv structure
  * @return  void
- */
 void rebootRequest_post(tlvid_t tlvid, Reboot_Request *tlv) {
   printf("## app_reboot_request: POST for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
   switch(tlv->flag){
@@ -1349,8 +1345,4 @@ void rebootRequest_post(tlvid_t tlvid, Reboot_Request *tlv) {
       DPRINTF("** app_rebootRequest: Reboot timer initializing...\n");
       osal_trickle_timer_start(async_timer, REBOOT_DELAY, REBOOT_DELAY, (trickle_timer_fired_t)rebootreq_timer_fired);
       g_reboot_request = true;
-      break;
-    default:
       DPRINTF("** app_rebootRequest: Reboot flag not supported!\n");
-  }
-}

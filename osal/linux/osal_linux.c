@@ -679,3 +679,83 @@ int osal_copy_firmware(uint8_t source_slotid, uint8_t dest_slotid, Csmp_Slothdr 
   DPRINTF("osal_copy_firmware: Copied Slothdr Successfully\n");
   return OSAL_SUCCESS;
 }
+
+/**
+ * @brief Read firmware slot data from file
+ *
+ * @param slotid indicates RUN/UPLOAD/BACKUP slot
+ * @return int 0 for success -1 for failure
+ */
+int osal_read_firmware(uint8_t slotid, void* slot, uint32_t size) {
+  FILE *file = NULL;
+
+  switch(slotid) {
+    case RUN_IMAGE:
+      file = fopen("opencsmp-run-slot.bin", "rb");
+      break;
+    case UPLOAD_IMAGE:
+      file = fopen("opencsmp-upload-slot.bin", "rb");
+      break;
+    case BACKUP_IMAGE:
+      file = fopen("opencsmp-backup-slot.bin", "rb");
+      break;
+    default:
+      printf("read_firmware: Invalid slot id\n");
+      return OSAL_FAILURE;
+  }
+  if (file == NULL) {
+      printf("read_firmware: Failed to read firmware slot-id: %u\n", slotid);
+      return OSAL_FAILURE;
+  }
+  fread((uint8_t*) &slot[slotid], size, 1, file);
+  fclose(file);
+
+  return OSAL_SUCCESS;
+}
+
+/**
+ * @brief Write firmware slot data to file
+ *
+ * @param slotid indicates RUN/UPLOAD/BACKUP slot
+ * @return int 0 for success -1 for failure
+ */
+int osal_write_firmware(uint8_t slotid, void* slot, uint32_t size) {
+  FILE *file = NULL;
+  size_t bytes = 0;
+
+  switch(slotid) {
+    case RUN_IMAGE:
+      file = fopen("opencsmp-run-slot.bin", "wb");
+      break;
+    case UPLOAD_IMAGE:
+      // Write firmware w/o CSMP header to verify upload firmware transferred from FND
+      if(slotid == UPLOAD_IMAGE) {
+        file = fopen("opencsmp-upload-image.bin", "wb");
+        if(file == NULL){
+          printf("write_firmware: Failed to write upload firmware image\n");
+          return OSAL_FAILURE;
+        }
+        bytes = fwrite((uint8_t*) &slot[slotid].image, sizeof(uint8_t), slot[slotid].filesize, file);
+        DPRINTF("write_firmware: Wrote %ld bytes of upload firmware image\n", bytes);
+        fclose(file);
+      }
+      file = fopen("opencsmp-upload-slot.bin", "wb");
+      break;
+    case BACKUP_IMAGE:
+      file = fopen("opencsmp-backup-slot.bin", "wb");
+      break;
+    default:
+      printf("write_firmware: Invalid slot id\n");
+      return OSAL_FAILURE;
+  }
+  if (file == NULL) {
+      printf("write_firmware: Failed to write firmware slot-id: %u\n", slotid);
+      return OSAL_FAILURE;
+  }
+  // Write CSMP header + firmware to persist slot data across agent reboot
+  bytes = fwrite((uint8_t*) &slot[slotid], sizeof(uint8_t), size, file);
+  DPRINTF("write_firmware: Wrote %ld bytes to slot-id: %u\n", bytes, slotid);
+  fclose(file);
+
+  return OSAL_SUCCESS;
+}
