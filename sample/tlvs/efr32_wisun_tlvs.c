@@ -782,7 +782,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       DPRINTF("sample_firmwaremgmt: Image block transfer complete, filehash matched!\n");
       g_slothdr[UPLOAD_IMAGE].status = FWHDR_STATUS_COMPLETE;
       g_downloadbusy = false;
-      if (write_fw_img(UPLOAD_IMAGE) < 0)
+      if (osal_write_firmware(UPLOAD_IMAGE, g_slothdr, sizeof(Csmp_Slothdr)) < 0)
         DPRINTF("sample_firmwaremgmt: Failed to write upload image to file\n");
       else
         printf("sample_firmwaremgmt: Sucessfully wrote upload image to file\n");
