@@ -76,7 +76,7 @@ INCLUDES += \
 -I../osal/efr32_wisun
 						
 C_FLAGS           = 
-C_FLAGS_DEBUG     = 
+C_FLAGS_DEBUG     += -DPRINTDEBUG 
 C_FLAGS_RELEASE   = 
 CXX_FLAGS         = 
 CXX_FLAGS_DEBUG   = 

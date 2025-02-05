@@ -26,6 +26,7 @@
 #include "csmp_service.h"
 #include "csmp_info.h"
 #include "signature_verify.h"
+#include "../src/lib/debug.h"
 
 #if defined(OSAL_EFR32_WISUN)
 #include "sl_system_init.h"
@@ -80,8 +81,10 @@ void sample_data_init() {
     }
 #else // Platforms other than Linux currenlty do not support firmware read/write function,
       // run-slot will be initialized with default values during boot-up
+      (void) ret;
       if(!g_reboot_request)
         memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
+      
 #endif
 
   // Init sample Vendor Tlv data
