@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "../../include/iana_pen.h"
+#include "osal.h"
 
 /** maximum CSMP cert length */
 #define MAX_SIGNATURE_CERT_LENGTH 512
@@ -696,10 +697,6 @@ typedef struct {
   char app_build_date[16];
   char hwid[HWID_SIZE];
 } _Apphdr;
-
-  // The image allocation is not required for EF32 Wisun platform
-#if !defined(OSAL_EFR32_WISUN)
-#endif
 
 #define APPHDR_INIT \
 {0, 0, 0, 0, 0, 0, {0}, {0}, {0}, 0, {0}, {0}}

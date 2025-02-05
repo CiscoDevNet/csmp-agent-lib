@@ -41,7 +41,7 @@ typedef struct thread_argument {
 
 /* \brief CSMP running slot hdr info used by FND via TLV75 to identify running fw on the node*/
 
-Csmp_Slothdr default_run_slot_image = {{0x61,0xe7,0xe1,0x76,0xe2,0xfb,0xcc,0x3e,0x1c,0xc8,0x5b,0xb1,0xf4,\
+osal_csmp_slothdr_t default_run_slot_image = {{0x61,0xe7,0xe1,0x76,0xe2,0xfb,0xcc,0x3e,0x1c,0xc8,0x5b,0xb1,0xf4,\
   0x99,0xa4,0x02,0x6d,0x28,0xcf,0x1d,0x66,0x16,0x76,0x91,0x91,0x3f,0xd9,0x80,0x5b,0xe5,0x5b,0xa1},\
 "opencsmp-node-6.6.99","6.6.99", "OPENCSMP", 27904, 0, 0, 0, 0, 0, 0, {0},0, 0};
 #if !defined(OSAL_EFR32_WISUN)
@@ -71,7 +71,7 @@ void sample_data_init() {
 #ifdef OSAL_LINUX
     ret=osal_read_slothdr(RUN_IMAGE, g_slothdr);
     if(ret < 0){
-      memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
+      memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(osal_csmp_slothdr_t));
       osal_write_slothdr(RUN_IMAGE, g_slothdr);
       //Write dummy data into run slot
       osal_write_firmware(RUN_IMAGE, (uint8_t*)&g_slothdr[RUN_IMAGE], sizeof(Csmp_Slothdr));
@@ -89,7 +89,7 @@ void sample_data_init() {
       // run-slot will be initialized with default values during boot-up
       (void) ret;
       if(!g_reboot_request)
-        memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
+        memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(osal_csmp_slothdr_t));
       
 #endif
 

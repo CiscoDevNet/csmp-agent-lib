@@ -107,7 +107,7 @@ uint32_t g_curloadslot    = 0xFFU;  // Track current load slot
 uint32_t g_curbackupslot  = 0xFFU;  // Track current backup slot
 
 // Firmware image slots (Slot-id: 0-RUN, 1-UPLOAD, 2-BACKUP)
-Csmp_Slothdr g_slothdr[CSMP_FWMGMT_ACTIVE_SLOTS] = {0};
+osal_csmp_slothdr_t g_slothdr[CSMP_FWMGMT_ACTIVE_SLOTS] = {0};
 FILE *upload_slot = NULL;
 /* public key */
 //new key
@@ -841,7 +841,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       fclose(upload_slot);
       upload_slot = NULL;
       g_downloadbusy = false;
-      if (osal_write_firmware(UPLOAD_IMAGE, g_slothdr, sizeof(Csmp_Slothdr)) < 0)
+      if (osal_write_firmware(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) < 0)
       return;
     }
     if(upload_slot == NULL){
@@ -920,10 +920,6 @@ void* loadRequest_get(tlvid_t tlvid, uint32_t *num) {
   return &g_loadRequest;
 }
 
-/**
- * @brief   LOAD REQUEST TIMER HANDLER
- * @return  void
- */
 void loadreq_timer_fired() {
   DPRINTF("loadreq_timer: Load request timer fired for slot=%d with delay=%u\n",
          g_curloadslot, g_curloadtime);

@@ -446,30 +446,16 @@ static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2)
   osal_alarm_fired(NULL);
 }
 
-/**
- * @brief Read firmware slot data from storage
- *
- * @param slotid indicates RUN/UPLOAD/BACKUP slot
- * @return int 0 for success -1 for failure
- */
-osal_basetype_t osal_read_firmware(uint8_t slotid, void* slot, uint32_t size)
+osal_basetype_t osal_read_firmware(uint8_t slotid, osal_csmp_slothdr_t *slot)
 {
   (void) slotid;
   (void) slot;
-  (void) size;
   return OSAL_FAILURE;
 }
 
-/**
- * @brief Write firmware slot data to storage
- *
- * @param slotid indicates RUN/UPLOAD/BACKUP slot
- * @return int 0 for success -1 for failure
- */
-osal_basetype_t osal_write_firmware(uint8_t slotid, void* slot, uint32_t size)
+osal_basetype_t osal_write_firmware(uint8_t slotid, osal_csmp_slothdr_t *slot)
 {
   (void) slotid;
   (void) slot;
-  (void) size;
   return OSAL_FAILURE;
 }

@@ -199,7 +199,7 @@ extern Signature_Settings g_SignatureSettings;
 extern Vendor_Tlv g_vendorTlv[VENDOR_MAX_SUBTYPES];
 
 /** \brief Csmp Slot Header Array for the 3 FW slots */
-extern Csmp_Slothdr g_slothdr[CSMP_FWMGMT_ACTIVE_SLOTS];
+extern osal_csmp_slothdr_t g_slothdr[CSMP_FWMGMT_ACTIVE_SLOTS];
 
 /** \brief Flag to track ongoing reboot request */
 extern bool g_reboot_request;

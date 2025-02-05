@@ -680,14 +680,13 @@ int osal_copy_firmware(uint8_t source_slotid, uint8_t dest_slotid, Csmp_Slothdr 
   return OSAL_SUCCESS;
 }
 
-/**
- * @brief Read firmware slot data from file
- *
- * @param slotid indicates RUN/UPLOAD/BACKUP slot
- * @return int 0 for success -1 for failure
- */
-int osal_read_firmware(uint8_t slotid, void* slot, uint32_t size) {
+int osal_read_firmware(uint8_t slotid, osal_csmp_slothdr_t *slot) {
   FILE *file = NULL;
+
+  if (slot == NULL) {
+    printf("read_firmware: slot is NULL\n");
+    return OSAL_FAILURE;
+  }
 
   switch(slotid) {
     case RUN_IMAGE:
@@ -707,22 +706,21 @@ int osal_read_firmware(uint8_t slotid, void* slot, uint32_t size) {
       printf("read_firmware: Failed to read firmware slot-id: %u\n", slotid);
       return OSAL_FAILURE;
   }
-  fread((uint8_t*) &slot[slotid], size, 1, file);
+  fread((uint8_t*) slot, sizeof(osal_csmp_slothdr_t), 1, file);
   fclose(file);
 
   return OSAL_SUCCESS;
 }
 
-/**
- * @brief Write firmware slot data to file
- *
- * @param slotid indicates RUN/UPLOAD/BACKUP slot
- * @return int 0 for success -1 for failure
- */
-int osal_write_firmware(uint8_t slotid, void* slot, uint32_t size) {
+osal_basetype_t osal_write_firmware(uint8_t slotid, osal_csmp_slothdr_t *slot) {
   FILE *file = NULL;
   size_t bytes = 0;
-  struct _Csmp_Slothdr *slot_hdr = (struct _Csmp_Slothdr *)slot;
+
+  (void) bytes;
+  if (slot == NULL) {
+    printf("write_firmware: slot is NULL\n");
+    return OSAL_FAILURE;
+  }
   
   switch(slotid) {
     case RUN_IMAGE:
@@ -735,7 +733,7 @@ int osal_write_firmware(uint8_t slotid, void* slot, uint32_t size) {
         printf("write_firmware: Failed to write upload firmware image\n");
         return OSAL_FAILURE;
       }
-      bytes = fwrite((uint8_t*) &slot_hdr[slotid].image, sizeof(uint8_t), slot_hdr[slotid].filesize, file);
+      bytes = fwrite((uint8_t*) slot->image, sizeof(uint8_t), slot->filesize, file);
       DPRINTF("write_firmware: Wrote %ld bytes of upload firmware image\n", bytes);
       fclose(file);
       
@@ -753,7 +751,7 @@ int osal_write_firmware(uint8_t slotid, void* slot, uint32_t size) {
       return OSAL_FAILURE;
   }
   // Write CSMP header + firmware to persist slot data across agent reboot
-  bytes = fwrite((uint8_t*) &slot_hdr[slotid], sizeof(uint8_t), size, file);
+  bytes = fwrite((uint8_t*) slot, sizeof(uint8_t), sizeof(osal_csmp_slothdr_t), file);
   DPRINTF("write_firmware: Wrote %ld bytes to slot-id: %u\n", bytes, slotid);
   fclose(file);
 

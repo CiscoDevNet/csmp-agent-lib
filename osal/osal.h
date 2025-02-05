@@ -40,6 +40,12 @@
 #define CSMP_FWMGMT_SLOTIMG_SIZE      (30*1024)  // ~30 Kb
 #define CSMP_FWMGMT_BLKMAP_CNT        (32)
 
+
+// IMAGE SLOT INFO
+#define CSMP_FWMGMT_ACTIVE_SLOTS      3          // 0-RUN, 1-UPLOAD, 2-BACKUP
+#define CSMP_FWMGMT_SLOTIMG_SIZE      (30*1024)  // ~30 Kb
+#define CSMP_FWMGMT_BLKMAP_CNT        (32)
+
 #define REBOOT_DELAY 5
 
 // IMAGE SLOT ID
@@ -99,6 +105,31 @@ typedef struct _Csmp_Slothdr Csmp_Slothdr;               /**< firmware image slo
 #define CSMP_SLOTHDR_INIT \
   {{0}, {0}, {0}, {0}, 0, 0, 0, 0, 0, 0, 0, {0}, \
     0, 0}
+
+// Image slot header
+typedef struct _Csmp_Slothdr
+{
+  uint8_t filehash[SHA256_HASH_SIZE];
+  char filename[FILE_NAME_SIZE];
+  char version[VERSION_SIZE];
+  char hwid[HWID_SIZE];
+  uint32_t filesize;
+  uint32_t filesizelastblk;
+  uint32_t blockcnt;
+  uint32_t blocksize;
+  uint32_t reportintervalmin;
+  uint32_t reportintervalmax;
+  uint32_t status; // Boolean zero if image is complete
+  uint32_t nblkmap[CSMP_FWMGMT_BLKMAP_CNT]; // Inverted block completion map
+  uint32_t magicU;
+  uint32_t magicL;
+  // Image
+  // The image allocation is not required for EF32 Wisun platform
+#if !defined(OSAL_EFR32_WISUN)
+  uint8_t image[CSMP_FWMGMT_SLOTIMG_SIZE];
+#endif
+} osal_csmp_slothdr_t;
+
 
 typedef void (*trickle_timer_fired_t) ();
 
