@@ -746,7 +746,10 @@ struct _Csmp_Slothdr
   uint32_t magicU;
   uint32_t magicL;
   // Image
+  // The image allocation is not required for EF32 Wisun platform
+#if !defined(OSAL_EFR32_WISUN)
   uint8_t image[CSMP_FWMGMT_SLOTIMG_SIZE];
+#endif
 };
 
 #define APPHDR_INIT \
