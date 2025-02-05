@@ -795,8 +795,10 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
        ((offset + g_imageBlock.blockdata.len) < CSMP_FWMGMT_SLOTIMG_SIZE)) {
       DPRINTF("sample_firmwaremgmt: Valid image block %lu write offset=%lu\n",
              g_imageBlock.blocknum, offset);
-      memcpy(&g_slothdr[UPLOAD_IMAGE].image[offset], g_imageBlock.blockdata.data,
-                   g_imageBlock.blockdata.len);
+
+    // TODO !!! Store Image Block to flash !!!
+      // memcpy(&g_slothdr[UPLOAD_IMAGE].image[offset], g_imageBlock.blockdata.data,
+      //              g_imageBlock.blockdata.len);
 
       mapval ^= (1 << bit);
       g_slothdr[UPLOAD_IMAGE].nblkmap[word] = mapval;

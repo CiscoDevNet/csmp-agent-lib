@@ -727,6 +727,9 @@ typedef struct {
   char hwid[HWID_SIZE];
 } _Apphdr;
 
+  // The image allocation is not required for EF32 Wisun platform
+#if !defined(OSAL_EFR32_WISUN)
+#endif
 
 #define APPHDR_INIT \
 {0, 0, 0, 0, 0, 0, {0}, {0}, {0}, 0, {0}, {0}}
