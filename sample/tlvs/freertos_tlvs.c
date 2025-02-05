@@ -107,7 +107,7 @@ uint32_t g_curloadslot    = 0xFFU;  // Track current load slot
 uint32_t g_curbackupslot  = 0xFFU;  // Track current backup slot
 
 // Firmware image slots (Slot-id: 0-RUN, 1-UPLOAD, 2-BACKUP)
-Csmp_Slothdr g_slothdr[CSMP_FWMGMT_ACTIVE_SLOTS] = {0};
+osal_csmp_slothdr_t g_slothdr[CSMP_FWMGMT_ACTIVE_SLOTS] = {0};
 
 /* public key */
 //new key
@@ -779,7 +779,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       DPRINTF("sample_firmwaremgmt: Image block transfer complete, filehash matched!\n");
       g_slothdr[UPLOAD_IMAGE].status = FWHDR_STATUS_COMPLETE;
       g_downloadbusy = false;
-      if (osal_write_firmware(UPLOAD_IMAGE, g_slothdr, sizeof(Csmp_Slothdr)) < 0)
+      if (osal_write_firmware(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) < 0)
         DPRINTF("sample_firmwaremgmt: Failed to write upload image to file\n");
       else
         printf("sample_firmwaremgmt: Sucessfully wrote upload image to file\n");

@@ -41,7 +41,7 @@ typedef struct thread_argument {
 
 /* \brief CSMP running slot hdr info used by FND via TLV75 to identify running fw on the node*/
 
-Csmp_Slothdr default_run_slot_image = {{0x61,0xe7,0xe1,0x76,0xe2,0xfb,0xcc,0x3e,0x1c,0xc8,0x5b,0xb1,0xf4,\
+osal_csmp_slothdr_t default_run_slot_image = {{0x61,0xe7,0xe1,0x76,0xe2,0xfb,0xcc,0x3e,0x1c,0xc8,0x5b,0xb1,0xf4,\
   0x99,0xa4,0x02,0x6d,0x28,0xcf,0x1d,0x66,0x16,0x76,0x91,0x91,0x3f,0xd9,0x80,0x5b,0xe5,0x5b,0xa1},\
 "opencsmp-node-6.6.99","6.6.99", "OPENCSMP", 27904, 0, 0, 0, 0, 0, 0, {0},0, 0
 #if !defined(OSAL_EFR32_WISUN)
@@ -69,16 +69,16 @@ void sample_data_init() {
   g_init_time = tv.tv_sec;
 
 #ifdef OSAL_LINUX
-    ret = osal_read_firmware(RUN_IMAGE, g_slothdr, sizeof(Csmp_Slothdr));
+    ret = osal_read_firmware(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
     if(ret < 0){
-      memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
+      memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(osal_csmp_slothdr_t));
       DPRINTF("sample_data_init: Run Slot not found, initialized to default values.\n");
     }
-    ret = osal_read_firmware(UPLOAD_IMAGE, g_slothdr, sizeof(Csmp_Slothdr));
+    ret = osal_read_firmware(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]);
     if(ret<0){
       DPRINTF("sample_data_init: Upload slot not found!\n");
     }
-    ret = osal_read_firmware(BACKUP_IMAGE, g_slothdr, sizeof(Csmp_Slothdr));
+    ret = osal_read_firmware(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
     if(ret<0){
       DPRINTF("sample_data_init: Backup slot not found!\n");
     }
@@ -86,7 +86,7 @@ void sample_data_init() {
       // run-slot will be initialized with default values during boot-up
       (void) ret;
       if(!g_reboot_request)
-        memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
+        memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(osal_csmp_slothdr_t));
       
 #endif
 

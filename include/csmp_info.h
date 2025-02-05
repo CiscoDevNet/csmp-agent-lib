@@ -38,6 +38,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "iana_pen.h"
+#include "osal.h"
 
 /** maximum CSMP cert length */
 #define MAX_SIGNATURE_CERT_LENGTH 512
@@ -72,8 +73,6 @@ typedef struct _Cancel_Load_Request Cancel_Load_Request; /**< data related to TL
 typedef struct _Set_Backup_Request Set_Backup_Request;   /**< data related to TLV 70 */
 typedef struct _Firmware_Image_Info Firmware_Image_Info; /**< data related to TLV 75 */
 
-typedef struct _Csmp_Slothdr Csmp_Slothdr;               /**< firmware image slot */
-
 // CSMP OP RETURN CODES
 #define CSMP_OP_TLV_RD_EMPTY   0
 #define CSMP_OP_TLV_RD_ERROR  -1
@@ -98,20 +97,6 @@ enum {
   RESPONSE_MATCH_RUN_XFER = 12,
   RESPONSE_MATCH_BAK_XFER = 13
 };
-
-// SIZES
-#define SHA1_HASH_SIZE        20
-#define SHA256_HASH_SIZE      32
-#define FILE_NAME_SIZE        128
-#define VERSION_SIZE          32
-#define BITMAP_SIZE           32
-#define HWID_SIZE             32
-#define BLOCK_SIZE            1024
-
-// IMAGE SLOT INFO
-#define CSMP_FWMGMT_ACTIVE_SLOTS      3          // 0-RUN, 1-UPLOAD, 2-BACKUP
-#define CSMP_FWMGMT_SLOTIMG_SIZE      (30*1024)  // ~30 Kb
-#define CSMP_FWMGMT_BLKMAP_CNT        (32)
 
 // FIRMWARE DOWNLOAD STATUS
 enum {
@@ -728,29 +713,6 @@ typedef struct {
   char hwid[HWID_SIZE];
 } _Apphdr;
 
-// Image slot header
-struct _Csmp_Slothdr
-{
-  uint8_t filehash[SHA256_HASH_SIZE];
-  char filename[FILE_NAME_SIZE];
-  char version[VERSION_SIZE];
-  char hwid[HWID_SIZE];
-  uint32_t filesize;
-  uint32_t filesizelastblk;
-  uint32_t blockcnt;
-  uint32_t blocksize;
-  uint32_t reportintervalmin;
-  uint32_t reportintervalmax;
-  uint32_t status; // Boolean zero if image is complete
-  uint32_t nblkmap[CSMP_FWMGMT_BLKMAP_CNT]; // Inverted block completion map
-  uint32_t magicU;
-  uint32_t magicL;
-  // Image
-  // The image allocation is not required for EF32 Wisun platform
-#if !defined(OSAL_EFR32_WISUN)
-  uint8_t image[CSMP_FWMGMT_SLOTIMG_SIZE];
-#endif
-};
 
 #define APPHDR_INIT \
 {0, 0, 0, 0, 0, 0, {0}, {0}, {0}, 0, {0}, {0}}
