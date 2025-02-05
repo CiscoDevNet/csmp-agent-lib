@@ -20,6 +20,20 @@
 
 #define OSAL_EFR32_WISUN_MIN_STACK_SIZE_WORDS 4096
 
+// SIZES
+#define SHA1_HASH_SIZE        20
+#define SHA256_HASH_SIZE      32
+#define FILE_NAME_SIZE        128
+#define VERSION_SIZE          32
+#define BITMAP_SIZE           32
+#define HWID_SIZE             32
+#define BLOCK_SIZE            1024
+
+// IMAGE SLOT INFO
+#define CSMP_FWMGMT_ACTIVE_SLOTS      3          // 0-RUN, 1-UPLOAD, 2-BACKUP
+#define CSMP_FWMGMT_SLOTIMG_SIZE      (30*1024)  // ~30 Kb
+#define CSMP_FWMGMT_BLKMAP_CNT        (32)
+
 struct trickle_timer {
   uint32_t t0;
   uint32_t tfire;
@@ -44,7 +58,7 @@ static bool m_timert_isrunning = false;
 static void osal_update_timer();
 static void osal_alarm_fired(TimerHandle_t xTimer);
 static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2);
-
+static void print_csmp_slot_hdr(const struct _Csmp_Slothdr *slot_hdr);
 
 void osal_kernel_start(void)
 {
@@ -484,6 +498,29 @@ static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2)
   osal_alarm_fired(NULL);
 }
 
+
+static void print_csmp_slot_hdr(const struct _Csmp_Slothdr *slot_hdr)
+{
+  DPRINTF("filehash: ");
+  for (int i = 0; i < SHA256_HASH_SIZE; i++) {
+    DPRINTF("%02x,", slot_hdr->filehash[i]);
+  }
+  DPRINTF("\n");
+  DPRINTF("filename: %s\n", slot_hdr->filename);
+  DPRINTF("version: %s\n", slot_hdr->version);
+  DPRINTF("hwid: %s\n", slot_hdr->hwid);
+  DPRINTF("filesize: %lu\n", slot_hdr->filesize);
+  DPRINTF("blocksize: %lu\n", slot_hdr->blocksize);
+  DPRINTF("reportintervalmin: %lu\n", slot_hdr->reportintervalmin);
+  DPRINTF("reportintervalmax: %lu\n", slot_hdr->reportintervalmax);
+  DPRINTF("status: 0x%08x\n", slot_hdr->status);
+  DPRINTF("nblkmap: ");
+  for (int i = 0; i < CSMP_FWMGMT_BLKMAP_CNT; i++) {
+    DPRINTF("%08x,", slot_hdr->nblkmap[i]);
+  }
+  DPRINTF("\n");
+}
+
 /**
  * @brief Read firmware slot data from storage
  *
@@ -492,10 +529,25 @@ static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2)
  */
 osal_basetype_t osal_read_firmware(uint8_t slotid, void* slot, uint32_t size)
 {
-  (void) slotid;
-  (void) slot;
-  (void) size;
-  return OSAL_FAILURE;
+  const struct _Csmp_Slothdr *slot_hdr = (struct _Csmp_Slothdr *)slot;
+
+  switch(slotid) {
+    case RUN_IMAGE:
+      DPRINTF("Reading Run Slot:\n");
+      break;
+    case UPLOAD_IMAGE:
+      DPRINTF("Reading Upload Slot:\n");
+      break;
+    case BACKUP_IMAGE:
+      DPRINTF("Reading Backup Slot:\n");
+      break;
+    default:
+      printf("read_firmware: Invalid slot id\n");
+      return OSAL_FAILURE;
+  }
+  print_csmp_slot_hdr(slot_hdr);
+
+  return OSAL_SUCCESS;
 }
 
 /**
@@ -506,8 +558,23 @@ osal_basetype_t osal_read_firmware(uint8_t slotid, void* slot, uint32_t size)
  */
 osal_basetype_t osal_write_firmware(uint8_t slotid, void* slot, uint32_t size)
 {
-  (void) slotid;
-  (void) slot;
-  (void) size;
-  return OSAL_FAILURE;
+  const struct _Csmp_Slothdr *slot_hdr = (struct _Csmp_Slothdr *)slot;
+
+  switch(slotid) {
+    case RUN_IMAGE:
+      DPRINTF("Writing Run Slot:\n");
+      break;
+    case UPLOAD_IMAGE:
+      DPRINTF("Writing Upload Slot:\n");
+      break;
+    case BACKUP_IMAGE:
+      DPRINTF("Writing Backup Slot:\n");
+      break;
+    default:
+      printf("read_firmware: Invalid slot id\n");
+      return OSAL_FAILURE;
+  }
+  print_csmp_slot_hdr(slot_hdr);
+
+  return OSAL_SUCCESS;
 }
