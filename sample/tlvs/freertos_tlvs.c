@@ -25,7 +25,7 @@
 #include "csmp_info.h"
 #include "signature_verify.h"
 #include "osal.h"
-
+#include "../../src/lib/debug.h"
 
 #define nexthop_IP "fe80::a00:27ff:fe3b:2ab1"
 
@@ -857,8 +857,6 @@ void* loadRequest_get(tlvid_t tlvid, uint32_t *num) {
  * @brief   LOAD REQUEST TIMER HANDLER
  */
 void loadreq_timer_fired() {
-  bool ret = false;
-  struct timeval tv = {0};
   DPRINTF("loadreq_timer: Load request timer fired for slot=%d with delay=%u\n",
          g_curloadslot, g_curloadtime);
 
