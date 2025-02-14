@@ -110,6 +110,8 @@ uint32_t g_curbackupslot  = 0xFFU;  // Track current backup slot
 // Firmware image slots (Slot-id: 0-RUN, 1-UPLOAD, 2-BACKUP)
 osal_csmp_slothdr_t g_slothdr[CSMP_FWMGMT_ACTIVE_SLOTS] = {0};
 
+extern void print_csmp_slot_hdr(const osal_csmp_slothdr_t *slot_hdr);
+
 /* public key */
 //new key
 static const char pubkey[PUBLIC_KEY_LEN] = {
@@ -566,6 +568,8 @@ void* transferRequest_get(tlvid_t tlvid, uint32_t *num) {
   g_transferRequest.report_int_min = g_slothdr[UPLOAD_IMAGE].reportintervalmin;
   g_transferRequest.report_int_max = g_slothdr[UPLOAD_IMAGE].reportintervalmax;
   g_transferRequest.status = g_slothdr[UPLOAD_IMAGE].status;
+  printf("[FW UPDATE] Transfer request GET (UPLOAD_IMAGE)\n");
+  print_csmp_slot_hdr(&g_slothdr[UPLOAD_IMAGE]);
 
   DPRINTF("## sample_firmwaremgmt: GET for TLV %ld done.\n", tlvid.type);
   return &g_transferRequest;
@@ -682,7 +686,8 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
 
   // Initiliase new transfer - done
   g_initxfer = false;
-
+  printf("[FW UPDATE] Transfer request post (UPLOAD_IMAGE)\n");
+  print_csmp_slot_hdr(&g_slothdr[UPLOAD_IMAGE]);
   DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
 
@@ -799,6 +804,12 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
     // TODO !!! Store Image Block to flash !!!
       // memcpy(&g_slothdr[UPLOAD_IMAGE].image[offset], g_imageBlock.blockdata.data,
       //              g_imageBlock.blockdata.len);
+      printf("[FW UPDATE] Image block POST %lu, offset %lu data:\n", g_imageBlock.blocknum, offset);
+      for (uint32_t i = 0; i < g_imageBlock.blockdata.len; i++) {
+        printf("0x%02x%c", g_imageBlock.blockdata.data[i], 
+               (i % 16 == 15 || i == g_imageBlock.blockdata.len - 1) ? '\n' : ',');
+      }
+      printf("\n");
 
       mapval ^= (1 << bit);
       g_slothdr[UPLOAD_IMAGE].nblkmap[word] = mapval;
@@ -856,6 +867,8 @@ void* loadRequest_get(tlvid_t tlvid, uint32_t *num) {
   g_loadRequest.loadtime = g_curloadtime;
 
   DPRINTF("## sample_firmwaremgmt: GET for TLV %ld done.\n", tlvid.type);
+  printf("[FW UPDATE] Load request GET (%s)\n", 
+         g_curloadslot == UPLOAD_IMAGE ? "UPLOAD_IMAGE" : "BACKUP_IMAGE");
   return &g_loadRequest;
 }
 
@@ -868,9 +881,12 @@ void loadreq_timer_fired() {
 
   memcpy(&g_slothdr[RUN_IMAGE], &g_slothdr[g_curloadslot],
          sizeof(g_slothdr[RUN_IMAGE]));
+  // !!!! TODO: Copy the image from the slot to the run image !!!
   g_curloadslot=0xFF;
   g_curloadtime=0;
   osal_trickle_timer_stop(lrq_timer);
+  printf("[FW UPDATE] Load request timer fired: reboot the sample app with slot %lu\n", g_curloadslot);
+  print_csmp_slot_hdr(&g_slothdr[RUN_IMAGE]);
   sample_app_reboot();
 }
 
@@ -973,7 +989,7 @@ void loadRequest_post(tlvid_t tlvid, Load_Request *tlv) {
                       (trickle_timer_fired_t)loadreq_timer_fired);
   DPRINTF("sample_firmwaremgmt: Load request timer started for slot=%ld with delay=%lu at epoch time =%lu s\n",
          g_curloadslot, delay, g_curloadtime);
-
+  printf("[FW UPDATE] Load request POST (%s)\n", g_curloadslot == UPLOAD_IMAGE ? "UPLOAD_IMAGE" : "BACKUP_IMAGE");
   DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
 
@@ -1032,6 +1048,8 @@ void cancelLoadRequest_post(tlvid_t tlvid, Cancel_Load_Request *tlv) {
     g_curloadslot = 0xFFU;
   }
 
+  printf("[FW UPDATE] Cancel load request POST %s\n", 
+         g_curloadslot == UPLOAD_IMAGE ? "UPLOAD_IMAGE" : "BACKUP_IMAGE");
   DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
 
@@ -1083,6 +1101,8 @@ void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv) {
   if (g_curbackupslot == RUN_IMAGE || g_curbackupslot == UPLOAD_IMAGE) {
     memset(&g_slothdr[BACKUP_IMAGE], 0xFF, sizeof(g_slothdr[BACKUP_IMAGE]));
   }
+  printf("[FW UPDATE] Set backup request POST %s\n", 
+         g_curbackupslot == UPLOAD_IMAGE ? "UPLOAD_IMAGE" : "RUN_IMAGE");
   // Copy target image to backup slot
   switch (g_curbackupslot) {
     case RUN_IMAGE:
@@ -1210,6 +1230,7 @@ void* firmwareImageInfo_get(tlvid_t tlvid, uint32_t *num) {
   }
 
   DPRINTF("## sample_firmwaremgmt: GET for TLV %ld done.\n", tlvid.type);
+  printf("[FW UPDATE] Firmware image info GET\n");
   return &g_firmwareImageInfo;
 }
 
