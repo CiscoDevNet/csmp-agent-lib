@@ -923,7 +923,7 @@ void loadreq_timer_fired() {
 
   memcpy(&g_slothdr[RUN_IMAGE], &g_slothdr[g_curloadslot],
          sizeof(g_slothdr[RUN_IMAGE]));
-  // !!!! TODO: Copy the image from the slot to the run image !!!
+  osal_write_firmware(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
   g_curloadslot=0xFF;
   g_curloadtime=0;
   osal_trickle_timer_stop(lrq_timer);
@@ -1165,6 +1165,7 @@ void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv) {
       tlv->response = RESPONSE_INVALID_REQ;
       return;
   }
+  osal_write_firmware(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
   g_curbackupslot = 0xFFU;
 
   DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
