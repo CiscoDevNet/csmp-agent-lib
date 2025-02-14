@@ -28,7 +28,15 @@
 #include "sl_wisun_app_core.h"
 #include "../../src/lib/debug.h"
 
+#include "btl_interface.h"
+
 #define nexthop_IP "fe80::a00:27ff:fe3b:2ab1"
+
+#define CSMP_IMAGE_HDR_SIZE 256
+
+#define GECKO_BTL_UPLOAD_SLOT_ID 0
+
+#define GECKO_BTL_BACKUP_SLOT_ID 1
 
 /** \brief the hardware information */
 Hardware_Desc g_hardwareDesc = HARDWARE_DESC_INIT;
@@ -797,19 +805,53 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
     }
     // Write image block to slot at valid offset
     if (offset < CSMP_FWMGMT_SLOTIMG_SIZE &&
-       ((offset + g_imageBlock.blockdata.len) < CSMP_FWMGMT_SLOTIMG_SIZE)) {
-      DPRINTF("sample_firmwaremgmt: Valid image block %lu write offset=%lu\n",
-             g_imageBlock.blocknum, offset);
+      ((offset + g_imageBlock.blockdata.len) < CSMP_FWMGMT_SLOTIMG_SIZE)) {
+        DPRINTF("sample_firmwaremgmt: Valid image block %lu write offset=%lu\n",
+          g_imageBlock.blocknum, offset);
+          
+      uint32_t gecko_btl_slot_offset = offset;
+      int32_t gecko_btl_ret = 0;
+      uint32_t gecko_btl_chunk_size = g_imageBlock.blockdata.len;
+      uint8_t *gecko_btl_data_ptr = g_imageBlock.blockdata.data;
 
-    // TODO !!! Store Image Block to flash !!!
+      // TODO !!! Store Image Block to flash !!!
       // memcpy(&g_slothdr[UPLOAD_IMAGE].image[offset], g_imageBlock.blockdata.data,
       //              g_imageBlock.blockdata.len);
-      printf("[FW UPDATE] Image block POST %lu, offset %lu data:\n", g_imageBlock.blocknum, offset);
-      for (uint32_t i = 0; i < g_imageBlock.blockdata.len; i++) {
-        printf("0x%02x%c", g_imageBlock.blockdata.data[i], 
-               (i % 16 == 15 || i == g_imageBlock.blockdata.len - 1) ? '\n' : ',');
+
+
+
+      // printf("[FW UPDATE] Image block POST %lu, offset %lu data:\n", g_imageBlock.blocknum, offset);
+      // for (uint32_t i = 0; i < g_imageBlock.blockdata.len; i++) {
+      //   printf("0x%02x%c", g_imageBlock.blockdata.data[i], 
+      //          (i % 16 == 15 || i == g_imageBlock.blockdata.len - 1) ? '\n' : ',');
+      // }
+      // printf("\n");
+
+      // First chunk includes the slot header information
+      if (!g_imageBlock.blocknum) {
+        gecko_btl_slot_offset = 0;
+        assert(g_imageBlock.blockdata.len > CSMP_IMAGE_HDR_SIZE);
+        gecko_btl_chunk_size = g_imageBlock.blockdata.len - CSMP_IMAGE_HDR_SIZE;
+        gecko_btl_data_ptr += CSMP_IMAGE_HDR_SIZE;
+
+        /// Write the slot header
+        gecko_btl_ret = bootloader_writeStorage(GECKO_BTL_UPLOAD_SLOT_ID, 
+                                      gecko_btl_slot_offset, 
+                                      g_imageBlock.blockdata.data + CSMP_IMAGE_HDR_SIZE,
+                                      g_imageBlock.blockdata.len - CSMP_IMAGE_HDR_SIZE);
+      } else {
+        gecko_btl_slot_offset = offset - CSMP_IMAGE_HDR_SIZE;
+        gecko_btl_chunk_size = g_imageBlock.blockdata.len;
+        gecko_btl_data_ptr = g_imageBlock.blockdata.data;
+        
       }
-      printf("\n");
+      gecko_btl_ret = bootloader_writeStorage(GECKO_BTL_UPLOAD_SLOT_ID, 
+                                              gecko_btl_slot_offset, 
+                                              gecko_btl_data_ptr,
+                                              gecko_btl_chunk_size);
+      
+      printf("[FW UPDATE] Image block POST %lu, ret: %ld, offset %lu (slot offset: %lu):\n", 
+             g_imageBlock.blocknum, gecko_btl_ret, offset, gecko_btl_slot_offset);
 
       mapval ^= (1 << bit);
       g_slothdr[UPLOAD_IMAGE].nblkmap[word] = mapval;
