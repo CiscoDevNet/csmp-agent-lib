@@ -117,10 +117,10 @@ enum {
 #define CSMP_AGENT_REG_INTERVAL_MAX   100U
 
 /** \brief EUI64 Address of the Agent*/
-#define CSMP_AGENT_EUI64_ADDRESS      "00173bab00100302"
+#define CSMP_AGENT_EUI64_ADDRESS      "00173bab001003ff"
 
 /** \brief NMS Address*/
-#define CSMP_AGENT_NMS_ADDRESS        "fd12:3456::e119:7a97:d047:fe1a"
+#define CSMP_AGENT_NMS_ADDRESS        "fd12:3456::2"
 
 /** \brief Enable/Disable Signature Settings*/
 // #define CSMP_AGENT_SIGNATURE_SETTINGS 1

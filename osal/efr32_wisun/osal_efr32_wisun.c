@@ -44,7 +44,7 @@ static bool m_timert_isrunning = false;
 static void osal_update_timer();
 static void osal_alarm_fired(TimerHandle_t xTimer);
 static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2);
-static void print_csmp_slot_hdr(const osal_csmp_slothdr_t *slot_hdr);
+// void print_csmp_slot_hdr(const osal_csmp_slothdr_t *slot_hdr);
 
 void osal_kernel_start(void)
 {
@@ -485,7 +485,7 @@ static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2)
 }
 
 
-static void print_csmp_slot_hdr(const osal_csmp_slothdr_t *slot_hdr)
+void print_csmp_slot_hdr(const osal_csmp_slothdr_t *slot_hdr)
 {
   if (slot_hdr == NULL) {
     return;
@@ -506,7 +506,8 @@ static void print_csmp_slot_hdr(const osal_csmp_slothdr_t *slot_hdr)
   printf("status: 0x%08lx\n", slot_hdr->status);
   printf("nblkmap: ");
   for (int i = 0; i < CSMP_FWMGMT_BLKMAP_CNT; i++) {
-    printf("%08lx,", slot_hdr->nblkmap[i]);
+    printf("%08lx%c", slot_hdr->nblkmap[i], 
+           ((i % 4) == 3 || i == (CSMP_FWMGMT_BLKMAP_CNT - 1)) ? '\n' : ',');
   }
   printf("\n");
 }
