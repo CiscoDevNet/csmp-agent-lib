@@ -18,8 +18,21 @@
 #include "../../src/lib/debug.h"
 #include "sl_system_kernel.h"
 #include "nvm3.h"
+#include "nvm3_hal_flash.h"
+
+
 
 #define OSAL_EFR32_WISUN_MIN_STACK_SIZE_WORDS 4096
+
+// #define OSAL_EFR32_WISUN_NVM_KEY_BASE         0x0F0000
+#define OSAL_EFR32_WISUN_NVM_KEY_BASE         0x00000F0
+#define OSAL_EFR32_WISUN_NVM_KEY_RUN_IMG      (OSAL_EFR32_WISUN_NVM_KEY_BASE + 0x0000U)
+#define OSAL_EFR32_WISUN_NVM_KEY_UPLOAD_IMG   (OSAL_EFR32_WISUN_NVM_KEY_BASE + 0x0001U)
+#define OSAL_EFR32_WISUN_NVM_KEY_BACKUP_IMG   (OSAL_EFR32_WISUN_NVM_KEY_BASE + 0x0002U)
+
+// NVM3_DEFINE_SECTION_STATIC_DATA(nvm3_csmp_hdrs, FLASH_PAGE_SIZE * 3, 3U);
+
+
 
 struct trickle_timer {
   uint32_t t0;
@@ -60,7 +73,7 @@ void osal_kernel_start(void)
         xTimerStop(timers[i].timer, 0);
 
     }
-
+    
     sl_system_kernel_start();
 }
 
@@ -515,42 +528,70 @@ void print_csmp_slot_hdr(const osal_csmp_slothdr_t *slot_hdr)
 
 osal_basetype_t osal_read_firmware(uint8_t slotid, osal_csmp_slothdr_t *slot)
 {
+  sl_status_t ret = SL_STATUS_FAIL;
+  nvm3_ObjectKey_t nvm_key = 0UL;
+  uint32_t nvm_type = 0UL;
+  size_t nvm_size = 0UL;
+
   if (slot == NULL) {
     return OSAL_FAILURE;
   }
+
   switch(slotid) {
     case RUN_IMAGE:
       printf("Reading Run Slot:\n");
+      nvm_key = OSAL_EFR32_WISUN_NVM_KEY_RUN_IMG;
       break;
     case UPLOAD_IMAGE:
-      printf("Reading Upload Slot:\n");
+    printf("Reading Upload Slot:\n");
+      nvm_key = OSAL_EFR32_WISUN_NVM_KEY_UPLOAD_IMG;
       break;
     case BACKUP_IMAGE:
-      printf("Reading Backup Slot:\n");
+    printf("Reading Backup Slot:\n");
+      nvm_key = OSAL_EFR32_WISUN_NVM_KEY_BACKUP_IMG;
       break;
     default:
       printf("read_firmware: Invalid slot id\n");
       return OSAL_FAILURE;
   }
+  
+  ret = nvm3_getObjectInfo(nvm3_defaultHandle, nvm_key, &nvm_type, &nvm_size);
+  if (ret != SL_STATUS_OK) {
+    printf("nvm3_getObjectInfo failed\n");
+    return OSAL_FAILURE;
+  }
+  
+  ret = nvm3_readData(nvm3_defaultHandle, nvm_key, slot, nvm_size);
   print_csmp_slot_hdr(slot);
+
+  if (ret != SL_STATUS_OK) {
+    printf("nvm3_readData failed\n");
+    return OSAL_FAILURE;
+  }
 
   return OSAL_SUCCESS;
 }
 
 osal_basetype_t osal_write_firmware(uint8_t slotid, osal_csmp_slothdr_t *slot)
 {
+  sl_status_t ret = SL_STATUS_OK;
+  nvm3_ObjectKey_t nvm_key = 0UL;
+
   if (slot == NULL) {
     return OSAL_FAILURE;
   }
   switch(slotid) {
     case RUN_IMAGE:
-      DPRINTF("Writing Run Slot:\n");
+      printf("Writing Run Slot:\n");
+      nvm_key = OSAL_EFR32_WISUN_NVM_KEY_RUN_IMG;
       break;
     case UPLOAD_IMAGE:
-      DPRINTF("Writing Upload Slot:\n");
+      printf("Writing Upload Slot:\n");
+      nvm_key = OSAL_EFR32_WISUN_NVM_KEY_UPLOAD_IMG;
       break;
     case BACKUP_IMAGE:
-      DPRINTF("Writing Backup Slot:\n");
+      printf("Writing Backup Slot:\n");
+      nvm_key = OSAL_EFR32_WISUN_NVM_KEY_BACKUP_IMG;
       break;
     default:
       printf("read_firmware: Invalid slot id\n");
@@ -558,5 +599,10 @@ osal_basetype_t osal_write_firmware(uint8_t slotid, osal_csmp_slothdr_t *slot)
   }
   print_csmp_slot_hdr(slot);
 
+  ret = nvm3_writeData(nvm3_defaultHandle, nvm_key, slot, sizeof(osal_csmp_slothdr_t));
+  if (ret != SL_STATUS_OK) {
+    printf("nvm3_write failed\n");
+    return OSAL_FAILURE;
+  }
   return OSAL_SUCCESS;
 }

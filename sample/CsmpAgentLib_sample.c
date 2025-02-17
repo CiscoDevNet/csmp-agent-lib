@@ -79,10 +79,18 @@ void sample_data_init() {
   }
     ret=osal_read_slothdr(UPLOAD_IMAGE, g_slothdr);
   if(ret<0){
+  #if defined(OSAL_EFR32_WISUN)
+    memset(&g_slothdr[UPLOAD_IMAGE], 0, sizeof(osal_csmp_slothdr_t));
+    osal_write_firmware(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]);
+  #endif
     DPRINTF("sample_data_init: Upload slot not found!\n");
   }
     ret=osal_read_slothdr(BACKUP_IMAGE, g_slothdr);
   if(ret<0){
+  #if defined(OSAL_EFR32_WISUN)
+    memset(&g_slothdr[BACKUP_IMAGE], 0, sizeof(osal_csmp_slothdr_t));
+    osal_write_firmware(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
+  #endif
     DPRINTF("sample_data_init: Backup slot not found!\n");
   }
 
@@ -406,7 +414,7 @@ static void csmp_sample_app_thr_fnc(void *arg)
   // Initialize sample data: Sample app variables to be initialized
   // with default/sample data will be done here
   sample_data_init();
-
+  
   // start csmp agent lib service
   ret = csmp_service_start(&g_devconfig, &g_csmp_handle);
   if(ret < 0)
