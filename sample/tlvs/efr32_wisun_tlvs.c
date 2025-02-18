@@ -113,8 +113,6 @@ uint32_t g_curbackupslot  = 0xFFU;  // Track current backup slot
 // Firmware image slots (Slot-id: 0-RUN, 1-UPLOAD, 2-BACKUP)
 osal_csmp_slothdr_t g_slothdr[CSMP_FWMGMT_ACTIVE_SLOTS] = {0};
 
-extern void print_csmp_slot_hdr(const osal_csmp_slothdr_t *slot_hdr);
-
 /* public key */
 //new key
 static const char pubkey[PUBLIC_KEY_LEN] = {
@@ -572,7 +570,6 @@ void* transferRequest_get(tlvid_t tlvid, uint32_t *num) {
   g_transferRequest.report_int_max = g_slothdr[UPLOAD_IMAGE].reportintervalmax;
   g_transferRequest.status = g_slothdr[UPLOAD_IMAGE].status;
   printf("[FW UPDATE] Transfer request GET (UPLOAD_IMAGE)\n");
-  print_csmp_slot_hdr(&g_slothdr[UPLOAD_IMAGE]);
 
   DPRINTF("## sample_firmwaremgmt: GET for TLV %ld done.\n", tlvid.type);
   return &g_transferRequest;
@@ -690,7 +687,6 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
   // Initiliase new transfer - done
   g_initxfer = false;
   printf("[FW UPDATE] Transfer request post (UPLOAD_IMAGE)\n");
-  print_csmp_slot_hdr(&g_slothdr[UPLOAD_IMAGE]);
   DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
 
@@ -926,7 +922,6 @@ void loadreq_timer_fired() {
   g_curloadtime=0;
   osal_trickle_timer_stop(lrq_timer);
   printf("[FW UPDATE] Load request timer fired: reboot the sample app with slot %lu\n", g_curloadslot);
-  print_csmp_slot_hdr(&g_slothdr[RUN_IMAGE]);
   sample_app_reboot();
 #endif
 }
