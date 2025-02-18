@@ -58,7 +58,7 @@ static bool m_timert_isrunning = false;
 static void osal_update_timer();
 static void osal_alarm_fired(TimerHandle_t xTimer);
 static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2);
-// void print_csmp_slot_hdr(const osal_csmp_slothdr_t *slot_hdr);
+void print_csmp_slot_hdr(const osal_csmp_slothdr_t *slot_hdr);
 
 void osal_kernel_start(void)
 {
