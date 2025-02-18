@@ -14,6 +14,7 @@
  *  limitations under the License.
  */
 
+#include <string.h>
 #include "osal.h"
 #include "csmpservice.h"
 struct trickle_timer {
@@ -680,7 +681,7 @@ int osal_copy_firmware(uint8_t source_slotid, uint8_t dest_slotid, Csmp_Slothdr 
   return OSAL_SUCCESS;
 }
 
-int osal_read_firmware(uint8_t slotid, osal_csmp_slothdr_t *slot) {
+osal_basetype_t osal_read_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *slot) {
   FILE *file = NULL;
 
   if (slot == NULL) {
@@ -712,7 +713,7 @@ int osal_read_firmware(uint8_t slotid, osal_csmp_slothdr_t *slot) {
   return OSAL_SUCCESS;
 }
 
-osal_basetype_t osal_write_firmware(uint8_t slotid, osal_csmp_slothdr_t *slot) {
+osal_basetype_t osal_write_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *slot) {
   FILE *file = NULL;
   size_t bytes = 0;
 
@@ -754,6 +755,32 @@ osal_basetype_t osal_write_firmware(uint8_t slotid, osal_csmp_slothdr_t *slot) {
   bytes = fwrite((uint8_t*) slot, sizeof(uint8_t), sizeof(osal_csmp_slothdr_t), file);
   DPRINTF("write_firmware: Wrote %ld bytes to slot-id: %u\n", bytes, slotid);
   fclose(file);
+
+  return OSAL_SUCCESS;
+}
+
+
+osal_basetype_t osal_deploy_and_reboot_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *slot)
+{
+  (void) slotid;
+  (void) slot;
+  return OSAL_SUCCESS;
+}
+
+
+osal_basetype_t osal_copy_firmware_slot(osal_slotid_t dst_slotid, 
+                                        osal_csmp_slothdr_t *dst_slot,
+                                        osal_slotid_t src_slotid,  
+                                        osal_csmp_slothdr_t *src_slot)
+{
+  (void) dst_slotid;
+  (void) src_slotid;
+  if (dst_slot == NULL || src_slot == NULL) {
+    DPRINTF("copy_firmware_slot: slot is NULL\n");
+    return OSAL_FAILURE;
+  }
+
+  memcpy(dst_slot, src_slot, sizeof(osal_csmp_slothdr_t));
 
   return OSAL_SUCCESS;
 }

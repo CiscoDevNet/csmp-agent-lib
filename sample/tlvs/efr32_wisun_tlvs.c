@@ -32,11 +32,6 @@
 
 #define nexthop_IP "fe80::a00:27ff:fe3b:2ab1"
 
-#define CSMP_IMAGE_HDR_SIZE 256
-
-#define GECKO_BTL_UPLOAD_SLOT_ID 0
-
-#define GECKO_BTL_BACKUP_SLOT_ID 1
 
 /** \brief the hardware information */
 Hardware_Desc g_hardwareDesc = HARDWARE_DESC_INIT;
@@ -924,12 +919,16 @@ void loadreq_timer_fired() {
   memcpy(&g_slothdr[RUN_IMAGE], &g_slothdr[g_curloadslot],
          sizeof(g_slothdr[RUN_IMAGE]));
   osal_write_firmware(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
+#if defined(OSAL_EFR32_WISUN)
+  assert(osal_deploy_and_reboot_firmware(g_curloadslot, &g_slothdr[g_curloadslot]) == OSAL_SUCCESS);
+#else
   g_curloadslot=0xFF;
   g_curloadtime=0;
   osal_trickle_timer_stop(lrq_timer);
   printf("[FW UPDATE] Load request timer fired: reboot the sample app with slot %lu\n", g_curloadslot);
   print_csmp_slot_hdr(&g_slothdr[RUN_IMAGE]);
   sample_app_reboot();
+#endif
 }
 
 /**
@@ -1149,14 +1148,22 @@ void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv) {
   switch (g_curbackupslot) {
     case RUN_IMAGE:
       DPRINTF("sample_firmwaremgmt: Backing-up run image to backup slot\n");
-      memcpy(&g_slothdr[BACKUP_IMAGE], &g_slothdr[RUN_IMAGE],
-             sizeof(g_slothdr[BACKUP_IMAGE]));
+      if (osal_copy_firmware_slot(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE], 
+                                  UPLOAD_IMAGE, &g_slothdr[RUN_IMAGE]) != OSAL_SUCCESS) {
+        DPRINTF("sample_firmwaremgmt: Failed to copy run image to backup slot\n");
+        tlv->response = RESPONSE_INVALID_REQ;
+        return;
+      }
       g_slothdr[BACKUP_IMAGE].status = FWHDR_STATUS_COMPLETE;
       break;
     case UPLOAD_IMAGE:
       DPRINTF("sample_firmwaremgmt: Backing-up upload image to backup slot\n");
-      memcpy(&g_slothdr[BACKUP_IMAGE], &g_slothdr[UPLOAD_IMAGE],
-             sizeof(g_slothdr[BACKUP_IMAGE]));
+      if (osal_copy_firmware_slot(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE], 
+                                  UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) != OSAL_SUCCESS) {
+        DPRINTF("sample_firmwaremgmt: Failed to copy upload image to backup slot\n");
+        tlv->response = RESPONSE_INVALID_REQ;
+        return;
+      }
       g_slothdr[BACKUP_IMAGE].status = FWHDR_STATUS_COMPLETE;
       break;
     default:

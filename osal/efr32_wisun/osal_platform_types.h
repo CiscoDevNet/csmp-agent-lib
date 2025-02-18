@@ -52,4 +52,11 @@ typedef int osal_sd_set_t;
 
 #define s6_addr address
 
+
+#define CSMP_IMAGE_HDR_SIZE 256
+
+#define GECKO_BTL_UPLOAD_SLOT_ID 0
+
+#define GECKO_BTL_BACKUP_SLOT_ID 1
+
 #endif
