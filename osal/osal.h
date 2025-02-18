@@ -584,7 +584,7 @@ void osal_sleep_ms(uint64_t ms);
  * output parameters
  * @return returns 0 on success and -1 on error
  *****************************************************************************/
-osal_basetype_t osal_read_firmware(uint8_t slotid, osal_csmp_slothdr_t *slot);
+osal_basetype_t osal_read_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *slot);
 
 /****************************************************************************
  * @fn   osal_write_firmware
@@ -598,6 +598,36 @@ osal_basetype_t osal_read_firmware(uint8_t slotid, osal_csmp_slothdr_t *slot);
  * output parameters
  * @return returns 0 on success and -1 on error
  *****************************************************************************/
-osal_basetype_t osal_write_firmware(uint8_t slotid, osal_csmp_slothdr_t *slot);
+osal_basetype_t osal_write_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *slot);
 
+
+/****************************************************************************
+ * @fn   osal_deploy_and_reboot_firmware
+ *
+ * @brief write the selected firmware image to the internal storage(file/flash) 
+ *        and perform bootload operation
+ *
+ * input parameters
+ *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
+ *  @param[in,out] slot to _Csmp_Slothdr slot structure
+ * output parameters
+ * @return returns 0 on success and -1 on error
+ *****************************************************************************/
+osal_basetype_t osal_deploy_and_reboot_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *slot);
+
+/****************************************************************************
+ * @fn osal_copy_firmware_slot
+ * @brief copy firmware image from source slot to destination slot
+ * input parameters
+ *  @param[in] slotid indicating destination slot id
+ *  @param[in] dst_slot destination slot
+ *  @param[in] slotid indicating source slot id
+ *  @param[in] src_slot source slot
+ * output parameters
+ * @return returns 0 on success and -1 on error
+ *****************************************************************************/
+osal_basetype_t osal_copy_firmware_slot(osal_slotid_t dst_slotid, 
+                                        osal_csmp_slothdr_t *dst_slot,
+                                        osal_slotid_t src_slotid,  
+                                        osal_csmp_slothdr_t *src_slot);
 #endif
