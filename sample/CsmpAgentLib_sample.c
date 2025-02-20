@@ -65,7 +65,7 @@ void sample_data_init() {
   int idx=0, ret=0;
   struct timeval tv = {0};
   DPRINTF("sample_data_init: Initialize sample data\n");
-  gettimeofday(&tv, NULL);
+  osal_gettime(&tv, NULL);
   g_init_time = tv.tv_sec;
 
 
