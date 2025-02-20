@@ -40,7 +40,7 @@
 #if defined(OSAL_EFR32_WISUN)
 #define CSMP_FWMGMT_SLOTIMG_SIZE      (512*1024)  // ~512 Kb
 #else
-#define CSMP_FWMGMT_SLOTIMG_SIZE      (30*1024)  // ~30 Kb
+#define CSMP_FWMGMT_SLOTIMG_SIZE      (512*1024)  // ~30 Kb
 #endif
 #define CSMP_FWMGMT_BLKMAP_CNT        (32)
 

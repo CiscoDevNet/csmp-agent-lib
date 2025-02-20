@@ -1022,7 +1022,7 @@ void loadRequest_post(tlvid_t tlvid, Load_Request *tlv) {
   if (g_loadRequest.loadtime != 0) {
     // Get current time to calculate timer delay for load request
     struct timeval tv;
-    gettimeofday(&tv, NULL);
+    osal_gettime(&tv, NULL);
 
     if (g_loadRequest.loadtime > tv.tv_sec) {
       delay = (g_loadRequest.loadtime - tv.tv_sec);
