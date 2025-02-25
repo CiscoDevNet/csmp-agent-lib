@@ -700,6 +700,10 @@ osal_basetype_t osal_copy_firmware_slot(osal_slotid_t dst_slotid,
     return OSAL_FAILURE;
   }
 
+  DPRINTF("Erasing destination slot...\n");
+  assert(bootloader_eraseStorageSlot(gecko_btl_dst_slot_id) == BOOTLOADER_OK);
+  DPRINTF("Copying source slot to destination slot...\n");
+
   while(src_length) {
     chunk_size = src_length < GECKO_BTL_SLOT_CPY_CHUNK_SIZE ? src_length : GECKO_BTL_SLOT_CPY_CHUNK_SIZE;
     
@@ -713,7 +717,7 @@ osal_basetype_t osal_copy_firmware_slot(osal_slotid_t dst_slotid,
       DPRINTF("copy_firmware_slot: bootloader_writeStorage failed\n");
       osal_free(chunk);
       return OSAL_FAILURE;
-    } 
+    }
 
     offset += chunk_size;
     src_length -= chunk_size;
