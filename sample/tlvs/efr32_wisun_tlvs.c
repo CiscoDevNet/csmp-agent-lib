@@ -686,7 +686,10 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
 
   // Initiliase new transfer - done
   g_initxfer = false;
-  printf("[FW UPDATE] Transfer request post (UPLOAD_IMAGE)\n");
+  
+  DPRINTF("Erasing gecko bootloader 'UPLOAD' storage slot...\n");
+  assert(bootloader_eraseStorageSlot(GECKO_BTL_UPLOAD_SLOT_ID) == BOOTLOADER_OK);
+
   DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
 
@@ -900,8 +903,6 @@ void* loadRequest_get(tlvid_t tlvid, uint32_t *num) {
   g_loadRequest.loadtime = g_curloadtime;
 
   DPRINTF("## sample_firmwaremgmt: GET for TLV %ld done.\n", tlvid.type);
-  printf("[FW UPDATE] Load request GET (%s)\n", 
-         g_curloadslot == UPLOAD_IMAGE ? "UPLOAD_IMAGE" : "BACKUP_IMAGE");
   return &g_loadRequest;
 }
 
@@ -921,7 +922,6 @@ void loadreq_timer_fired() {
   g_curloadslot=0xFF;
   g_curloadtime=0;
   osal_trickle_timer_stop(lrq_timer);
-  printf("[FW UPDATE] Load request timer fired: reboot the sample app with slot %lu\n", g_curloadslot);
   sample_app_reboot();
 #endif
 }
@@ -1025,7 +1025,6 @@ void loadRequest_post(tlvid_t tlvid, Load_Request *tlv) {
                       (trickle_timer_fired_t)loadreq_timer_fired);
   DPRINTF("sample_firmwaremgmt: Load request timer started for slot=%ld with delay=%lu at epoch time =%lu s\n",
          g_curloadslot, delay, g_curloadtime);
-  printf("[FW UPDATE] Load request POST (%s)\n", g_curloadslot == UPLOAD_IMAGE ? "UPLOAD_IMAGE" : "BACKUP_IMAGE");
   DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
 
