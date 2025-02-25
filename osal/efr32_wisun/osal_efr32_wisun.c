@@ -62,19 +62,33 @@ void print_csmp_slot_hdr(const osal_csmp_slothdr_t *slot_hdr);
 
 void osal_kernel_start(void)
 {
-    for (BaseType_t i = 0; i < timer_num; i++) {
-        timers[i].is_running = false;
-        timers[i].timer = xTimerCreate("trickle_timer", 
-                                       pdMS_TO_TICKS(m_remaining * 1000), 
-                                       pdTRUE, 
-                                       (void *)i, 
-                                       osal_alarm_fired);
-        assert(timers[i].timer != NULL);
-        xTimerStop(timers[i].timer, 0);
+  static BootloaderStorageInformation_t storage_info = { 0U };
+  static BootloaderStorageSlot_t slot_info = { 0U };
 
-    }
-    
-    sl_system_kernel_start();
+  for (BaseType_t i = 0; i < timer_num; i++) {
+      timers[i].is_running = false;
+      timers[i].timer = xTimerCreate("trickle_timer", 
+                                     pdMS_TO_TICKS(m_remaining * 1000), 
+                                     pdTRUE, 
+                                     (void *)i, 
+                                     osal_alarm_fired);
+      assert(timers[i].timer != NULL);
+      xTimerStop(timers[i].timer, 0);
+  }
+  
+  // Check bootloader storage slots
+  bootloader_getStorageInfo(&storage_info);
+  
+  assert(storage_info.numStorageSlots >= 2);
+  assert(bootloader_getStorageSlotInfo(__slotid2gblslotid(UPLOAD_IMAGE), 
+                                       &slot_info) == BOOTLOADER_OK);
+  assert(slot_info.length >= CSMP_FWMGMT_SLOTIMG_SIZE);
+
+  assert(bootloader_getStorageSlotInfo(__slotid2gblslotid(BACKUP_IMAGE), 
+                                       &slot_info) == BOOTLOADER_OK);
+  assert(slot_info.length >= CSMP_FWMGMT_SLOTIMG_SIZE);
+
+  sl_system_kernel_start();
 }
 
 osal_basetype_t osal_task_create(osal_task_t * thread,
