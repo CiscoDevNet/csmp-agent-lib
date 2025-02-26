@@ -664,6 +664,21 @@ osal_basetype_t osal_read_firmware_slothdr(osal_slotid_t slotid, osal_csmp_sloth
  *****************************************************************************/
 osal_basetype_t osal_write_firmware_slothdr(osal_slotid_t slotid, osal_csmp_slothdr_t *slot);
 
+/****************************************************************************
+ * @fn   osal_write_storage
+ * @brief write data to the storage
+ * @param[in] slotid slot id
+ * @param[in] slot slot structure
+ * @param[in] offset offset to write
+ * @param[in] data data to write
+ * @param[in] len length of data
+ * @return returns 0 on success and -1 on error
+ *****************************************************************************/
+osal_basetype_t osal_write_storage(osal_slotid_t slotid, 
+                                   osal_csmp_slothdr_t *slot, 
+                                   uint32_t offset, 
+                                   uint8_t *data, 
+                                   uint32_t len);
 
 /****************************************************************************
  * @fn   osal_deploy_and_reboot_firmware

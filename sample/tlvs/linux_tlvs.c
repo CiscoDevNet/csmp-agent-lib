@@ -861,6 +861,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       else{
         printf("image block write to file failed!");
       }
+      }
       mapval ^= (1 << bit);
       g_slothdr[UPLOAD_IMAGE].nblkmap[word] = mapval;
 

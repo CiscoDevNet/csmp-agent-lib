@@ -30,7 +30,8 @@
 #define OSAL_EFR32_WISUN_NVM_KEY_BACKUP_IMG   (OSAL_EFR32_WISUN_NVM_KEY_BASE + 0x0002U)
 #define GECKO_BTL_SLOT_CPY_CHUNK_SIZE         1024U
 
-
+#define GECKO_BTL_UPLOAD_SLOT_ID 0
+#define GECKO_BTL_BACKUP_SLOT_ID 1
 
 struct trickle_timer {
   uint32_t t0;
@@ -620,6 +621,29 @@ osal_basetype_t osal_write_firmware_slothdr(uint8_t slotid, osal_csmp_slothdr_t 
   }
   return OSAL_SUCCESS;
 }
+
+osal_basetype_t osal_write_storage(osal_slotid_t slotid, 
+                                   osal_csmp_slothdr_t *slot, 
+                                   uint32_t offset, 
+                                   uint8_t *data, 
+                                   uint32_t len)
+{
+  int32_t ret = 0L;
+  
+  if (slot == NULL || data == NULL || !len) {
+    return OSAL_FAILURE;
+  }
+
+  ret = bootloader_writeStorage(__slotid2gblslotid(slotid), offset, data, len);
+  
+  if (ret != BOOTLOADER_OK) {
+    DPRINTF("write_storage: bootloader_writeStorage failed\n");
+    return OSAL_FAILURE;
+  }
+
+  return OSAL_SUCCESS;
+}
+
 
 osal_basetype_t osal_deploy_and_reboot_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *slot)
 {

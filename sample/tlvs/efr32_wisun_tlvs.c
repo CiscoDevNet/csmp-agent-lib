@@ -803,8 +803,8 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
         DPRINTF("sample_firmwaremgmt: Valid image block %lu write offset=%lu\n",
           g_imageBlock.blocknum, offset);
           
+      osal_basetype_t ret = OSAL_FAILURE;
       uint32_t gecko_btl_slot_offset = offset;
-      int32_t gecko_btl_ret = 0;
       uint32_t gecko_btl_chunk_size = g_imageBlock.blockdata.len;
       uint8_t *gecko_btl_data_ptr = g_imageBlock.blockdata.data;
 
@@ -821,13 +821,17 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
         gecko_btl_data_ptr = g_imageBlock.blockdata.data;
         
       }
-      gecko_btl_ret = bootloader_writeStorage(GECKO_BTL_UPLOAD_SLOT_ID, 
-                                              gecko_btl_slot_offset, 
-                                              gecko_btl_data_ptr,
-                                              gecko_btl_chunk_size);
+
+      ret = osal_write_storage(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE], 
+                               gecko_btl_slot_offset, gecko_btl_data_ptr, gecko_btl_chunk_size);
       
-      printf("[FW UPDATE] Image block POST %lu, ret: %ld, offset %lu (slot offset: %lu):\n", 
-             g_imageBlock.blocknum, gecko_btl_ret, offset, gecko_btl_slot_offset);
+      if (ret != OSAL_SUCCESS) {
+        DPRINTF("sample_firmwaremgmt: Failed to write image block %lu to slot\n",
+                g_imageBlock.blocknum);
+        tlv->retval = false;
+        g_downloadbusy = false;
+        return;
+      }
 
       mapval ^= (1 << bit);
       g_slothdr[UPLOAD_IMAGE].nblkmap[word] = mapval;
