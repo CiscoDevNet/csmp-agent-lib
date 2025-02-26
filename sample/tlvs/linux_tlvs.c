@@ -739,6 +739,9 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
   // Initiliase new transfer - done
   g_initxfer = false;
 
+  DPRINTF("Erasing 'UPLOAD' storage slot...\n");
+  assert(osal_erase_storaqe(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) == OSAL_SUCCESS);
+
   DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
 }
 
@@ -848,7 +851,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
     }
 
     osal_basetype_t ret = OSAL_FAILURE;
-    
+
     // Write image block to slot at valid offset
     if (offset < OSAL_CSMP_FWMGMT_SLOTIMG_SIZE &&
        ((offset + g_imageBlock.blockdata.len) < OSAL_CSMP_FWMGMT_SLOTIMG_SIZE)) {
