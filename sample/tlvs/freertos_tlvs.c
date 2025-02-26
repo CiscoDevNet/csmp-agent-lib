@@ -786,14 +786,25 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
 
       return;
     }
+
+    osal_basetype_t ret = OSAL_FAILURE;
+    
     // Write image block to slot at valid offset
     if (offset < OSAL_CSMP_FWMGMT_SLOTIMG_SIZE &&
        ((offset + g_imageBlock.blockdata.len) < OSAL_CSMP_FWMGMT_SLOTIMG_SIZE)) {
       DPRINTF("sample_firmwaremgmt: Valid image block %u write offset=%u\n",
              g_imageBlock.blocknum, offset);
-      memcpy(&g_slothdr[UPLOAD_IMAGE].image[offset], g_imageBlock.blockdata.data,
-                   g_imageBlock.blockdata.len);
-
+      
+      ret = osal_write_storage(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE], 
+                               offset, g_imageBlock.blockdata.data, g_imageBlock.blockdata.len);
+      if (ret != OSAL_SUCCESS) {
+       DPRINTF("sample_firmwaremgmt: Failed to write image block %lu to slot\n",
+               g_imageBlock.blocknum);
+       tlv->retval = false;
+       g_downloadbusy = false;
+       return;
+      }
+      
       mapval ^= (1 << bit);
       g_slothdr[UPLOAD_IMAGE].nblkmap[word] = mapval;
 
