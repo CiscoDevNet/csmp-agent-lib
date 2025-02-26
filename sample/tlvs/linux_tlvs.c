@@ -1165,12 +1165,19 @@ void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv) {
     case RUN_IMAGE:
       DPRINTF("sample_firmwaremgmt: Backing-up run image to backup slot\n");
       osal_copy_firmware(RUN_IMAGE, BACKUP_IMAGE, g_slothdr);
+        DPRINTF("sample_firmwaremgmt: Failed to copy run image to backup slot\n");
+        tlv->response = RESPONSE_INVALID_REQ;
+        return;
+      }
       g_slothdr[BACKUP_IMAGE].status = FWHDR_STATUS_COMPLETE;
       break;
     case UPLOAD_IMAGE:
       DPRINTF("sample_firmwaremgmt: Backing-up upload image to backup slot\n");
       osal_copy_firmware(UPLOAD_IMAGE, BACKUP_IMAGE, g_slothdr);
-      g_slothdr[BACKUP_IMAGE].status = FWHDR_STATUS_COMPLETE;
+        DPRINTF("sample_firmwaremgmt: Failed to copy upload image to backup slot\n");
+        tlv->response = RESPONSE_INVALID_REQ;
+        return;
+      }
       break;
     default:
       DPRINTF("sample_firmwaremgmt: Set backup request from invalid backup slot (%u)\n",
