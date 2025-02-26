@@ -808,19 +808,6 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       uint32_t gecko_btl_chunk_size = g_imageBlock.blockdata.len;
       uint8_t *gecko_btl_data_ptr = g_imageBlock.blockdata.data;
 
-      // TODO !!! Store Image Block to flash !!!
-      // memcpy(&g_slothdr[UPLOAD_IMAGE].image[offset], g_imageBlock.blockdata.data,
-      //              g_imageBlock.blockdata.len);
-
-
-
-      // printf("[FW UPDATE] Image block POST %lu, offset %lu data:\n", g_imageBlock.blocknum, offset);
-      // for (uint32_t i = 0; i < g_imageBlock.blockdata.len; i++) {
-      //   printf("0x%02x%c", g_imageBlock.blockdata.data[i], 
-      //          (i % 16 == 15 || i == g_imageBlock.blockdata.len - 1) ? '\n' : ',');
-      // }
-      // printf("\n");
-
       // First chunk includes the slot header information
       if (!g_imageBlock.blocknum) {
         gecko_btl_slot_offset = 0;
@@ -828,11 +815,6 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
         gecko_btl_chunk_size = g_imageBlock.blockdata.len - CSMP_IMAGE_HDR_SIZE;
         gecko_btl_data_ptr += CSMP_IMAGE_HDR_SIZE;
 
-        /// Write the slot header
-        gecko_btl_ret = bootloader_writeStorage(GECKO_BTL_UPLOAD_SLOT_ID, 
-                                      gecko_btl_slot_offset, 
-                                      g_imageBlock.blockdata.data + CSMP_IMAGE_HDR_SIZE,
-                                      g_imageBlock.blockdata.len - CSMP_IMAGE_HDR_SIZE);
       } else {
         gecko_btl_slot_offset = offset - CSMP_IMAGE_HDR_SIZE;
         gecko_btl_chunk_size = g_imageBlock.blockdata.len;
