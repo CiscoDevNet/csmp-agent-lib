@@ -27,19 +27,24 @@
 #define OSAL_FAILURE -1
 
 // SIZES
-#define SHA1_HASH_SIZE        20
-#define SHA256_HASH_SIZE      32
-#define FILE_NAME_SIZE        128
-#define VERSION_SIZE          32
-#define BITMAP_SIZE           32
-#define HWID_SIZE             32
-#define BLOCK_SIZE            1024
+#define OSAL_CSMP_SLOTHDR_SHA1_HASH_SIZE        20
+#define OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE      32
+#define OSAL_CSMP_SLOTHDR_FILE_NAME_SIZE        128
+#define OSAL_CSMP_SLOTHDR_VERSION_SIZE          32
+#define OSAL_CSMP_SLOTHDR_BITMAP_SIZE           32
+#define OSAL_CSMP_SLOTHDR_HWID_SIZE             32
+#define OSAL_CSMP_SLOTHDR_BLOCK_SIZE            1024
 
 // IMAGE SLOT INFO
-#define CSMP_FWMGMT_ACTIVE_SLOTS      3          // 0-RUN, 1-UPLOAD, 2-BACKUP
+#define OSAL_CSMP_FWMGMT_ACTIVE_SLOTS           3   // 0-RUN, 1-UPLOAD, 2-BACKUP
 
-#define CSMP_FWMGMT_SLOTIMG_SIZE      (512*1024) // 512KB
-#define CSMP_FWMGMT_BLKMAP_CNT        (32)
+#if defined(OSAL_EFR32_WISUN)
+#define OSAL_CSMP_FWMGMT_SLOTIMG_SIZE      (512*1024) // 512KB
+#else
+#define OSAL_CSMP_FWMGMT_SLOTIMG_SIZE      (30*1024) // 30KB
+#endif
+
+#define OSAL_CSMP_FWMGMT_BLKMAP_CNT        (32)
 
 
 // IMAGE SLOT INFO
@@ -110,10 +115,10 @@ typedef struct _Csmp_Slothdr Csmp_Slothdr;               /**< firmware image slo
 // Image slot header
 typedef struct _Csmp_Slothdr
 {
-  uint8_t filehash[SHA256_HASH_SIZE];
-  char filename[FILE_NAME_SIZE];
-  char version[VERSION_SIZE];
-  char hwid[HWID_SIZE];
+  uint8_t filehash[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE];
+  char filename[OSAL_CSMP_SLOTHDR_FILE_NAME_SIZE];
+  char version[OSAL_CSMP_SLOTHDR_VERSION_SIZE];
+  char hwid[OSAL_CSMP_SLOTHDR_HWID_SIZE];
   uint32_t filesize;
   uint32_t filesizelastblk;
   uint32_t blockcnt;
@@ -121,13 +126,13 @@ typedef struct _Csmp_Slothdr
   uint32_t reportintervalmin;
   uint32_t reportintervalmax;
   uint32_t status; // Boolean zero if image is complete
-  uint32_t nblkmap[CSMP_FWMGMT_BLKMAP_CNT]; // Inverted block completion map
+  uint32_t nblkmap[OSAL_CSMP_FWMGMT_BLKMAP_CNT]; // Inverted block completion map
   uint32_t magicU;
   uint32_t magicL;
   // Image
   // The image allocation is not required for EF32 Wisun platform
 #if !defined(OSAL_EFR32_WISUN)
-  uint8_t image[CSMP_FWMGMT_SLOTIMG_SIZE];
+  uint8_t image[OSAL_CSMP_FWMGMT_SLOTIMG_SIZE];
 #endif
 } osal_csmp_slothdr_t;
 

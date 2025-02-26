@@ -28,14 +28,14 @@
 
 #include "signature_verify.h"
 
-#define SHA256_HASH_SIZE  32
+#define OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE  32
 
 extern void pubkey_get(char *key);
 
 bool signature_verify(const void *data, size_t datalen, const void *sig, size_t siglen)
 {
 #ifdef OPENSSL
-  unsigned char digest[SHA256_HASH_SIZE];
+  unsigned char digest[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE];
   unsigned int dgst_len = 0;
   int ret;
   EC_KEY *ec_key = NULL;

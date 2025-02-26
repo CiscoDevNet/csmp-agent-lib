@@ -75,7 +75,7 @@ Cancel_Load_Request g_cancelLoadRequest = CANCEL_LOAD_REQUEST_INIT;
 Set_Backup_Request setBackupRequest = SET_BACKUP_REQUEST_INIT;
 
 /** \brief the firmware info data */
-Firmware_Image_Info g_firmwareImageInfo[CSMP_FWMGMT_ACTIVE_SLOTS] = {FIRMWARE_IMAGE_INFO_INIT};
+Firmware_Image_Info g_firmwareImageInfo[OSAL_CSMP_FWMGMT_ACTIVE_SLOTS] = {FIRMWARE_IMAGE_INFO_INIT};
 
 /** \brief the signature settings data */
 Signature_Settings g_SignatureSettings = SIGNATURE_SETTINGS_INIT;
@@ -107,7 +107,7 @@ uint32_t g_curloadslot    = 0xFFU;  // Track current load slot
 uint32_t g_curbackupslot  = 0xFFU;  // Track current backup slot
 
 // Firmware image slots (Slot-id: 0-RUN, 1-UPLOAD, 2-BACKUP)
-osal_csmp_slothdr_t g_slothdr[CSMP_FWMGMT_ACTIVE_SLOTS] = {0};
+osal_csmp_slothdr_t g_slothdr[OSAL_CSMP_FWMGMT_ACTIVE_SLOTS] = {0};
 
 /* public key */
 //new key
@@ -553,10 +553,10 @@ void* transferRequest_get(tlvid_t tlvid, uint32_t *num) {
     return &g_transferRequest;
   }
   // Udpate g_transferRequest fields
-  memcpy(g_transferRequest.filehash.data, g_slothdr[UPLOAD_IMAGE].filehash, SHA256_HASH_SIZE);
-  strncpy(g_transferRequest.filename, g_slothdr[UPLOAD_IMAGE].filename, FILE_NAME_SIZE);
-  strncpy(g_transferRequest.version, g_slothdr[UPLOAD_IMAGE].version, VERSION_SIZE);
-  strncpy(g_transferRequest.hwinfo.hwid, g_slothdr[UPLOAD_IMAGE].hwid, HWID_SIZE);
+  memcpy(g_transferRequest.filehash.data, g_slothdr[UPLOAD_IMAGE].filehash, OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE);
+  strncpy(g_transferRequest.filename, g_slothdr[UPLOAD_IMAGE].filename, OSAL_CSMP_SLOTHDR_FILE_NAME_SIZE);
+  strncpy(g_transferRequest.version, g_slothdr[UPLOAD_IMAGE].version, OSAL_CSMP_SLOTHDR_VERSION_SIZE);
+  strncpy(g_transferRequest.hwinfo.hwid, g_slothdr[UPLOAD_IMAGE].hwid, OSAL_CSMP_SLOTHDR_HWID_SIZE);
   g_transferRequest.filesize = g_slothdr[UPLOAD_IMAGE].filesize;
   g_transferRequest.blocksize = g_slothdr[UPLOAD_IMAGE].blocksize;
   g_transferRequest.report_int_min = g_slothdr[UPLOAD_IMAGE].reportintervalmin;
@@ -593,14 +593,14 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
     return;
   }
   // Check filehash len
-  if (tlv->filehash.len != SHA256_HASH_SIZE) {
+  if (tlv->filehash.len != OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE) {
     tlv->response = RESPONSE_INVALID_REQ;
     DPRINTF("sample_firmwaremgmt: Invalid filehash size: %lu\n", tlv->filehash.len);
     return;
   }
   // Check filesize
   if (tlv->filesize == 0 ||
-      tlv->filesize > CSMP_FWMGMT_SLOTIMG_SIZE) {
+      tlv->filesize > OSAL_CSMP_FWMGMT_SLOTIMG_SIZE) {
     tlv->response = RESPONSE_FILE_SIZE_TOO_BIG;
         DPRINTF("sample_firmwaremgmt: Invalid file size: %u\n", tlv->filesize);
     return;
@@ -608,8 +608,8 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
   // blocksize should be smaller than csmp's MTU (1024)
   // blocksize should be larger than filesize/1024 since there is only 1024 bitmaps
   if (tlv->blocksize == 0 ||
-      tlv->blocksize > BLOCK_SIZE ||
-      tlv->blocksize < tlv->filesize/(CSMP_FWMGMT_BLKMAP_CNT * 32)) {
+      tlv->blocksize > OSAL_CSMP_SLOTHDR_BLOCK_SIZE ||
+      tlv->blocksize < tlv->filesize/(OSAL_CSMP_FWMGMT_BLKMAP_CNT * 32)) {
     tlv->response = RESPONSE_INVALID_BLOCK_SIZE;
     DPRINTF("sample_firmwaremgmt: Invalid block size: %u\n", tlv->blocksize);
     return;
@@ -656,7 +656,7 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
   memset(&g_slothdr[UPLOAD_IMAGE], 0xFF, sizeof(g_slothdr[UPLOAD_IMAGE]));
 
   // Init upload slot from tlv context
-  memcpy(g_slothdr[UPLOAD_IMAGE].filehash, tlv->filehash.data, SHA256_HASH_SIZE);
+  memcpy(g_slothdr[UPLOAD_IMAGE].filehash, tlv->filehash.data, OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE);
   strncpy(g_slothdr[UPLOAD_IMAGE].filename, tlv->filename, sizeof(g_slothdr[UPLOAD_IMAGE].filename));
   strncpy(g_slothdr[UPLOAD_IMAGE].version, tlv->version, sizeof(g_slothdr[UPLOAD_IMAGE].version));
   strncpy(g_slothdr[UPLOAD_IMAGE].hwid, tlv->hwinfo.hwid, sizeof(g_slothdr[UPLOAD_IMAGE].hwid));
@@ -728,7 +728,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       return;
     }
     // Check blocknum exceeds bitmap
-    if (word >= CSMP_FWMGMT_BLKMAP_CNT) {
+    if (word >= OSAL_CSMP_FWMGMT_BLKMAP_CNT) {
       DPRINTF("sample_firmwaremgmt: Image block %u exceeds bitmap length\n",
              g_imageBlock.blocknum);
       g_downloadbusy = false;
@@ -754,7 +754,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       uint32_t last_mapval;
 
       blk_whole_cnt = g_slothdr[UPLOAD_IMAGE].blockcnt & ~0x1F;
-      while ((blk_i < (CSMP_FWMGMT_BLKMAP_CNT - 1)) &&
+      while ((blk_i < (OSAL_CSMP_FWMGMT_BLKMAP_CNT - 1)) &&
             (blk_j < blk_whole_cnt)) {
         if (g_slothdr[UPLOAD_IMAGE].nblkmap[blk_i] != 0) {
           DPRINTF("sample_firmwaremgmt: Image block transfer still not complete\n");
@@ -787,8 +787,8 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       return;
     }
     // Write image block to slot at valid offset
-    if (offset < CSMP_FWMGMT_SLOTIMG_SIZE &&
-       ((offset + g_imageBlock.blockdata.len) < CSMP_FWMGMT_SLOTIMG_SIZE)) {
+    if (offset < OSAL_CSMP_FWMGMT_SLOTIMG_SIZE &&
+       ((offset + g_imageBlock.blockdata.len) < OSAL_CSMP_FWMGMT_SLOTIMG_SIZE)) {
       DPRINTF("sample_firmwaremgmt: Valid image block %u write offset=%u\n",
              g_imageBlock.blocknum, offset);
       memcpy(&g_slothdr[UPLOAD_IMAGE].image[offset], g_imageBlock.blockdata.data,
@@ -836,17 +836,17 @@ void* loadRequest_get(tlvid_t tlvid, uint32_t *num) {
   switch (g_curloadslot) {
   case UPLOAD_IMAGE:
     memcpy(g_loadRequest.filehash.data, g_slothdr[UPLOAD_IMAGE].filehash,
-           SHA256_HASH_SIZE);
+           OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE);
   break;
   case BACKUP_IMAGE:
     memcpy(g_loadRequest.filehash.data, g_slothdr[BACKUP_IMAGE].filehash,
-           SHA256_HASH_SIZE);
+           OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE);
   break;
   default:
     DPRINTF("sample_firmwaremgmt: Current load slot invalid\n");
     return NULL;
   }
-  g_loadRequest.filehash.len = SHA256_HASH_SIZE;
+  g_loadRequest.filehash.len = OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE;
   g_loadRequest.loadtime = g_curloadtime;
 
   DPRINTF("## sample_firmwaremgmt: GET for TLV %d done.\n", tlvid.type);
@@ -1017,7 +1017,7 @@ void cancelLoadRequest_post(tlvid_t tlvid, Cancel_Load_Request *tlv) {
   }
 
   if ((filehash != NULL) &&
-    memcmp(tlv->filehash.data, filehash, SHA256_HASH_SIZE) == 0) {
+    memcmp(tlv->filehash.data, filehash, OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE) == 0) {
     DPRINTF("sample_firmwaremgmt: Cancel load request valid, cancelling current load request\n");
 
     // Cancel current load request
@@ -1117,7 +1117,7 @@ void* firmwareImageInfo_get(tlvid_t tlvid, uint32_t *num) {
 
   // Enumerate all active slots
   // Active slots: 0-RUN_IMAGE, 1-UPLOAD_IMAGE, 2-BACKUP_IMAGE
-  for (uint32_t idx = 0; idx < CSMP_FWMGMT_ACTIVE_SLOTS; idx++) {
+  for (uint32_t idx = 0; idx < OSAL_CSMP_FWMGMT_ACTIVE_SLOTS; idx++) {
       // Reset g_firmwareImageInfo[slotid] structure
       memset(&g_firmwareImageInfo[idx], 0, sizeof(g_firmwareImageInfo[idx]));
 
@@ -1136,11 +1136,11 @@ void* firmwareImageInfo_get(tlvid_t tlvid, uint32_t *num) {
       // Filename
       g_firmwareImageInfo[idx].has_filename = true;
       strncpy(g_firmwareImageInfo[idx].filename, g_slothdr[idx].filename,
-              FILE_NAME_SIZE);
+              OSAL_CSMP_SLOTHDR_FILE_NAME_SIZE);
       // Version
       g_firmwareImageInfo[idx].has_version = true;
       strncpy(g_firmwareImageInfo[idx].version, g_slothdr[idx].version,
-              VERSION_SIZE);
+              OSAL_CSMP_SLOTHDR_VERSION_SIZE);
       // Filesize
       g_firmwareImageInfo[idx].has_filesize = true;
       g_firmwareImageInfo[idx].filesize = g_slothdr[idx].filesize;
@@ -1155,8 +1155,8 @@ void* firmwareImageInfo_get(tlvid_t tlvid, uint32_t *num) {
         uint32_t i, j;
         uint32_t blkmapCnt = (g_slothdr[idx].blockcnt + 31) / 32;
 
-        if (blkmapCnt > CSMP_FWMGMT_BLKMAP_CNT) {
-          blkmapCnt = CSMP_FWMGMT_BLKMAP_CNT;
+        if (blkmapCnt > OSAL_CSMP_FWMGMT_BLKMAP_CNT) {
+          blkmapCnt = OSAL_CSMP_FWMGMT_BLKMAP_CNT;
         }
         g_firmwareImageInfo[idx].has_bitmap = true;
         for (i = 0, j = 0; (i < blkmapCnt) &&
@@ -1188,7 +1188,7 @@ void* firmwareImageInfo_get(tlvid_t tlvid, uint32_t *num) {
       // Hardware Id
       g_firmwareImageInfo[idx].has_hwinfo = true;
       g_firmwareImageInfo[idx].hwinfo.has_hwid = true;
-      strncpy(g_firmwareImageInfo[idx].hwinfo.hwid, g_slothdr[idx].hwid, HWID_SIZE);
+      strncpy(g_firmwareImageInfo[idx].hwinfo.hwid, g_slothdr[idx].hwid, OSAL_CSMP_SLOTHDR_HWID_SIZE);
       // Vendor Hardware Id
       g_firmwareImageInfo[idx].hwinfo.has_vendorhwid = false;
       // Kernel version

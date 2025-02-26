@@ -82,11 +82,11 @@ void osal_kernel_start(void)
   assert(storage_info.numStorageSlots >= 2);
   assert(bootloader_getStorageSlotInfo(__slotid2gblslotid(UPLOAD_IMAGE), 
                                        &slot_info) == BOOTLOADER_OK);
-  assert(slot_info.length >= CSMP_FWMGMT_SLOTIMG_SIZE);
+  assert(slot_info.length >= OSAL_CSMP_FWMGMT_SLOTIMG_SIZE);
 
   assert(bootloader_getStorageSlotInfo(__slotid2gblslotid(BACKUP_IMAGE), 
                                        &slot_info) == BOOTLOADER_OK);
-  assert(slot_info.length >= CSMP_FWMGMT_SLOTIMG_SIZE);
+  assert(slot_info.length >= OSAL_CSMP_FWMGMT_SLOTIMG_SIZE);
 
   sl_system_kernel_start();
 }
@@ -520,7 +520,7 @@ void print_csmp_slot_hdr(const osal_csmp_slothdr_t *slot_hdr)
   }
 
   printf("filehash: ");
-  for (int i = 0; i < SHA256_HASH_SIZE; i++) {
+  for (int i = 0; i < OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE; i++) {
     printf("%02x,", slot_hdr->filehash[i]);
   }
   printf("\n");
@@ -533,9 +533,9 @@ void print_csmp_slot_hdr(const osal_csmp_slothdr_t *slot_hdr)
   printf("reportintervalmax: %lu\n", slot_hdr->reportintervalmax);
   printf("status: 0x%08lx\n", slot_hdr->status);
   printf("nblkmap: ");
-  for (int i = 0; i < CSMP_FWMGMT_BLKMAP_CNT; i++) {
+  for (int i = 0; i < OSAL_CSMP_FWMGMT_BLKMAP_CNT; i++) {
     printf("%08lx%c", slot_hdr->nblkmap[i], 
-           ((i % 4) == 3 || i == (CSMP_FWMGMT_BLKMAP_CNT - 1)) ? '\n' : ',');
+           ((i % 4) == 3 || i == (OSAL_CSMP_FWMGMT_BLKMAP_CNT - 1)) ? '\n' : ',');
   }
   printf("\n");
 }
