@@ -899,14 +899,8 @@ void loadreq_timer_fired() {
   memcpy(&g_slothdr[RUN_IMAGE], &g_slothdr[g_curloadslot],
          sizeof(g_slothdr[RUN_IMAGE]));
   osal_write_firmware_slothdr(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
-#if defined(OSAL_EFR32_WISUN)
-  assert(osal_deploy_and_reboot_firmware(g_curloadslot, &g_slothdr[g_curloadslot]) == OSAL_SUCCESS);
-#else
-  g_curloadslot=0xFF;
-  g_curloadtime=0;
   osal_trickle_timer_stop(lrq_timer);
-  sample_app_reboot();
-#endif
+  assert(osal_deploy_and_reboot_firmware(g_curloadslot, &g_slothdr[g_curloadslot]) == OSAL_SUCCESS);
 }
 
 /**
