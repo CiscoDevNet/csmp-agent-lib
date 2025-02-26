@@ -567,7 +567,6 @@ void* transferRequest_get(tlvid_t tlvid, uint32_t *num) {
   g_transferRequest.report_int_min = g_slothdr[UPLOAD_IMAGE].reportintervalmin;
   g_transferRequest.report_int_max = g_slothdr[UPLOAD_IMAGE].reportintervalmax;
   g_transferRequest.status = g_slothdr[UPLOAD_IMAGE].status;
-  printf("[FW UPDATE] Transfer request GET (UPLOAD_IMAGE)\n");
 
   DPRINTF("## sample_firmwaremgmt: GET for TLV %ld done.\n", tlvid.type);
   return &g_transferRequest;
@@ -1067,8 +1066,6 @@ void cancelLoadRequest_post(tlvid_t tlvid, Cancel_Load_Request *tlv) {
     g_curloadslot = 0xFFU;
   }
 
-  printf("[FW UPDATE] Cancel load request POST %s\n", 
-         g_curloadslot == UPLOAD_IMAGE ? "UPLOAD_IMAGE" : "BACKUP_IMAGE");
   DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
 
@@ -1120,8 +1117,7 @@ void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv) {
   if (g_curbackupslot == RUN_IMAGE || g_curbackupslot == UPLOAD_IMAGE) {
     memset(&g_slothdr[BACKUP_IMAGE], 0xFF, sizeof(g_slothdr[BACKUP_IMAGE]));
   }
-  printf("[FW UPDATE] Set backup request POST %s\n", 
-         g_curbackupslot == UPLOAD_IMAGE ? "UPLOAD_IMAGE" : "RUN_IMAGE");
+
   // Copy target image to backup slot
   switch (g_curbackupslot) {
     case RUN_IMAGE:
@@ -1258,7 +1254,6 @@ void* firmwareImageInfo_get(tlvid_t tlvid, uint32_t *num) {
   }
 
   DPRINTF("## sample_firmwaremgmt: GET for TLV %ld done.\n", tlvid.type);
-  printf("[FW UPDATE] Firmware image info GET\n");
   return &g_firmwareImageInfo;
 }
 
