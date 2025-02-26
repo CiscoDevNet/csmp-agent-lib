@@ -681,7 +681,7 @@ int osal_copy_firmware(uint8_t source_slotid, uint8_t dest_slotid, Csmp_Slothdr 
   return OSAL_SUCCESS;
 }
 
-osal_basetype_t osal_read_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *slot) {
+osal_basetype_t osal_read_firmware_slothdr(osal_slotid_t slotid, osal_csmp_slothdr_t *slot) {
   FILE *file = NULL;
 
   if (slot == NULL) {
@@ -713,7 +713,7 @@ osal_basetype_t osal_read_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *sl
   return OSAL_SUCCESS;
 }
 
-osal_basetype_t osal_write_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *slot) {
+osal_basetype_t osal_write_firmware_slothdr(osal_slotid_t slotid, osal_csmp_slothdr_t *slot) {
   FILE *file = NULL;
   size_t bytes = 0;
 

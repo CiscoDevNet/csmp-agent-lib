@@ -841,7 +841,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       fclose(upload_slot);
       upload_slot = NULL;
       g_downloadbusy = false;
-      if (osal_write_firmware(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) < 0)
+      if (osal_write_firmware_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) < 0)
       return;
     }
     if(upload_slot == NULL){

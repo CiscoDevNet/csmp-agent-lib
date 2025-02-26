@@ -81,7 +81,7 @@ void sample_data_init() {
   if(ret<0){
   #if defined(OSAL_EFR32_WISUN)
     memset(&g_slothdr[UPLOAD_IMAGE], 0, sizeof(osal_csmp_slothdr_t));
-    osal_write_firmware(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]);
+    osal_write_firmware_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]);
   #endif
     DPRINTF("sample_data_init: Upload slot not found!\n");
   }
@@ -89,7 +89,7 @@ void sample_data_init() {
   if(ret<0){
   #if defined(OSAL_EFR32_WISUN)
     memset(&g_slothdr[BACKUP_IMAGE], 0, sizeof(osal_csmp_slothdr_t));
-    osal_write_firmware(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
+    osal_write_firmware_slothdr(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
   #endif
     DPRINTF("sample_data_init: Backup slot not found!\n");
   }
