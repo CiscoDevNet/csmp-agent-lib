@@ -1123,7 +1123,7 @@ void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv) {
     case RUN_IMAGE:
       DPRINTF("sample_firmwaremgmt: Backing-up run image to backup slot\n");
       if (osal_copy_firmware_slot(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE], 
-                                  UPLOAD_IMAGE, &g_slothdr[RUN_IMAGE]) != OSAL_SUCCESS) {
+                                  RUN_IMAGE, &g_slothdr[RUN_IMAGE]) != OSAL_SUCCESS) {
         DPRINTF("sample_firmwaremgmt: Failed to copy run image to backup slot\n");
         tlv->response = RESPONSE_INVALID_REQ;
         return;
