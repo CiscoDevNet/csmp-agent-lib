@@ -635,7 +635,7 @@ osal_basetype_t osal_write_storage(osal_slotid_t slotid,
   }
 
   ret = bootloader_writeStorage(__slotid2gblslotid(slotid), offset, data, len);
-  
+
   if (ret != BOOTLOADER_OK) {
     DPRINTF("write_storage: bootloader_writeStorage failed\n");
     return OSAL_FAILURE;
@@ -644,6 +644,22 @@ osal_basetype_t osal_write_storage(osal_slotid_t slotid,
   return OSAL_SUCCESS;
 }
 
+osal_basetype_t osal_erase_storaqe(osal_slotid_t slotid, osal_csmp_slothdr_t *slot)
+{
+  int32_t ret = 0l;
+
+  if (slot == NULL) { 
+    return OSAL_FAILURE;
+  }
+
+  ret = bootloader_eraseStorageSlot(__slotid2gblslotid(slotid));
+
+  if (ret != BOOTLOADER_OK) {
+    return OSAL_FAILURE;
+  }
+
+  return OSAL_SUCCESS;
+}
 
 osal_basetype_t osal_deploy_and_reboot_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *slot)
 {

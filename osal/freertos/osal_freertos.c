@@ -530,14 +530,21 @@ osal_basetype_t osal_write_storage(osal_slotid_t slotid,
   uint8_t *data, 
   uint32_t len)
 {
-(void) slotid;
-if (slot == NULL || data == NULL || !len) {
-return OSAL_FAILURE;
+  (void) slotid;
+  if (slot == NULL || data == NULL || !len) {
+  return OSAL_FAILURE;
+  }
+
+  (void) memcpy(&slot->image[offset], data, len);
+
+  return OSAL_SUCCESS;
 }
 
-(void) memcpy(&slot->image[offset], data, len);
-
-return OSAL_SUCCESS;
+osal_basetype_t osal_erase_storaqe(osal_slotid_t slotid, osal_csmp_slothdr_t *slot)
+{
+  (void) slotid;
+  (void) slot;
+  return OSAL_SUCCESS;
 }
 
 osal_basetype_t osal_deploy_and_reboot_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *slot)

@@ -739,6 +739,9 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
   // Initiliase new transfer - done
   g_initxfer = false;
 
+  DPRINTF("Erasing 'UPLOAD' storage slot...\n");
+  assert(osal_erase_storaqe(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) == OSAL_SUCCESS);
+
   DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
 }
 

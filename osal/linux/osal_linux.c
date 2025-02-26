@@ -775,6 +775,12 @@ osal_basetype_t osal_write_storage(osal_slotid_t slotid,
   return OSAL_SUCCESS;
 }
 
+osal_basetype_t osal_erase_storaqe(osal_slotid_t slotid, osal_csmp_slothdr_t *slot)
+{
+  (void) slotid;
+  (void) slot;
+  return OSAL_SUCCESS;
+}
 
 osal_basetype_t osal_deploy_and_reboot_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *slot)
 {

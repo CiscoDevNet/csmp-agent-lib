@@ -28,8 +28,6 @@
 #include "sl_wisun_app_core.h"
 #include "../../src/lib/debug.h"
 
-#include "btl_interface.h"
-
 #define nexthop_IP "fe80::a00:27ff:fe3b:2ab1"
 
 
@@ -687,8 +685,8 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
   // Initiliase new transfer - done
   g_initxfer = false;
   
-  DPRINTF("Erasing gecko bootloader 'UPLOAD' storage slot...\n");
-  assert(bootloader_eraseStorageSlot(GECKO_BTL_UPLOAD_SLOT_ID) == BOOTLOADER_OK);
+  DPRINTF("Erasing 'UPLOAD' storage slot...\n");
+  assert(osal_erase_storaqe(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) == OSAL_SUCCESS);
 
   DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
