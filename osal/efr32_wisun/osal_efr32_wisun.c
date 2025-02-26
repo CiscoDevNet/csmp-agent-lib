@@ -59,7 +59,7 @@ static bool m_timert_isrunning = false;
 static void osal_update_timer();
 static void osal_alarm_fired(TimerHandle_t xTimer);
 static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2);
-void print_csmp_slot_hdr(const osal_csmp_slothdr_t *slot_hdr);
+static void osal_print_csmp_slot_hdr(const osal_csmp_slothdr_t *slot_hdr);
 
 void osal_kernel_start(void)
 {
@@ -514,31 +514,31 @@ static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2)
 }
 
 
-void print_csmp_slot_hdr(const osal_csmp_slothdr_t *slot_hdr)
+static void osal_print_csmp_slot_hdr(const osal_csmp_slothdr_t *slot_hdr)
 {
   if (slot_hdr == NULL) {
     return;
   }
 
-  printf("filehash: ");
+  DPRINTF("filehash: ");
   for (int i = 0; i < OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE; i++) {
-    printf("%02x,", slot_hdr->filehash[i]);
+    DPRINTF("%02x,", slot_hdr->filehash[i]);
   }
-  printf("\n");
-  printf("filename: %s\n", slot_hdr->filename);
-  printf("version: %s\n", slot_hdr->version);
-  printf("hwid: %s\n", slot_hdr->hwid);
-  printf("filesize: %lu\n", slot_hdr->filesize);
-  printf("blocksize: %lu\n", slot_hdr->blocksize);
-  printf("reportintervalmin: %lu\n", slot_hdr->reportintervalmin);
-  printf("reportintervalmax: %lu\n", slot_hdr->reportintervalmax);
-  printf("status: 0x%08lx\n", slot_hdr->status);
-  printf("nblkmap: ");
+  DPRINTF("\n");
+  DPRINTF("filename: %s\n", slot_hdr->filename);
+  DPRINTF("version: %s\n", slot_hdr->version);
+  DPRINTF("hwid: %s\n", slot_hdr->hwid);
+  DPRINTF("filesize: %lu\n", slot_hdr->filesize);
+  DPRINTF("blocksize: %lu\n", slot_hdr->blocksize);
+  DPRINTF("reportintervalmin: %lu\n", slot_hdr->reportintervalmin);
+  DPRINTF("reportintervalmax: %lu\n", slot_hdr->reportintervalmax);
+  DPRINTF("status: 0x%08lx\n", slot_hdr->status);
+  DPRINTF("nblkmap: ");
   for (int i = 0; i < OSAL_CSMP_FWMGMT_BLKMAP_CNT; i++) {
-    printf("%08lx%c", slot_hdr->nblkmap[i], 
+    DPRINTF("%08lx%c", slot_hdr->nblkmap[i], 
            ((i % 4) == 3 || i == (OSAL_CSMP_FWMGMT_BLKMAP_CNT - 1)) ? '\n' : ',');
   }
-  printf("\n");
+  DPRINTF("\n");
 }
 
 osal_basetype_t osal_read_firmware_slothdr(uint8_t slotid, osal_csmp_slothdr_t *slot)
@@ -577,7 +577,7 @@ osal_basetype_t osal_read_firmware_slothdr(uint8_t slotid, osal_csmp_slothdr_t *
   }
   
   ret = nvm3_readData(nvm3_defaultHandle, nvm_key, slot, nvm_size);
-  print_csmp_slot_hdr(slot);
+  osal_print_csmp_slot_hdr(slot);
 
   if (ret != SL_STATUS_OK) {
     printf("nvm3_readData failed\n");
@@ -612,7 +612,7 @@ osal_basetype_t osal_write_firmware_slothdr(uint8_t slotid, osal_csmp_slothdr_t 
       printf("read_firmware: Invalid slot id\n");
       return OSAL_FAILURE;
   }
-  print_csmp_slot_hdr(slot);
+  osal_print_csmp_slot_hdr(slot);
 
   ret = nvm3_writeData(nvm3_defaultHandle, nvm_key, slot, sizeof(osal_csmp_slothdr_t));
   if (ret != SL_STATUS_OK) {
