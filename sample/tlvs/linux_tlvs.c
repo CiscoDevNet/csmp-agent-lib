@@ -929,6 +929,7 @@ void loadreq_timer_fired() {
          g_curloadslot, g_curloadtime);
   DPRINTF("loadreq_timer: Writing Run Slot to disk\n");
   osal_copy_firmware(g_curloadslot, RUN_IMAGE, g_slothdr);
+  assert(osal_deploy_and_reboot_firmware(g_curloadslot, &g_slothdr[g_curloadslot]) == OSAL_SUCCESS);
   g_curloadslot=0xFF;
   g_curloadtime=0;
   osal_trickle_timer_stop(lrq_timer);
