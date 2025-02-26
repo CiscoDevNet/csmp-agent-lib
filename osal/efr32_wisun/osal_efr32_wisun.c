@@ -667,10 +667,6 @@ osal_basetype_t osal_copy_firmware_slot(osal_slotid_t dst_slotid,
     return OSAL_FAILURE;
   }
 
-  // copy header
-  memcpy(dst_slot, src_slot, sizeof(osal_csmp_slothdr_t));
-  osal_write_firmware(dst_slotid, dst_slot);
-
 
   // copy slot image
   gecko_btl_dst_slot_id = __slotid2gblslotid(dst_slotid);
@@ -724,6 +720,13 @@ osal_basetype_t osal_copy_firmware_slot(osal_slotid_t dst_slotid,
   }
 
   osal_free(chunk);
+
+  // copy header
+  memcpy(dst_slot, src_slot, sizeof(osal_csmp_slothdr_t));
+  if (osal_write_firmware(dst_slotid, dst_slot) != OSAL_SUCCESS) {
+    DPRINTF("copy_firmware_slot: osal_write_firmware failed\n");
+    return OSAL_FAILURE;
+  }
 
   return OSAL_SUCCESS;
 }
