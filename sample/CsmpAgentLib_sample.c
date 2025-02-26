@@ -69,27 +69,27 @@ void sample_data_init() {
   g_init_time = tv.tv_sec;
 
 
-  ret = osal_read_firmware(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
+  ret = osal_read_firmware_slothdr(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
   if(ret < 0){
     memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(osal_csmp_slothdr_t));
 #if defined(OSAL_EFR32_WISUN)
-    osal_write_firmware(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
+    osal_write_firmware_slothdr(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
 #endif
     DPRINTF("sample_data_init: Run Slot not found, initialized to default values.\n");
   }
-  ret = osal_read_firmware(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]);
+  ret = osal_read_firmware_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]);
   if(ret<0){
   #if defined(OSAL_EFR32_WISUN)
     memset(&g_slothdr[UPLOAD_IMAGE], 0, sizeof(osal_csmp_slothdr_t));
-    osal_write_firmware(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]);
+    osal_write_firmware_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]);
   #endif
     DPRINTF("sample_data_init: Upload slot not found!\n");
   }
-  ret = osal_read_firmware(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
+  ret = osal_read_firmware_slothdr(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
   if(ret<0){
   #if defined(OSAL_EFR32_WISUN)
     memset(&g_slothdr[BACKUP_IMAGE], 0, sizeof(osal_csmp_slothdr_t));
-    osal_write_firmware(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
+    osal_write_firmware_slothdr(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
   #endif
     DPRINTF("sample_data_init: Backup slot not found!\n");
   }

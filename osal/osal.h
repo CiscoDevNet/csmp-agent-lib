@@ -579,9 +579,10 @@ void osal_free(void *ptr);
 void osal_sleep_ms(uint64_t ms);
 
 /****************************************************************************
- * @fn   osal_read_firmware
+ * @fn   osal_read_firmware_slothdr
  *
- * @brief read firmware image from storage(file/flash)
+ * @brief read firmware image slot header from storage(file/flash)
+ *        Linux implementation of slot header may includes the storage allocation.
  *
  * input parameters
  *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
@@ -590,12 +591,13 @@ void osal_sleep_ms(uint64_t ms);
  * output parameters
  * @return returns 0 on success and -1 on error
  *****************************************************************************/
-osal_basetype_t osal_read_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *slot);
+osal_basetype_t osal_read_firmware_slothdr(osal_slotid_t slotid, osal_csmp_slothdr_t *slot);
 
 /****************************************************************************
- * @fn   osal_write_firmware
+ * @fn   osal_write_firmware_slothdr
  *
- * @brief write firmware image to storage(file/flash)
+ * @brief write firmware image slot header to storage(file/flash)
+ *        Linux implementation of slot header may includes the storage allocation.
  *
  * input parameters
  *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
@@ -604,7 +606,7 @@ osal_basetype_t osal_read_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *sl
  * output parameters
  * @return returns 0 on success and -1 on error
  *****************************************************************************/
-osal_basetype_t osal_write_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *slot);
+osal_basetype_t osal_write_firmware_slothdr(osal_slotid_t slotid, osal_csmp_slothdr_t *slot);
 
 
 /****************************************************************************

@@ -540,7 +540,7 @@ void print_csmp_slot_hdr(const osal_csmp_slothdr_t *slot_hdr)
   printf("\n");
 }
 
-osal_basetype_t osal_read_firmware(uint8_t slotid, osal_csmp_slothdr_t *slot)
+osal_basetype_t osal_read_firmware_slothdr(uint8_t slotid, osal_csmp_slothdr_t *slot)
 {
   sl_status_t ret = SL_STATUS_FAIL;
   nvm3_ObjectKey_t nvm_key = 0UL;
@@ -586,7 +586,7 @@ osal_basetype_t osal_read_firmware(uint8_t slotid, osal_csmp_slothdr_t *slot)
   return OSAL_SUCCESS;
 }
 
-osal_basetype_t osal_write_firmware(uint8_t slotid, osal_csmp_slothdr_t *slot)
+osal_basetype_t osal_write_firmware_slothdr(uint8_t slotid, osal_csmp_slothdr_t *slot)
 {
   sl_status_t ret = SL_STATUS_OK;
   nvm3_ObjectKey_t nvm_key = 0UL;
@@ -723,8 +723,8 @@ osal_basetype_t osal_copy_firmware_slot(osal_slotid_t dst_slotid,
 
   // copy header
   memcpy(dst_slot, src_slot, sizeof(osal_csmp_slothdr_t));
-  if (osal_write_firmware(dst_slotid, dst_slot) != OSAL_SUCCESS) {
-    DPRINTF("copy_firmware_slot: osal_write_firmware failed\n");
+  if (osal_write_firmware_slothdr(dst_slotid, dst_slot) != OSAL_SUCCESS) {
+    DPRINTF("copy_firmware_slot: osal_write_firmware_slothdr failed\n");
     return OSAL_FAILURE;
   }
 

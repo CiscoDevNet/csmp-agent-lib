@@ -839,7 +839,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       DPRINTF("sample_firmwaremgmt: Image block transfer complete, filehash matched!\n");
       g_slothdr[UPLOAD_IMAGE].status = FWHDR_STATUS_COMPLETE;
       g_downloadbusy = false;
-      if (osal_write_firmware(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) < 0)
+      if (osal_write_firmware_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) < 0)
         DPRINTF("sample_firmwaremgmt: Failed to write upload image to file\n");
       else
         printf("sample_firmwaremgmt: Sucessfully wrote upload image to file\n");
@@ -919,7 +919,7 @@ void loadreq_timer_fired() {
   memcpy(&g_slothdr[RUN_IMAGE], &g_slothdr[g_curloadslot],
          sizeof(g_slothdr[RUN_IMAGE]));
   DPRINTF("loadreq_timer: Writing Run Slot to disk\n");
-  osal_write_firmware(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
+  osal_write_firmware_slothdr(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
   g_curloadslot=0xFF;
   g_curloadtime=0;
   osal_trickle_timer_stop(lrq_timer);
@@ -1156,7 +1156,7 @@ void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv) {
       tlv->response = RESPONSE_INVALID_REQ;
       return;
   }
-  osal_write_firmware(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
+  osal_write_firmware_slothdr(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
   g_curbackupslot = 0xFFU;
 
   DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);

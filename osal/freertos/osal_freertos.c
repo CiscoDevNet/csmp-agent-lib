@@ -446,7 +446,7 @@ static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2)
   osal_alarm_fired(NULL);
 }
 
-osal_basetype_t osal_read_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *slot) {
+osal_basetype_t osal_read_firmware_slothdr(osal_slotid_t slotid, osal_csmp_slothdr_t *slot) {
   FILE *file = NULL;
 
   if (slot == NULL) {
@@ -478,7 +478,7 @@ osal_basetype_t osal_read_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *sl
   return OSAL_SUCCESS;
 }
 
-osal_basetype_t osal_write_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *slot) {
+osal_basetype_t osal_write_firmware_slothdr(osal_slotid_t slotid, osal_csmp_slothdr_t *slot) {
   FILE *file = NULL;
   size_t bytes = 0;
 
