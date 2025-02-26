@@ -542,19 +542,19 @@ struct _Transfer_Request
   bool has_hwinfo;/* 'Y' */
   struct {
     bool has_hwid;
-    char hwid[HWID_SIZE];
+    char hwid[OSAL_CSMP_SLOTHDR_HWID_SIZE];
     bool has_vendorhwid;/* 'Y' */
-    char vendorhwid[HWID_SIZE];/* 'Y' */
+    char vendorhwid[OSAL_CSMP_SLOTHDR_HWID_SIZE];/* 'Y' */
   } hwinfo;/* 'Y' */
   bool has_filehash;/* 'Y' */
   struct {
     size_t len;
-    uint8_t data[SHA256_HASH_SIZE];
+    uint8_t data[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE];
   } filehash;/* 'Y' */
   bool has_filename;/* 'Y' */
-  char filename[FILE_NAME_SIZE];/* 'Y' */
+  char filename[OSAL_CSMP_SLOTHDR_FILE_NAME_SIZE];/* 'Y' */
   bool has_version;/* 'Y' */
-  char version[VERSION_SIZE];/* 'Y' */
+  char version[OSAL_CSMP_SLOTHDR_VERSION_SIZE];/* 'Y' */
   bool has_filesize;/* 'Y' */
   uint32_t filesize;/* 'Y' */
   bool has_blocksize;
@@ -578,7 +578,7 @@ struct _Image_Block
   bool has_filehash;/* Y */
   struct {
     size_t len;
-    uint8_t data[SHA256_HASH_SIZE];
+    uint8_t data[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE];
   } filehash;/* Y */
   bool retval;
   bool has_blocknum;/* Y */
@@ -586,7 +586,7 @@ struct _Image_Block
   bool has_blockdata;/* Y */
   struct {
     size_t len;
-    uint8_t data[BLOCK_SIZE];
+    uint8_t data[OSAL_CSMP_SLOTHDR_BLOCK_SIZE];
   } blockdata;/* Y */
 };
 #define IMAGE_BLOCK_INIT \
@@ -600,7 +600,7 @@ struct _Load_Request
   bool has_filehash;/* Y */
   struct {
     size_t len;
-    uint8_t data[SHA256_HASH_SIZE];
+    uint8_t data[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE];
   } filehash;/* 'Y' */
   bool has_loadtime;/* Y */
   uint32_t loadtime;/* Y */
@@ -618,7 +618,7 @@ struct _Cancel_Load_Request
   bool has_filehash;/* Y */
   struct {
     size_t len;
-    uint8_t data[SHA256_HASH_SIZE];
+    uint8_t data[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE];
   } filehash;/* 'Y' */
   bool has_loadtime;/* 'Y' */
   uint32_t loadtime;/* 'Y' */
@@ -636,7 +636,7 @@ struct _Set_Backup_Request
   bool has_filehash;/* 'Y' */
   struct {
     size_t len;
-    uint8_t data[SHA256_HASH_SIZE];
+    uint8_t data[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE];
   } filehash;/* 'Y' */
   bool has_loadtime;/* 'Y' */
   uint32_t loadtime;/* 'Y' */
@@ -655,12 +655,12 @@ struct _Firmware_Image_Info
   bool has_filehash;/* 'Y' */
   struct {
     size_t len;
-    uint8_t data[SHA256_HASH_SIZE];
+    uint8_t data[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE];
   } filehash;/* 'Y' */
   bool has_filename;/* 'Y' */
-  char filename[FILE_NAME_SIZE];/* 'Y' */
+  char filename[OSAL_CSMP_SLOTHDR_FILE_NAME_SIZE];/* 'Y' */
   bool has_version;/* 'Y' */
-  char version[VERSION_SIZE];/* 'Y' */
+  char version[OSAL_CSMP_SLOTHDR_VERSION_SIZE];/* 'Y' */
   bool has_filesize;/* 'Y' */
   uint32_t filesize;/* 'Y' */
   bool has_blocksize;
@@ -680,14 +680,14 @@ struct _Firmware_Image_Info
   bool has_hwinfo;/* 'Y' */
   struct {
     bool has_hwid;
-    char hwid[HWID_SIZE];
+    char hwid[OSAL_CSMP_SLOTHDR_HWID_SIZE];
     bool has_vendorhwid;/* 'Y' */
-    char vendorhwid[HWID_SIZE];/* 'Y' */
+    char vendorhwid[OSAL_CSMP_SLOTHDR_HWID_SIZE];/* 'Y' */
   } hwinfo;/* 'Y' */
   bool has_kernelversion;
-  char kernelversion[VERSION_SIZE];
+  char kernelversion[OSAL_CSMP_SLOTHDR_VERSION_SIZE];
   bool has_subkernelversion;
-  char subkernelversion[VERSION_SIZE];
+  char subkernelversion[OSAL_CSMP_SLOTHDR_VERSION_SIZE];
   bool has_loaderrorcode;
   uint32_t loaderrorcode;
   bool has_subloaderrorcode;
@@ -705,12 +705,12 @@ typedef struct {
   uint32_t app_rev_minor;
   uint32_t app_build;
   uint32_t app_len;  // Includes header, app and checksum
-  char app_name[FILE_NAME_SIZE];
+  char app_name[OSAL_CSMP_SLOTHDR_FILE_NAME_SIZE];
   char app_git_branch[32];
   char app_git_commit[8];
   uint32_t app_git_flag;
   char app_build_date[16];
-  char hwid[HWID_SIZE];
+  char hwid[OSAL_CSMP_SLOTHDR_HWID_SIZE];
 } _Apphdr;
 
 
