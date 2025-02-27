@@ -52,4 +52,7 @@ typedef int osal_sd_set_t;
 
 #define s6_addr address
 
+
+#define CSMP_IMAGE_HDR_SIZE 256
+
 #endif

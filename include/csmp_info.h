@@ -38,6 +38,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "iana_pen.h"
+#include "osal.h"
 
 /** maximum CSMP cert length */
 #define MAX_SIGNATURE_CERT_LENGTH 512
@@ -72,8 +73,6 @@ typedef struct _Cancel_Load_Request Cancel_Load_Request; /**< data related to TL
 typedef struct _Set_Backup_Request Set_Backup_Request;   /**< data related to TLV 70 */
 typedef struct _Firmware_Image_Info Firmware_Image_Info; /**< data related to TLV 75 */
 
-typedef struct _Csmp_Slothdr Csmp_Slothdr;               /**< firmware image slot */
-
 // CSMP OP RETURN CODES
 #define CSMP_OP_TLV_RD_EMPTY   0
 #define CSMP_OP_TLV_RD_ERROR  -1
@@ -97,34 +96,6 @@ enum {
   RESPONSE_DUP_XFER = 11,
   RESPONSE_MATCH_RUN_XFER = 12,
   RESPONSE_MATCH_BAK_XFER = 13
-};
-
-// SIZES
-#define SHA1_HASH_SIZE        20
-#define SHA256_HASH_SIZE      32
-#define FILE_NAME_SIZE        128
-#define VERSION_SIZE          32
-#define BITMAP_SIZE           32
-#define HWID_SIZE             32
-#define BLOCK_SIZE            1024
-
-// IMAGE SLOT INFO
-#define CSMP_FWMGMT_ACTIVE_SLOTS      3          // 0-RUN, 1-UPLOAD, 2-BACKUP
-#define CSMP_FWMGMT_SLOTIMG_SIZE      (30*1024)  // ~30 Kb
-#define CSMP_FWMGMT_BLKMAP_CNT        (32)
-
-// IMAGE SLOT ID
-enum {
-  RUN_IMAGE = 0,
-  UPLOAD_IMAGE = 1,
-  BACKUP_IMAGE = 2,
-  BL_IMAGE = 3,
-  LMAC_IMAGE = 4,
-  BBU_IMAGE = 5,
-  PHY_IMAGE = 6,
-  PATCH_IMAGE = 7,
-  THIRDPARTY_IMAGE = 8,
-  NUMSLOTS = 9
 };
 
 // FIRMWARE DOWNLOAD STATUS
@@ -571,19 +542,19 @@ struct _Transfer_Request
   bool has_hwinfo;/* 'Y' */
   struct {
     bool has_hwid;
-    char hwid[HWID_SIZE];
+    char hwid[OSAL_CSMP_SLOTHDR_HWID_SIZE];
     bool has_vendorhwid;/* 'Y' */
-    char vendorhwid[HWID_SIZE];/* 'Y' */
+    char vendorhwid[OSAL_CSMP_SLOTHDR_HWID_SIZE];/* 'Y' */
   } hwinfo;/* 'Y' */
   bool has_filehash;/* 'Y' */
   struct {
     size_t len;
-    uint8_t data[SHA256_HASH_SIZE];
+    uint8_t data[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE];
   } filehash;/* 'Y' */
   bool has_filename;/* 'Y' */
-  char filename[FILE_NAME_SIZE];/* 'Y' */
+  char filename[OSAL_CSMP_SLOTHDR_FILE_NAME_SIZE];/* 'Y' */
   bool has_version;/* 'Y' */
-  char version[VERSION_SIZE];/* 'Y' */
+  char version[OSAL_CSMP_SLOTHDR_VERSION_SIZE];/* 'Y' */
   bool has_filesize;/* 'Y' */
   uint32_t filesize;/* 'Y' */
   bool has_blocksize;
@@ -607,7 +578,7 @@ struct _Image_Block
   bool has_filehash;/* Y */
   struct {
     size_t len;
-    uint8_t data[SHA256_HASH_SIZE];
+    uint8_t data[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE];
   } filehash;/* Y */
   bool retval;
   bool has_blocknum;/* Y */
@@ -615,7 +586,7 @@ struct _Image_Block
   bool has_blockdata;/* Y */
   struct {
     size_t len;
-    uint8_t data[BLOCK_SIZE];
+    uint8_t data[OSAL_CSMP_SLOTHDR_BLOCK_SIZE];
   } blockdata;/* Y */
 };
 #define IMAGE_BLOCK_INIT \
@@ -629,7 +600,7 @@ struct _Load_Request
   bool has_filehash;/* Y */
   struct {
     size_t len;
-    uint8_t data[SHA256_HASH_SIZE];
+    uint8_t data[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE];
   } filehash;/* 'Y' */
   bool has_loadtime;/* Y */
   uint32_t loadtime;/* Y */
@@ -647,7 +618,7 @@ struct _Cancel_Load_Request
   bool has_filehash;/* Y */
   struct {
     size_t len;
-    uint8_t data[SHA256_HASH_SIZE];
+    uint8_t data[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE];
   } filehash;/* 'Y' */
   bool has_loadtime;/* 'Y' */
   uint32_t loadtime;/* 'Y' */
@@ -665,7 +636,7 @@ struct _Set_Backup_Request
   bool has_filehash;/* 'Y' */
   struct {
     size_t len;
-    uint8_t data[SHA256_HASH_SIZE];
+    uint8_t data[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE];
   } filehash;/* 'Y' */
   bool has_loadtime;/* 'Y' */
   uint32_t loadtime;/* 'Y' */
@@ -684,12 +655,12 @@ struct _Firmware_Image_Info
   bool has_filehash;/* 'Y' */
   struct {
     size_t len;
-    uint8_t data[SHA256_HASH_SIZE];
+    uint8_t data[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE];
   } filehash;/* 'Y' */
   bool has_filename;/* 'Y' */
-  char filename[FILE_NAME_SIZE];/* 'Y' */
+  char filename[OSAL_CSMP_SLOTHDR_FILE_NAME_SIZE];/* 'Y' */
   bool has_version;/* 'Y' */
-  char version[VERSION_SIZE];/* 'Y' */
+  char version[OSAL_CSMP_SLOTHDR_VERSION_SIZE];/* 'Y' */
   bool has_filesize;/* 'Y' */
   uint32_t filesize;/* 'Y' */
   bool has_blocksize;
@@ -709,14 +680,14 @@ struct _Firmware_Image_Info
   bool has_hwinfo;/* 'Y' */
   struct {
     bool has_hwid;
-    char hwid[HWID_SIZE];
+    char hwid[OSAL_CSMP_SLOTHDR_HWID_SIZE];
     bool has_vendorhwid;/* 'Y' */
-    char vendorhwid[HWID_SIZE];/* 'Y' */
+    char vendorhwid[OSAL_CSMP_SLOTHDR_HWID_SIZE];/* 'Y' */
   } hwinfo;/* 'Y' */
   bool has_kernelversion;
-  char kernelversion[VERSION_SIZE];
+  char kernelversion[OSAL_CSMP_SLOTHDR_VERSION_SIZE];
   bool has_subkernelversion;
-  char subkernelversion[VERSION_SIZE];
+  char subkernelversion[OSAL_CSMP_SLOTHDR_VERSION_SIZE];
   bool has_loaderrorcode;
   uint32_t loaderrorcode;
   bool has_subloaderrorcode;
@@ -734,34 +705,14 @@ typedef struct {
   uint32_t app_rev_minor;
   uint32_t app_build;
   uint32_t app_len;  // Includes header, app and checksum
-  char app_name[FILE_NAME_SIZE];
+  char app_name[OSAL_CSMP_SLOTHDR_FILE_NAME_SIZE];
   char app_git_branch[32];
   char app_git_commit[8];
   uint32_t app_git_flag;
   char app_build_date[16];
-  char hwid[HWID_SIZE];
+  char hwid[OSAL_CSMP_SLOTHDR_HWID_SIZE];
 } _Apphdr;
 
-// Image slot header
-struct _Csmp_Slothdr
-{
-  uint8_t filehash[SHA256_HASH_SIZE];
-  char filename[FILE_NAME_SIZE];
-  char version[VERSION_SIZE];
-  char hwid[HWID_SIZE];
-  uint32_t filesize;
-  uint32_t filesizelastblk;
-  uint32_t blockcnt;
-  uint32_t blocksize;
-  uint32_t reportintervalmin;
-  uint32_t reportintervalmax;
-  uint32_t status; // Boolean zero if image is complete
-  uint32_t nblkmap[CSMP_FWMGMT_BLKMAP_CNT]; // Inverted block completion map
-  uint32_t magicU;
-  uint32_t magicL;
-  // Image
-  uint8_t image[CSMP_FWMGMT_SLOTIMG_SIZE];
-};
 
 #define APPHDR_INIT \
 {0, 0, 0, 0, 0, 0, {0}, {0}, {0}, 0, {0}, {0}}

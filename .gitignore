@@ -1,5 +1,6 @@
 build/
 sample/CsmpAgentLib_sample
+sample/CsmpAgentLib_sample.bin
 efr32_wisun/build/
 *.o
 *.a

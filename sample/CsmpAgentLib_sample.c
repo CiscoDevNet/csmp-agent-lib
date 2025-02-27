@@ -26,6 +26,7 @@
 #include "csmp_service.h"
 #include "csmp_info.h"
 #include "signature_verify.h"
+#include "../src/lib/debug.h"
 
 #if defined(OSAL_EFR32_WISUN)
 #include "sl_system_init.h"
@@ -39,9 +40,15 @@ typedef struct thread_argument {
 } thread_argument_t;
 
 /* \brief CSMP running slot hdr info used by FND via TLV75 to identify running fw on the node*/
-Csmp_Slothdr default_run_slot_image = {{0x61,0xe7,0xe1,0x76,0xe2,0xfb,0xcc,0x3e,0x1c,0xc8,0x5b,0xb1,0xf4,\
+
+osal_csmp_slothdr_t default_run_slot_image = {{0x61,0xe7,0xe1,0x76,0xe2,0xfb,0xcc,0x3e,0x1c,0xc8,0x5b,0xb1,0xf4,\
   0x99,0xa4,0x02,0x6d,0x28,0xcf,0x1d,0x66,0x16,0x76,0x91,0x91,0x3f,0xd9,0x80,0x5b,0xe5,0x5b,0xa1},\
-"opencsmp-node-6.6.99","6.6.99", "OPENCSMP", 27904, 0, 0, 0, 0, 0, 0, {0},0, 0, {0}};
+"opencsmp-node-6.6.99","6.6.99", "OPENCSMP", 27904, 0, 0, 0, 0, 0, 0, {0},0, 0
+#if !defined(OSAL_EFR32_WISUN)
+, {0}
+#endif
+};
+
 /**
  * @brief Character to hex conversion
  * @return int8_t hex value
@@ -58,27 +65,36 @@ void sample_data_init() {
   int idx=0, ret=0;
   struct timeval tv = {0};
   DPRINTF("sample_data_init: Initialize sample data\n");
-  gettimeofday(&tv, NULL);
+  osal_gettime(&tv, NULL);
   g_init_time = tv.tv_sec;
-  #ifdef OSAL_LINUX
-    ret=read_fw_img(RUN_IMAGE);
-    if(ret < 0){
-      memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
-      DPRINTF("sample_data_init: Run Slot not found default values will be used\n");
-    }
-    ret=read_fw_img(UPLOAD_IMAGE);
-    if(ret<0){
-      DPRINTF("sample_data_init: Upload slot not found!\n");
-    }
-    ret=read_fw_img(BACKUP_IMAGE);
-    if(ret<0){
-      DPRINTF("sample_data_init: Backup slot not found!\n");
-    }
-  #else // Platforms other than linux cuurenlty do not support image read/write to disk function,
-        // run-slot will be initialized with default values during boot-up
-      if(!g_reboot_request)
-        memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
+
+
+  ret = osal_read_firmware_slothdr(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
+  if(ret < 0){
+    memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(osal_csmp_slothdr_t));
+#if defined(OSAL_EFR32_WISUN)
+    osal_write_firmware_slothdr(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
+#endif
+    DPRINTF("sample_data_init: Run Slot not found, initialized to default values.\n");
+  }
+  ret = osal_read_firmware_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]);
+  if(ret<0){
+  #if defined(OSAL_EFR32_WISUN)
+    memset(&g_slothdr[UPLOAD_IMAGE], 0, sizeof(osal_csmp_slothdr_t));
+    osal_write_firmware_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]);
   #endif
+    DPRINTF("sample_data_init: Upload slot not found!\n");
+  }
+  ret = osal_read_firmware_slothdr(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
+  if(ret<0){
+  #if defined(OSAL_EFR32_WISUN)
+    memset(&g_slothdr[BACKUP_IMAGE], 0, sizeof(osal_csmp_slothdr_t));
+    osal_write_firmware_slothdr(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
+  #endif
+    DPRINTF("sample_data_init: Backup slot not found!\n");
+  }
+
+
   // Init sample Vendor Tlv data
   for (idx = 0; idx < VENDOR_MAX_SUBTYPES; idx++) {
     g_vendorTlv[idx].has_subtype = true;
@@ -413,7 +429,7 @@ static void csmp_sample_app_thr_fnc(void *arg)
   // Initialize sample data: Sample app variables to be initialized
   // with default/sample data will be done here
   sample_data_init();
-
+  
   // start csmp agent lib service
   ret = csmp_service_start(&g_devconfig, &g_csmp_handle);
   if(ret < 0)

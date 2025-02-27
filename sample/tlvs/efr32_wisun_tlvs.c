@@ -26,8 +26,10 @@
 #include "signature_verify.h"
 #include "osal.h"
 #include "sl_wisun_app_core.h"
+#include "../../src/lib/debug.h"
 
 #define nexthop_IP "fe80::a00:27ff:fe3b:2ab1"
+
 
 /** \brief the hardware information */
 Hardware_Desc g_hardwareDesc = HARDWARE_DESC_INIT;
@@ -75,7 +77,7 @@ Cancel_Load_Request g_cancelLoadRequest = CANCEL_LOAD_REQUEST_INIT;
 Set_Backup_Request setBackupRequest = SET_BACKUP_REQUEST_INIT;
 
 /** \brief the firmware info data */
-Firmware_Image_Info g_firmwareImageInfo[CSMP_FWMGMT_ACTIVE_SLOTS] = {FIRMWARE_IMAGE_INFO_INIT};
+Firmware_Image_Info g_firmwareImageInfo[OSAL_CSMP_FWMGMT_ACTIVE_SLOTS] = {FIRMWARE_IMAGE_INFO_INIT};
 
 /** \brief the signature settings data */
 Signature_Settings g_SignatureSettings = SIGNATURE_SETTINGS_INIT;
@@ -107,7 +109,7 @@ uint32_t g_curloadslot    = 0xFFU;  // Track current load slot
 uint32_t g_curbackupslot  = 0xFFU;  // Track current backup slot
 
 // Firmware image slots (Slot-id: 0-RUN, 1-UPLOAD, 2-BACKUP)
-Csmp_Slothdr g_slothdr[CSMP_FWMGMT_ACTIVE_SLOTS] = {0};
+osal_csmp_slothdr_t g_slothdr[OSAL_CSMP_FWMGMT_ACTIVE_SLOTS] = {0};
 
 /* public key */
 //new key
@@ -546,27 +548,27 @@ void* rplinstance_get(uint32_t *num) {
 void* transferRequest_get(tlvid_t tlvid, uint32_t *num) {
   (void)tlvid;
   (void)num;
-  DPRINTF("## sample_firmwaremgmt: GET for TLV %d.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: GET for TLV %ld.\n", tlvid.type);
 
   // Check upload slot download status
   if (g_slothdr[UPLOAD_IMAGE].status != FWHDR_STATUS_DOWNLOAD) {
     g_transferRequest.status = g_slothdr[UPLOAD_IMAGE].status;
-    DPRINTF("sample_firmwaremgmt: Transfer request download status = %u\n",
+    DPRINTF("sample_firmwaremgmt: Transfer request download status = %lu\n",
            g_transferRequest.status);
     return &g_transferRequest;
   }
   // Udpate g_transferRequest fields
-  memcpy(g_transferRequest.filehash.data, g_slothdr[UPLOAD_IMAGE].filehash, SHA256_HASH_SIZE);
-  strncpy(g_transferRequest.filename, g_slothdr[UPLOAD_IMAGE].filename, FILE_NAME_SIZE);
-  strncpy(g_transferRequest.version, g_slothdr[UPLOAD_IMAGE].version, VERSION_SIZE);
-  strncpy(g_transferRequest.hwinfo.hwid, g_slothdr[UPLOAD_IMAGE].hwid, HWID_SIZE);
+  memcpy(g_transferRequest.filehash.data, g_slothdr[UPLOAD_IMAGE].filehash, OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE);
+  strncpy(g_transferRequest.filename, g_slothdr[UPLOAD_IMAGE].filename, OSAL_CSMP_SLOTHDR_FILE_NAME_SIZE);
+  strncpy(g_transferRequest.version, g_slothdr[UPLOAD_IMAGE].version, OSAL_CSMP_SLOTHDR_VERSION_SIZE);
+  strncpy(g_transferRequest.hwinfo.hwid, g_slothdr[UPLOAD_IMAGE].hwid, OSAL_CSMP_SLOTHDR_HWID_SIZE);
   g_transferRequest.filesize = g_slothdr[UPLOAD_IMAGE].filesize;
   g_transferRequest.blocksize = g_slothdr[UPLOAD_IMAGE].blocksize;
   g_transferRequest.report_int_min = g_slothdr[UPLOAD_IMAGE].reportintervalmin;
   g_transferRequest.report_int_max = g_slothdr[UPLOAD_IMAGE].reportintervalmax;
   g_transferRequest.status = g_slothdr[UPLOAD_IMAGE].status;
 
-  DPRINTF("## sample_firmwaremgmt: GET for TLV %d done.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: GET for TLV %ld done.\n", tlvid.type);
   return &g_transferRequest;
 }
 
@@ -579,7 +581,7 @@ void* transferRequest_get(tlvid_t tlvid, uint32_t *num) {
  */
 void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
   (void)tlvid;
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld.\n", tlvid.type);
 
   if (!tlv) {
     DPRINTF("sample_firmwaremgmt: Transfer request tlv context is NULL\n");
@@ -596,25 +598,25 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
     return;
   }
   // Check filehash len
-  if (tlv->filehash.len != SHA256_HASH_SIZE) {
+  if (tlv->filehash.len != OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE) {
     tlv->response = RESPONSE_INVALID_REQ;
-    DPRINTF("sample_firmwaremgmt: Invalid filehash size: %lu\n", tlv->filehash.len);
+    DPRINTF("sample_firmwaremgmt: Invalid filehash size: %u\n", tlv->filehash.len);
     return;
   }
   // Check filesize
   if (tlv->filesize == 0 ||
-      tlv->filesize > CSMP_FWMGMT_SLOTIMG_SIZE) {
+      tlv->filesize > OSAL_CSMP_FWMGMT_SLOTIMG_SIZE) {
     tlv->response = RESPONSE_FILE_SIZE_TOO_BIG;
-        DPRINTF("sample_firmwaremgmt: Invalid file size: %u\n", tlv->filesize);
+        DPRINTF("sample_firmwaremgmt: Invalid file size: %lu\n", tlv->filesize);
     return;
   }
   // blocksize should be smaller than csmp's MTU (1024)
   // blocksize should be larger than filesize/1024 since there is only 1024 bitmaps
   if (tlv->blocksize == 0 ||
-      tlv->blocksize > BLOCK_SIZE ||
-      tlv->blocksize < tlv->filesize/(CSMP_FWMGMT_BLKMAP_CNT * 32)) {
+      tlv->blocksize > OSAL_CSMP_SLOTHDR_BLOCK_SIZE ||
+      tlv->blocksize < tlv->filesize/(OSAL_CSMP_FWMGMT_BLKMAP_CNT * 32)) {
     tlv->response = RESPONSE_INVALID_BLOCK_SIZE;
-    DPRINTF("sample_firmwaremgmt: Invalid block size: %u\n", tlv->blocksize);
+    DPRINTF("sample_firmwaremgmt: Invalid block size: %lu\n", tlv->blocksize);
     return;
   }
   // Check pending reboot
@@ -659,7 +661,7 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
   memset(&g_slothdr[UPLOAD_IMAGE], 0xFF, sizeof(g_slothdr[UPLOAD_IMAGE]));
 
   // Init upload slot from tlv context
-  memcpy(g_slothdr[UPLOAD_IMAGE].filehash, tlv->filehash.data, SHA256_HASH_SIZE);
+  memcpy(g_slothdr[UPLOAD_IMAGE].filehash, tlv->filehash.data, OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE);
   strncpy(g_slothdr[UPLOAD_IMAGE].filename, tlv->filename, sizeof(g_slothdr[UPLOAD_IMAGE].filename));
   strncpy(g_slothdr[UPLOAD_IMAGE].version, tlv->version, sizeof(g_slothdr[UPLOAD_IMAGE].version));
   strncpy(g_slothdr[UPLOAD_IMAGE].hwid, tlv->hwinfo.hwid, sizeof(g_slothdr[UPLOAD_IMAGE].hwid));
@@ -681,8 +683,11 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
 
   // Initiliase new transfer - done
   g_initxfer = false;
+  
+  DPRINTF("Erasing 'UPLOAD' storage slot...\n");
+  assert(osal_erase_storaqe(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) == OSAL_SUCCESS);
 
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
 
 /**
@@ -694,7 +699,7 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
  */
 void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
   (void)tlvid;
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld.\n", tlvid.type);
 
   if (!tlv) {
     DPRINTF("sample_firmwaremgmt: Image block tlv context is NULL\n");
@@ -720,29 +725,29 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
     uint32_t bit = 31 - (g_imageBlock.blocknum & 31);
     uint32_t mapval = 0xFFFFFFFFUL;
     uint32_t offset = g_imageBlock.blocknum * g_slothdr[UPLOAD_IMAGE].blocksize;
-    DPRINTF("sample_firmwaremgmt: Image block blocknum=%u offset=%u [word=%x bit=%x]\n",
+    DPRINTF("sample_firmwaremgmt: Image block blocknum=%lu offset=%lu [word=%lx bit=%lx]\n",
            g_imageBlock.blocknum, offset, word, bit);
 
     // Check Transfer Request intialised
     if (g_initxfer) {
-      DPRINTF("sample_firmwaremgmt: Transfer still initializing... (Image block %u)\n",
+      DPRINTF("sample_firmwaremgmt: Transfer still initializing... (Image block %lu)\n",
              g_imageBlock.blocknum);
       g_downloadbusy = false;
       return;
     }
     // Check blocknum exceeds bitmap
-    if (word >= CSMP_FWMGMT_BLKMAP_CNT) {
-      DPRINTF("sample_firmwaremgmt: Image block %u exceeds bitmap length\n",
+    if (word >= OSAL_CSMP_FWMGMT_BLKMAP_CNT) {
+      DPRINTF("sample_firmwaremgmt: Image block %lu exceeds bitmap length\n",
              g_imageBlock.blocknum);
       g_downloadbusy = false;
       return;
     }
 
     mapval = g_slothdr[UPLOAD_IMAGE].nblkmap[word];
-    DPRINTF("sample_firmwaremgmt: Image block mapval=0x%x\n", mapval);
+    DPRINTF("sample_firmwaremgmt: Image block mapval=0x%lx\n", mapval);
 
     if ((mapval & (1 << bit)) == 0) {
-      DPRINTF("sample_firmwaremgmt: Image block %u already written\n",
+      DPRINTF("sample_firmwaremgmt: Image block %lu already written\n",
              g_imageBlock.blocknum);
       // Check for transfer completion
       if(g_slothdr[UPLOAD_IMAGE].status == FWHDR_STATUS_COMPLETE)
@@ -757,7 +762,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       uint32_t last_mapval;
 
       blk_whole_cnt = g_slothdr[UPLOAD_IMAGE].blockcnt & ~0x1F;
-      while ((blk_i < (CSMP_FWMGMT_BLKMAP_CNT - 1)) &&
+      while ((blk_i < (OSAL_CSMP_FWMGMT_BLKMAP_CNT - 1)) &&
             (blk_j < blk_whole_cnt)) {
         if (g_slothdr[UPLOAD_IMAGE].nblkmap[blk_i] != 0) {
           DPRINTF("sample_firmwaremgmt: Image block transfer still not complete\n");
@@ -782,7 +787,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       DPRINTF("sample_firmwaremgmt: Image block transfer complete, filehash matched!\n");
       g_slothdr[UPLOAD_IMAGE].status = FWHDR_STATUS_COMPLETE;
       g_downloadbusy = false;
-      if (write_fw_img(UPLOAD_IMAGE) < 0)
+      if (osal_write_firmware_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) < 0)
         DPRINTF("sample_firmwaremgmt: Failed to write upload image to file\n");
       else
         printf("sample_firmwaremgmt: Sucessfully wrote upload image to file\n");
@@ -790,22 +795,50 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       return;
     }
     // Write image block to slot at valid offset
-    if (offset < CSMP_FWMGMT_SLOTIMG_SIZE &&
-       ((offset + g_imageBlock.blockdata.len) < CSMP_FWMGMT_SLOTIMG_SIZE)) {
-      DPRINTF("sample_firmwaremgmt: Valid image block %u write offset=%u\n",
-             g_imageBlock.blocknum, offset);
-      memcpy(&g_slothdr[UPLOAD_IMAGE].image[offset], g_imageBlock.blockdata.data,
-                   g_imageBlock.blockdata.len);
+    if (offset < OSAL_CSMP_FWMGMT_SLOTIMG_SIZE &&
+      ((offset + g_imageBlock.blockdata.len) < OSAL_CSMP_FWMGMT_SLOTIMG_SIZE)) {
+        DPRINTF("sample_firmwaremgmt: Valid image block %lu write offset=%lu\n",
+          g_imageBlock.blocknum, offset);
+          
+      osal_basetype_t ret = OSAL_FAILURE;
+      uint32_t gecko_btl_slot_offset = offset;
+      uint32_t gecko_btl_chunk_size = g_imageBlock.blockdata.len;
+      uint8_t *gecko_btl_data_ptr = g_imageBlock.blockdata.data;
+
+      // First chunk includes the slot header information
+      if (!g_imageBlock.blocknum) {
+        gecko_btl_slot_offset = 0;
+        assert(g_imageBlock.blockdata.len > CSMP_IMAGE_HDR_SIZE);
+        gecko_btl_chunk_size = g_imageBlock.blockdata.len - CSMP_IMAGE_HDR_SIZE;
+        gecko_btl_data_ptr += CSMP_IMAGE_HDR_SIZE;
+
+      } else {
+        gecko_btl_slot_offset = offset - CSMP_IMAGE_HDR_SIZE;
+        gecko_btl_chunk_size = g_imageBlock.blockdata.len;
+        gecko_btl_data_ptr = g_imageBlock.blockdata.data;
+        
+      }
+
+      ret = osal_write_storage(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE], 
+                               gecko_btl_slot_offset, gecko_btl_data_ptr, gecko_btl_chunk_size);
+      
+      if (ret != OSAL_SUCCESS) {
+        DPRINTF("sample_firmwaremgmt: Failed to write image block %lu to slot\n",
+                g_imageBlock.blocknum);
+        tlv->retval = false;
+        g_downloadbusy = false;
+        return;
+      }
 
       mapval ^= (1 << bit);
       g_slothdr[UPLOAD_IMAGE].nblkmap[word] = mapval;
 
-      DPRINTF("sample_firmwaremgmt: Write image block %u (len=%lu offset=%u) \
-             success! [mapval=0x%x word=0x%x bit=0x%x]\n",
+      DPRINTF("sample_firmwaremgmt: Write image block %lu (len=%u offset=%lu) \
+             success! [mapval=0x%lx word=0x%lx bit=0x%lx]\n",
              g_imageBlock.blocknum, g_imageBlock.blockdata.len, offset, mapval, word, bit);
     } else {
       // Invalid write offset
-      DPRINTF("sample_firmwaremgmt: Invalid image block %u write offset=%u\n",
+      DPRINTF("sample_firmwaremgmt: Invalid image block %lu write offset=%lu\n",
              g_imageBlock.blocknum, offset);
     }
   } else {
@@ -814,7 +847,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
   }
 
   g_downloadbusy = false;
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
 
 /**
@@ -827,7 +860,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
 void* loadRequest_get(tlvid_t tlvid, uint32_t *num) {
   (void)tlvid;
   (void)num;
-  DPRINTF("## sample_firmwaremgmt: GET for TLV %d.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: GET for TLV %ld.\n", tlvid.type);
 
   // Check for pending active load requests
   if (!g_initload) {
@@ -839,20 +872,20 @@ void* loadRequest_get(tlvid_t tlvid, uint32_t *num) {
   switch (g_curloadslot) {
   case UPLOAD_IMAGE:
     memcpy(g_loadRequest.filehash.data, g_slothdr[UPLOAD_IMAGE].filehash,
-           SHA256_HASH_SIZE);
+           OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE);
   break;
   case BACKUP_IMAGE:
     memcpy(g_loadRequest.filehash.data, g_slothdr[BACKUP_IMAGE].filehash,
-           SHA256_HASH_SIZE);
+           OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE);
   break;
   default:
     DPRINTF("sample_firmwaremgmt: Current load slot invalid\n");
     return NULL;
   }
-  g_loadRequest.filehash.len = SHA256_HASH_SIZE;
+  g_loadRequest.filehash.len = OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE;
   g_loadRequest.loadtime = g_curloadtime;
 
-  DPRINTF("## sample_firmwaremgmt: GET for TLV %d done.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: GET for TLV %ld done.\n", tlvid.type);
   return &g_loadRequest;
 }
 
@@ -860,17 +893,14 @@ void* loadRequest_get(tlvid_t tlvid, uint32_t *num) {
  * @brief   LOAD REQUEST TIMER HANDLER
  */
 void loadreq_timer_fired() {
-  bool ret = false;
-  struct timeval tv = {0};
-  DPRINTF("loadreq_timer_fired: Load request timer fired for slot=%d with delay=%u\n",
+  DPRINTF("loadreq_timer_fired: Load request timer fired for slot=%ld with delay=%lu\n",
          g_curloadslot, g_curloadtime);
 
   memcpy(&g_slothdr[RUN_IMAGE], &g_slothdr[g_curloadslot],
          sizeof(g_slothdr[RUN_IMAGE]));
-  g_curloadslot=0xFF;
-  g_curloadtime=0;
+  osal_write_firmware_slothdr(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
   osal_trickle_timer_stop(lrq_timer);
-  sample_app_reboot();
+  assert(osal_deploy_and_reboot_firmware(g_curloadslot, &g_slothdr[g_curloadslot]) == OSAL_SUCCESS);
 }
 
 /**
@@ -884,7 +914,7 @@ void loadRequest_post(tlvid_t tlvid, Load_Request *tlv) {
   (void)tlvid;
   uint32_t newloadslot;
   uint32_t delay = MIN_LOAD_DELAY; // 1 sec
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld.\n", tlvid.type);
 
   if (!tlv) {
     DPRINTF("sample_firmwaremgmt: Load request tlv context is NULL\n");
@@ -949,7 +979,7 @@ void loadRequest_post(tlvid_t tlvid, Load_Request *tlv) {
   if (g_loadRequest.loadtime != 0) {
     // Get current time to calculate timer delay for load request
     struct timeval tv;
-    gettimeofday(&tv, NULL);
+    osal_gettime(&tv, NULL);
 
     if (g_loadRequest.loadtime > tv.tv_sec) {
       delay = (g_loadRequest.loadtime - tv.tv_sec);
@@ -970,10 +1000,9 @@ void loadRequest_post(tlvid_t tlvid, Load_Request *tlv) {
   g_curloadtime = g_loadRequest.loadtime;
   osal_trickle_timer_start(lrq_timer, delay, delay,
                       (trickle_timer_fired_t)loadreq_timer_fired);
-  DPRINTF("sample_firmwaremgmt: Load request timer started for slot=%d with delay=%u at epoch time =%u s\n",
+  DPRINTF("sample_firmwaremgmt: Load request timer started for slot=%ld with delay=%lu at epoch time =%lu s\n",
          g_curloadslot, delay, g_curloadtime);
-
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
 
 /**
@@ -986,7 +1015,7 @@ void loadRequest_post(tlvid_t tlvid, Load_Request *tlv) {
 void cancelLoadRequest_post(tlvid_t tlvid, Cancel_Load_Request *tlv) {
   (void)tlvid;
   const uint8_t *filehash = NULL;
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld.\n", tlvid.type);
   if (!tlv) {
     DPRINTF("sample_firmwaremgmt: Cancel load request tlv context is NULL\n");
     return;
@@ -994,22 +1023,22 @@ void cancelLoadRequest_post(tlvid_t tlvid, Cancel_Load_Request *tlv) {
 
   switch (g_curloadslot) {
     case RUN_IMAGE:
-    DPRINTF("sample_firmwaremgmt: Received cancel load request for RUN_IMAGE (%u)\n",
+    DPRINTF("sample_firmwaremgmt: Received cancel load request for RUN_IMAGE (%lu)\n",
            g_curloadslot);
     filehash = g_slothdr[RUN_IMAGE].filehash;
     break;
     case UPLOAD_IMAGE:
-    DPRINTF("sample_firmwaremgmt: Received cancel load request for UPLOAD_IMAGE (%u)\n",
+    DPRINTF("sample_firmwaremgmt: Received cancel load request for UPLOAD_IMAGE (%lu)\n",
            g_curloadslot);
     filehash = g_slothdr[UPLOAD_IMAGE].filehash;
     break;
     case BACKUP_IMAGE:
-    DPRINTF("sample_firmwaremgmt: Received cancel load request for BACKUP_IMAGE (%u)\n",
+    DPRINTF("sample_firmwaremgmt: Received cancel load request for BACKUP_IMAGE (%lu)\n",
            g_curloadslot);
     filehash = g_slothdr[BACKUP_IMAGE].filehash;
     break;
     default:
-    DPRINTF("sample_firmwaremgmt: Received cancel load request for invalid slot (%u)\n",
+    DPRINTF("sample_firmwaremgmt: Received cancel load request for invalid slot (%lu)\n",
            g_curloadslot);
     if (g_curloadslot != 0xFFU){
       tlv->response = RESPONSE_INVALID_REQ;
@@ -1021,7 +1050,7 @@ void cancelLoadRequest_post(tlvid_t tlvid, Cancel_Load_Request *tlv) {
   }
 
   if ((filehash != NULL) &&
-    memcmp(tlv->filehash.data, filehash, SHA256_HASH_SIZE) == 0) {
+    memcmp(tlv->filehash.data, filehash, OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE) == 0) {
     DPRINTF("sample_firmwaremgmt: Cancel load request valid, cancelling current load request\n");
 
     // Cancel current load request
@@ -1031,7 +1060,7 @@ void cancelLoadRequest_post(tlvid_t tlvid, Cancel_Load_Request *tlv) {
     g_curloadslot = 0xFFU;
   }
 
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
 
 /**
@@ -1043,7 +1072,7 @@ void cancelLoadRequest_post(tlvid_t tlvid, Cancel_Load_Request *tlv) {
  */
 void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv) {
   (void)tlvid;
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld.\n", tlvid.type);
 
   if (!tlv) {
     DPRINTF("sample_firmwaremgmt: Cancel load request tlv context is NULL\n");
@@ -1082,29 +1111,39 @@ void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv) {
   if (g_curbackupslot == RUN_IMAGE || g_curbackupslot == UPLOAD_IMAGE) {
     memset(&g_slothdr[BACKUP_IMAGE], 0xFF, sizeof(g_slothdr[BACKUP_IMAGE]));
   }
+
   // Copy target image to backup slot
   switch (g_curbackupslot) {
     case RUN_IMAGE:
       DPRINTF("sample_firmwaremgmt: Backing-up run image to backup slot\n");
-      memcpy(&g_slothdr[BACKUP_IMAGE], &g_slothdr[RUN_IMAGE],
-             sizeof(g_slothdr[BACKUP_IMAGE]));
+      if (osal_copy_firmware_slot(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE], 
+                                  RUN_IMAGE, &g_slothdr[RUN_IMAGE]) != OSAL_SUCCESS) {
+        DPRINTF("sample_firmwaremgmt: Failed to copy run image to backup slot\n");
+        tlv->response = RESPONSE_INVALID_REQ;
+        return;
+      }
       g_slothdr[BACKUP_IMAGE].status = FWHDR_STATUS_COMPLETE;
       break;
     case UPLOAD_IMAGE:
       DPRINTF("sample_firmwaremgmt: Backing-up upload image to backup slot\n");
-      memcpy(&g_slothdr[BACKUP_IMAGE], &g_slothdr[UPLOAD_IMAGE],
-             sizeof(g_slothdr[BACKUP_IMAGE]));
+      if (osal_copy_firmware_slot(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE], 
+                                  UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) != OSAL_SUCCESS) {
+        DPRINTF("sample_firmwaremgmt: Failed to copy upload image to backup slot\n");
+        tlv->response = RESPONSE_INVALID_REQ;
+        return;
+      }
       g_slothdr[BACKUP_IMAGE].status = FWHDR_STATUS_COMPLETE;
       break;
     default:
-      DPRINTF("sample_firmwaremgmt: Set backup request from invalid backup slot (%u)\n",
+      DPRINTF("sample_firmwaremgmt: Set backup request from invalid backup slot (%lu)\n",
              g_curbackupslot);
       tlv->response = RESPONSE_INVALID_REQ;
       return;
   }
+  osal_write_firmware_slothdr(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
   g_curbackupslot = 0xFFU;
 
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
 
 /**
@@ -1117,17 +1156,17 @@ void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv) {
 void* firmwareImageInfo_get(tlvid_t tlvid, uint32_t *num) {
   (void)tlvid;
   *num = 0;
-  DPRINTF("## sample_firmwaremgmt: GET for TLV %d.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: GET for TLV %ld.\n", tlvid.type);
 
   // Enumerate all active slots
   // Active slots: 0-RUN_IMAGE, 1-UPLOAD_IMAGE, 2-BACKUP_IMAGE
-  for (uint32_t idx = 0; idx < CSMP_FWMGMT_ACTIVE_SLOTS; idx++) {
+  for (uint32_t idx = 0; idx < OSAL_CSMP_FWMGMT_ACTIVE_SLOTS; idx++) {
       // Reset g_firmwareImageInfo[slotid] structure
       memset(&g_firmwareImageInfo[idx], 0, sizeof(g_firmwareImageInfo[idx]));
 
       // Track number of inuse active slots
       (*num)++;
-      DPRINTF("sample_firmwaremgmt: Reading firmware image info for slot id:%d\n", idx);
+      DPRINTF("sample_firmwaremgmt: Reading firmware image info for slot id:%ld\n", idx);
 
       // Index
       g_firmwareImageInfo[idx].has_index = true;
@@ -1140,11 +1179,11 @@ void* firmwareImageInfo_get(tlvid_t tlvid, uint32_t *num) {
       // Filename
       g_firmwareImageInfo[idx].has_filename = true;
       strncpy(g_firmwareImageInfo[idx].filename, g_slothdr[idx].filename,
-              FILE_NAME_SIZE);
+              OSAL_CSMP_SLOTHDR_FILE_NAME_SIZE);
       // Version
       g_firmwareImageInfo[idx].has_version = true;
       strncpy(g_firmwareImageInfo[idx].version, g_slothdr[idx].version,
-              VERSION_SIZE);
+              OSAL_CSMP_SLOTHDR_VERSION_SIZE);
       // Filesize
       g_firmwareImageInfo[idx].has_filesize = true;
       g_firmwareImageInfo[idx].filesize = g_slothdr[idx].filesize;
@@ -1159,8 +1198,8 @@ void* firmwareImageInfo_get(tlvid_t tlvid, uint32_t *num) {
         uint32_t i, j;
         uint32_t blkmapCnt = (g_slothdr[idx].blockcnt + 31) / 32;
 
-        if (blkmapCnt > CSMP_FWMGMT_BLKMAP_CNT) {
-          blkmapCnt = CSMP_FWMGMT_BLKMAP_CNT;
+        if (blkmapCnt > OSAL_CSMP_FWMGMT_BLKMAP_CNT) {
+          blkmapCnt = OSAL_CSMP_FWMGMT_BLKMAP_CNT;
         }
         g_firmwareImageInfo[idx].has_bitmap = true;
         for (i = 0, j = 0; (i < blkmapCnt) &&
@@ -1192,7 +1231,7 @@ void* firmwareImageInfo_get(tlvid_t tlvid, uint32_t *num) {
       // Hardware Id
       g_firmwareImageInfo[idx].has_hwinfo = true;
       g_firmwareImageInfo[idx].hwinfo.has_hwid = true;
-      strncpy(g_firmwareImageInfo[idx].hwinfo.hwid, g_slothdr[idx].hwid, HWID_SIZE);
+      strncpy(g_firmwareImageInfo[idx].hwinfo.hwid, g_slothdr[idx].hwid, OSAL_CSMP_SLOTHDR_HWID_SIZE);
       // Vendor Hardware Id
       g_firmwareImageInfo[idx].hwinfo.has_vendorhwid = false;
       // Kernel version
@@ -1208,7 +1247,7 @@ void* firmwareImageInfo_get(tlvid_t tlvid, uint32_t *num) {
       g_firmwareImageInfo[idx].status = g_slothdr[idx].status;
   }
 
-  DPRINTF("## sample_firmwaremgmt: GET for TLV %d done.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: GET for TLV %ld done.\n", tlvid.type);
   return &g_firmwareImageInfo;
 }
 
@@ -1267,18 +1306,18 @@ void signature_settings_post(Signature_Settings *tlv) {
  * @return  void* pointer to global g_vendorTlv
  */
 void* vendorTlv_get(tlvid_t tlvid, uint32_t *num) {
-  printf("## sample_vendorTlv: GET for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
+  printf("## sample_vendorTlv: GET for TLV:%lu.%lu\n", tlvid.vendor, tlvid.type);
 
   // Vendor-ID validation
   // Received Vendor-ID to match device's VENDOR_ID
   if (tlvid.vendor != VENDOR_ID) {
-    printf("sample_vendorTlv: csmptlv %d vendor-id mismatch (Expected:%d, Received:%d)\n", tlvid.type, VENDOR_ID, tlvid.vendor);
+    printf("sample_vendorTlv: csmptlv %ld vendor-id mismatch (Expected:%d, Received:%ld)\n", tlvid.type, VENDOR_ID, tlvid.vendor);
     return NULL;
   }
   // Max support subtypes by the vendor
   *num = VENDOR_MAX_SUBTYPES;
 
-  printf("## sample_vendorTlv: GET for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
+  printf("## sample_vendorTlv: GET for TLV:%lu.%lu done\n", tlvid.vendor, tlvid.type);
   return &g_vendorTlv;
 }
 
@@ -1290,14 +1329,14 @@ void* vendorTlv_get(tlvid_t tlvid, uint32_t *num) {
  * @return  void
  */
 void vendorTlv_post(tlvid_t tlvid, Vendor_Tlv *tlv) {
-  printf("## sample_vendorTlv: POST for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
+  printf("## sample_vendorTlv: POST for TLV:%lu.%lu\n", tlvid.vendor, tlvid.type);
 
   int idx;
 
   // Vendor-ID validation
   // Received Vendor-ID to match device's VENDOR_ID
   if (tlvid.vendor != VENDOR_ID) {
-    printf("sample_vendorTlv: csmptlv %d vendor-id mismatch (Expected:%d, Received:%d)\n", tlvid.type, VENDOR_ID, tlvid.vendor);
+    printf("sample_vendorTlv: csmptlv %ld vendor-id mismatch (Expected:%d, Received:%ld)\n", tlvid.type, VENDOR_ID, tlvid.vendor);
     return;
   }
   // Lookup and update subtype
@@ -1305,8 +1344,8 @@ void vendorTlv_post(tlvid_t tlvid, Vendor_Tlv *tlv) {
     if (tlv->subtype == g_vendorTlv[idx].subtype) {
       g_vendorTlv[idx].value.len = tlv->value.len;
       memcpy(g_vendorTlv[idx].value.data, tlv->value.data, g_vendorTlv[idx].value.len);
-      printf("sample_vendorTlv: Updated vendor subtype:%u\n", g_vendorTlv[idx].subtype);
-      printf("## sample_vendorTlv: POST for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
+      printf("sample_vendorTlv: Updated vendor subtype:%lu\n", g_vendorTlv[idx].subtype);
+      printf("## sample_vendorTlv: POST for TLV:%lu.%lu done\n", tlvid.vendor, tlvid.type);
       return;
     }
   }
@@ -1314,7 +1353,7 @@ void vendorTlv_post(tlvid_t tlvid, Vendor_Tlv *tlv) {
   g_vendorTlv[0].subtype = tlv->subtype;
   g_vendorTlv[0].value.len = tlv->value.len;
   memcpy(g_vendorTlv[0].value.data, tlv->value.data, g_vendorTlv[0].value.len);
-  printf("sample_vendorTlv: Added vendor subtype:%u\n", g_vendorTlv[0].subtype);
+  printf("sample_vendorTlv: Added vendor subtype:%lu\n", g_vendorTlv[0].subtype);
 
-  printf("## sample_vendorTlv: POST for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
+  printf("## sample_vendorTlv: POST for TLV:%lu.%lu done\n", tlvid.vendor, tlvid.type);
 }
