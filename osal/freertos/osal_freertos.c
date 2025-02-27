@@ -53,7 +53,7 @@ void osal_kernel_start(void)
                                        pdTRUE, 
                                        (void *)i, 
                                        osal_alarm_fired);
-        DPRINTF("timer%d %s\n", i, timers[i].timer == NULL ? "create failed" : "create success");
+        DPRINTF("timer%ld %s\n", i, timers[i].timer == NULL ? "create failed" : "create success");
         assert(timers[i].timer != NULL);
         xTimerStop(timers[i].timer, 0);
 

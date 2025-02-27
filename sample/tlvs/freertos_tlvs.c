@@ -801,7 +801,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       ret = osal_write_storage(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE], 
                                offset, g_imageBlock.blockdata.data, g_imageBlock.blockdata.len);
       if (ret != OSAL_SUCCESS) {
-       DPRINTF("sample_firmwaremgmt: Failed to write image block %lu to slot\n",
+       DPRINTF("sample_firmwaremgmt: Failed to write image block %u to slot\n",
                g_imageBlock.blocknum);
        tlv->retval = false;
        g_downloadbusy = false;
