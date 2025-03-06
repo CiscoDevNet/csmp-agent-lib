@@ -114,7 +114,7 @@ class TPD_AppHeader(object):
         app_hdr += struct.pack("<I", self.hdr['major'])
         app_hdr += struct.pack("<I", self.hdr['minor'])
         app_hdr += struct.pack("<I", self.hdr['build'])
-        app_hdr += struct.pack("<I", self.filesize + self.hdr['hdr_len'] + 4)
+        app_hdr += struct.pack("<I", self.filesize + self.hdr['hdr_len'])
         app_hdr += self.hdr['name'][0:32] + ("\x00" * (32 - len(self.hdr['name'])))
         app_hdr += self.hdr['branch'][0:32] + ("\x00" * (32 - len(self.hdr['branch'])))
         app_hdr += self.hdr['commit'][0:8] + ("\x00" * (8 - len(self.hdr['commit'])))
