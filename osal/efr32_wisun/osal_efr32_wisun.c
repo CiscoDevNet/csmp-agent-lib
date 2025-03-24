@@ -14,13 +14,13 @@
  *  limitations under the License.
  */
 
+#include <string.h>
 #include "osal.h"
 #include "../../src/lib/debug.h"
 #include "sl_system_kernel.h"
 #include "nvm3.h"
 #include "nvm3_hal_flash.h"
 #include "btl_interface.h"
-
 
 #define OSAL_EFR32_WISUN_MIN_STACK_SIZE_WORDS 4096
 
