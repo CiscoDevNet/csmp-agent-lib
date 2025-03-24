@@ -104,7 +104,7 @@ osal_basetype_t osal_task_create(osal_task_t * thread,
                       name, 
                       (OSAL_EFR32_WISUN_MIN_STACK_SIZE_WORDS + stacksize), 
                       arg, 
-                      priority, 
+                      23 + priority, 
                       thread);
 
     return __ret_freertos2posix(ret);
