@@ -788,9 +788,9 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       g_slothdr[UPLOAD_IMAGE].status = FWHDR_STATUS_COMPLETE;
       g_downloadbusy = false;
       if (osal_write_firmware_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) < 0)
-        DPRINTF("sample_firmwaremgmt: Failed to write upload image to file\n");
+        DPRINTF("sample_firmwaremgmt: Failed to write upload image to the nvm3\n");
       else
-        printf("sample_firmwaremgmt: Sucessfully wrote upload image to file\n");
+        printf("sample_firmwaremgmt: Sucessfully wrote upload image to the nvm3\n");
 
       return;
     }
@@ -821,7 +821,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
 
       ret = osal_write_storage(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE], 
                                gecko_btl_slot_offset, gecko_btl_data_ptr, gecko_btl_chunk_size);
-      
+
       if (ret != OSAL_SUCCESS) {
         DPRINTF("sample_firmwaremgmt: Failed to write image block %lu to slot\n",
                 g_imageBlock.blocknum);
@@ -830,6 +830,14 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
         return;
       }
 
+      // Store the header after each 10 blocks
+      if (g_imageBlock.blocknum && !(g_imageBlock.blocknum % 10)) {
+        if (osal_write_firmware_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) < 0)
+          DPRINTF("sample_firmwaremgmt: Failed to write upload image to the nvm3 (block %lu)\n", g_imageBlock.blocknum);
+        else
+          printf("sample_firmwaremgmt: Sucessfully wrote upload image to the nvm3 (block %lu)\n", g_imageBlock.blocknum);
+      }
+      
       mapval ^= (1 << bit);
       g_slothdr[UPLOAD_IMAGE].nblkmap[word] = mapval;
 
