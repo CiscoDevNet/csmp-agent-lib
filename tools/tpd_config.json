@@ -1,0 +1,12 @@
+{
+    "major": "7",
+    "minor": "1",
+    "build": "2",
+    "name": "CsmpAgent_Linux",
+    "hwid": "OPENCSMP",
+    "sub_hwid": "0",
+    "branch": "osal",
+    "commit": "048841d",
+    "date": "Mar 15 2025",
+    "kernelrev": "WISUN_1.0"
+}
