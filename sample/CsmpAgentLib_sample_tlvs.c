@@ -1,5 +1,5 @@
 /*
- *  Copyright 2024 Cisco Systems, Inc.
+ *  Copyright 2021-2025 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -90,6 +90,9 @@ void csmptlvs_post(tlvid_t tlvid, void *tlv) {
       break;
     case VENDOR_TLV_ID:
       vendorTlv_post(tlvid, (Vendor_Tlv*)tlv);
+      break;
+    case REBOOT_REQUEST_ID:
+      rebootRequest_post(tlvid, (Reboot_Request*)tlv);
       break;
 
     default:

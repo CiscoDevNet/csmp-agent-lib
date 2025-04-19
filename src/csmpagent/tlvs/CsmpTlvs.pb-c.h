@@ -20,6 +20,7 @@ typedef struct _DeviceID DeviceID;
 typedef struct _SessionID SessionID;
 typedef struct _DescriptionRequest DescriptionRequest;
 typedef struct _ReportSubscribe ReportSubscribe;
+typedef struct _RebootRequest RebootRequest;
 typedef struct _CGMSSettings CGMSSettings;
 typedef struct _CGMSStatus CGMSStatus;
 typedef struct _CGMSNotification CGMSNotification;
@@ -163,6 +164,28 @@ struct  _ReportSubscribe
 #define REPORT_SUBSCRIBE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&report_subscribe__descriptor) \
     , 0,NULL, REPORT_SUBSCRIBE__INTERVAL_PRESENT__NOT_SET, {0} }
+
+
+typedef enum {
+  REBOOT_REQUEST__FLAG_PRESENT__NOT_SET = 0,
+  REBOOT_REQUEST__FLAG_PRESENT_FLAG = 1
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(REBOOT_REQUEST__FLAG_PRESENT)
+} RebootRequest__FlagPresentCase;
+
+/*
+ *TLV 32
+ */
+struct  _RebootRequest
+{
+  ProtobufCMessage base;
+  RebootRequest__FlagPresentCase flag_present_case;
+  union {
+    uint32_t flag;
+  };
+};
+#define REBOOT_REQUEST__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&reboot_request__descriptor) \
+    , REBOOT_REQUEST__FLAG_PRESENT__NOT_SET, {0} }
 
 
 typedef enum {
@@ -2396,6 +2419,25 @@ ReportSubscribe *
 void   report_subscribe__free_unpacked
                      (ReportSubscribe *message,
                       ProtobufCAllocator *allocator);
+/* RebootRequest methods */
+void   reboot_request__init
+                     (RebootRequest         *message);
+size_t reboot_request__get_packed_size
+                     (const RebootRequest   *message);
+size_t reboot_request__pack
+                     (const RebootRequest   *message,
+                      uint8_t             *out);
+size_t reboot_request__pack_to_buffer
+                     (const RebootRequest   *message,
+                      ProtobufCBuffer     *buffer);
+RebootRequest *
+       reboot_request__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   reboot_request__free_unpacked
+                     (RebootRequest *message,
+                      ProtobufCAllocator *allocator);
 /* CGMSSettings methods */
 void   cgmssettings__init
                      (CGMSSettings         *message);
@@ -3021,6 +3063,9 @@ typedef void (*DescriptionRequest_Closure)
 typedef void (*ReportSubscribe_Closure)
                  (const ReportSubscribe *message,
                   void *closure_data);
+typedef void (*RebootRequest_Closure)
+                 (const RebootRequest *message,
+                  void *closure_data);
 typedef void (*CGMSSettings_Closure)
                  (const CGMSSettings *message,
                   void *closure_data);
@@ -3128,6 +3173,7 @@ extern const ProtobufCMessageDescriptor device_id__descriptor;
 extern const ProtobufCMessageDescriptor session_id__descriptor;
 extern const ProtobufCMessageDescriptor description_request__descriptor;
 extern const ProtobufCMessageDescriptor report_subscribe__descriptor;
+extern const ProtobufCMessageDescriptor reboot_request__descriptor;
 extern const ProtobufCMessageDescriptor cgmssettings__descriptor;
 extern const ProtobufCMessageDescriptor cgmsstatus__descriptor;
 extern const ProtobufCMessageDescriptor cgmsnotification__descriptor;

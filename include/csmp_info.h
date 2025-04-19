@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Cisco Systems, Inc.
+ *  Copyright 2021-2025 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -48,6 +48,15 @@
 /** \brief Max number of vendor subtypes */
 #define VENDOR_MAX_SUBTYPES 5
 
+// SIZES
+#define SHA1_HASH_SIZE        20
+#define SHA256_HASH_SIZE      32
+#define FILE_NAME_SIZE        128
+#define VERSION_SIZE          32
+#define BITMAP_SIZE           32
+#define HWID_SIZE             32
+#define BLOCK_SIZE            1024
+
 // structs for each tlv
 /*****************************************************************************
   the member marked by 'Y' in each structure is suggested to be filled
@@ -61,6 +70,7 @@ typedef struct _Current_Time Current_Time;             /**< data related to TLV 
 typedef struct _Up_time Up_Time;                       /**< data related to TLV 22 */
 typedef struct _Interface_Metrics Interface_Metrics;   /**< data related to TLV 23 */
 typedef struct _IPRoute_RPLMetrics IPRoute_RPLMetrics; /**< data related to TLV 25 */
+typedef struct _Reboot_Request Reboot_Request;         /**< data related to TLV 32 */
 typedef struct _WPAN_Status WPAN_Status;               /**< data related to TLV 35 */
 typedef struct _RPL_Instance RPL_Instance;             /**< data related to TLV 53 */
 typedef struct _Signature_Settings Signature_Settings; /**< data related to TLV 79 */
@@ -71,8 +81,6 @@ typedef struct _Load_Request Load_Request;               /**< data related to TL
 typedef struct _Cancel_Load_Request Cancel_Load_Request; /**< data related to TLV 69 */
 typedef struct _Set_Backup_Request Set_Backup_Request;   /**< data related to TLV 70 */
 typedef struct _Firmware_Image_Info Firmware_Image_Info; /**< data related to TLV 75 */
-
-typedef struct _Csmp_Slothdr Csmp_Slothdr;               /**< firmware image slot */
 
 // CSMP OP RETURN CODES
 #define CSMP_OP_TLV_RD_EMPTY   0
@@ -99,42 +107,6 @@ enum {
   RESPONSE_MATCH_BAK_XFER = 13
 };
 
-// SIZES
-#define SHA1_HASH_SIZE        20
-#define SHA256_HASH_SIZE      32
-#define FILE_NAME_SIZE        128
-#define VERSION_SIZE          32
-#define BITMAP_SIZE           32
-#define HWID_SIZE             32
-#define BLOCK_SIZE            1024
-
-// IMAGE SLOT INFO
-#define CSMP_FWMGMT_ACTIVE_SLOTS      3          // 0-RUN, 1-UPLOAD, 2-BACKUP
-#define CSMP_FWMGMT_SLOTIMG_SIZE      (30*1024)  // ~30 Kb
-#define CSMP_FWMGMT_BLKMAP_CNT        (32)
-
-// IMAGE SLOT ID
-enum {
-  RUN_IMAGE = 0,
-  UPLOAD_IMAGE = 1,
-  BACKUP_IMAGE = 2,
-  BL_IMAGE = 3,
-  LMAC_IMAGE = 4,
-  BBU_IMAGE = 5,
-  PHY_IMAGE = 6,
-  PATCH_IMAGE = 7,
-  THIRDPARTY_IMAGE = 8,
-  NUMSLOTS = 9
-};
-
-// FIRMWARE DOWNLOAD STATUS
-enum {
-  FWHDR_STATUS_COMPLETE = 0,
-  FWHDR_STATUS_DOWNLOAD = 0xFFFFFFF0UL,
-  FWHDR_STATUS_BADIMAGE = 0xFFFFFF00UL,
-  FWHDR_STATUS_BADHASH  = 0xFFFFF000UL,
-  FWHDR_STATUS_UNKNOWN  = 0xFFFFFFFFUL,
-};
 
 // TRANSFER-REQUEST REPORT INTERVAL DEFAULTS
 // Atleast minimum interval of MIN_REPORT_MIN
@@ -434,6 +406,19 @@ struct  _IPRoute_RPLMetrics
 #define IPROUTE_RPLMETRICS_INIT \
  { 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0 }
 
+ //Reboot_Request
+enum{
+  REBOOT = 0,
+  REBOOT_TO_BL = 1
+};
+
+struct _Reboot_Request{
+  bool has_flag;
+  uint32_t flag;
+};
+
+#define REBOOT_REQUEST_INIT \
+{0,0}
 
 // WPAN_STATUS
 typedef enum {
@@ -742,32 +727,9 @@ typedef struct {
   char hwid[HWID_SIZE];
 } _Apphdr;
 
-// Image slot header
-struct _Csmp_Slothdr
-{
-  uint8_t filehash[SHA256_HASH_SIZE];
-  char filename[FILE_NAME_SIZE];
-  char version[VERSION_SIZE];
-  char hwid[HWID_SIZE];
-  uint32_t filesize;
-  uint32_t filesizelastblk;
-  uint32_t blockcnt;
-  uint32_t blocksize;
-  uint32_t reportintervalmin;
-  uint32_t reportintervalmax;
-  uint32_t status; // Boolean zero if image is complete
-  uint32_t nblkmap[CSMP_FWMGMT_BLKMAP_CNT]; // Inverted block completion map
-  uint32_t magicU;
-  uint32_t magicL;
-  // Image
-  uint8_t image[CSMP_FWMGMT_SLOTIMG_SIZE];
-};
 
 #define APPHDR_INIT \
 {0, 0, 0, 0, 0, 0, {0}, {0}, {0}, 0, {0}, {0}}
 
-#define CSMP_SLOTHDR_INIT \
-  {{0}, {0}, {0}, {0}, 0, 0, 0, 0, 0, 0, 0, {0}, \
-    0, 0, {0}}
 
 #endif // CSMP_INFO_H
