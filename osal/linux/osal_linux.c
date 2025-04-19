@@ -468,15 +468,16 @@ int osal_write_firmware(uint8_t slotid, void* slot, uint32_t size) {
       break;
     case UPLOAD_IMAGE:
       // Write firmware w/o CSMP header to verify upload firmware transferred from FND
-      file = fopen("opencsmp-upload-image.bin", "wb");
-      if(file == NULL){
-        printf("write_firmware: Failed to write upload firmware image\n");
-        return OSAL_FAILURE;
+      if(slotid == UPLOAD_IMAGE) {
+        file = fopen("opencsmp-upload-image.bin", "wb");
+        if(file == NULL){
+          printf("write_firmware: Failed to write upload firmware image\n");
+          return OSAL_FAILURE;
+        }
+        bytes = fwrite((uint8_t*) &slot[slotid].image, sizeof(uint8_t), slot[slotid].filesize, file);
+        DPRINTF("write_firmware: Wrote %ld bytes of upload firmware image\n", bytes);
+        fclose(file);
       }
-      bytes = fwrite((uint8_t*) &slot[slotid].image, sizeof(uint8_t), slot[slotid].filesize, file);
-      DPRINTF("write_firmware: Wrote %ld bytes of upload firmware image\n", bytes);
-      fclose(file);
-      
       file = fopen("opencsmp-upload-slot.bin", "wb");
       break;
     case BACKUP_IMAGE:
