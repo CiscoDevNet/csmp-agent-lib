@@ -60,27 +60,25 @@ void sample_data_init() {
   DPRINTF("sample_data_init: Initialize sample data\n");
   gettimeofday(&tv, NULL);
   g_init_time = tv.tv_sec;
-
-#ifdef OSAL_LINUX
-    ret = osal_read_firmware(RUN_IMAGE, g_slothdr, sizeof(Csmp_Slothdr));
+  #ifdef OSAL_LINUX
+    ret=read_fw_img(RUN_IMAGE);
     if(ret < 0){
       memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
-      DPRINTF("sample_data_init: Run Slot not found, initialized to default values.\n");
+      DPRINTF("sample_data_init: Run Slot not found default values will be used\n");
     }
-    ret = osal_read_firmware(UPLOAD_IMAGE, g_slothdr, sizeof(Csmp_Slothdr));
+    ret=read_fw_img(UPLOAD_IMAGE);
     if(ret<0){
       DPRINTF("sample_data_init: Upload slot not found!\n");
     }
-    ret = osal_read_firmware(BACKUP_IMAGE, g_slothdr, sizeof(Csmp_Slothdr));
+    ret=read_fw_img(BACKUP_IMAGE);
     if(ret<0){
       DPRINTF("sample_data_init: Backup slot not found!\n");
     }
-#else // Platforms other than Linux currenlty do not support firmware read/write function,
-      // run-slot will be initialized with default values during boot-up
+  #else // Platforms other than linux cuurenlty do not support image read/write to disk function,
+        // run-slot will be initialized with default values during boot-up
       if(!g_reboot_request)
         memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
-#endif
-
+  #endif
   // Init sample Vendor Tlv data
   for (idx = 0; idx < VENDOR_MAX_SUBTYPES; idx++) {
     g_vendorTlv[idx].has_subtype = true;

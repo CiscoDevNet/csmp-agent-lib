@@ -839,7 +839,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       DPRINTF("sample_firmwaremgmt: Image block transfer complete, filehash matched!\n");
       g_slothdr[UPLOAD_IMAGE].status = FWHDR_STATUS_COMPLETE;
       g_downloadbusy = false;
-      if (osal_write_firmware(UPLOAD_IMAGE, g_slothdr, sizeof(Csmp_Slothdr)) < 0)
+      if (write_fw_img(UPLOAD_IMAGE) < 0)
         DPRINTF("sample_firmwaremgmt: Failed to write upload image to file\n");
       else
         printf("sample_firmwaremgmt: Sucessfully wrote upload image to file\n");
@@ -923,7 +923,7 @@ void loadreq_timer_fired() {
   memcpy(&g_slothdr[RUN_IMAGE], &g_slothdr[g_curloadslot],
          sizeof(g_slothdr[RUN_IMAGE]));
   DPRINTF("loadreq_timer: Writing Run Slot to disk\n");
-  osal_write_firmware(RUN_IMAGE, g_slothdr, sizeof(Csmp_Slothdr));
+  write_fw_img(RUN_IMAGE);
   g_curloadslot=0xFF;
   g_curloadtime=0;
   osal_trickle_timer_stop(lrq_timer);
@@ -1160,7 +1160,7 @@ void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv) {
       tlv->response = RESPONSE_INVALID_REQ;
       return;
   }
-  osal_write_firmware(BACKUP_IMAGE, g_slothdr, sizeof(Csmp_Slothdr));
+  write_fw_img(BACKUP_IMAGE);
   g_curbackupslot = 0xFFU;
 
   DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
@@ -1316,4 +1316,81 @@ void signature_settings_post(Signature_Settings *tlv) {
   g_SignatureSettings.has_cert = true;
   g_SignatureSettings.cert.len = tlv->cert.len;
   memcpy(g_SignatureSettings.cert.data,tlv->cert.data,g_SignatureSettings.cert.len);
+}
+
+/**
+ * @brief Write g_slothdr.image data to file based on slot id
+ *
+ * @param slotid pointing to which g_slothdr data to write to file
+ * @return int 0 for success -1 for failure
+ */
+int write_fw_img(uint8_t slotid) {
+  FILE *file = NULL;
+  size_t written = 0;
+  (void) written; 
+  switch(slotid){
+    case RUN_IMAGE:
+      file = fopen("opencsmp-run-slot.bin", "wb");
+      break;
+    case UPLOAD_IMAGE:
+      file = fopen("opencsmp-upload-slot.bin", "wb");
+      break;
+    case BACKUP_IMAGE:
+      file = fopen("opencsmp-backup-slot.bin", "wb");
+      break;
+    default:
+      printf("write_fw_img: Error wrong slot id\n");
+      return -1;
+  }
+  if (file == NULL) {
+      printf("write_fw_img: Error opening file\n");
+      return -1;
+  }
+  //Writing entire APP FW along with CSMP header data so that slot_hdr data persists upon agent reboot
+  written = fwrite(&g_slothdr[slotid], sizeof(uint8_t), sizeof(Csmp_Slothdr), file);
+  DPRINTF("write_fw_img: Wrote %ld bytes\n",written);
+  fclose(file);
+  // Writing just the firmware exluding csmp header to disk for upload slot only to verify OTA file integrity
+  if(slotid == UPLOAD_IMAGE){
+    file = fopen("opencsmp-upload-image.bin", "wb");
+    if(file == NULL){
+      printf("write_fw_img: Error opening file\n");
+      return -1;
+    }
+    written = fwrite(g_slothdr[slotid].image, sizeof(uint8_t), g_slothdr[slotid].filesize, file);
+    DPRINTF("write_fw_img: Wrote %ld bytes\n",written);
+    fclose(file);
+  }
+  return 0;
+}
+
+/**
+ * @brief Read g_slothdr.image data to file based on slot id
+ *
+ * @param slotid pointing to which g_slothdr data to write to file
+ * @return int 0 for success -1 for failure
+ */
+int read_fw_img(uint8_t slotid) {
+  FILE *file = NULL;
+  switch(slotid){
+    case RUN_IMAGE:
+      file = fopen("opencsmp-run-slot.bin", "rb");
+      break;
+    case UPLOAD_IMAGE:
+      file = fopen("opencsmp-upload-slot.bin", "rb");
+      break;
+    case BACKUP_IMAGE:
+      file = fopen("opencsmp-backup-slot.bin", "rb");
+      break;
+    default:
+      printf("read_fw_img: Error wrong slot id\n");
+      return -1;
+  }
+  if (file == NULL) {
+      printf("read_fw_img: Requested slot file missing\n");
+      return -1;
+  }
+  fread(&g_slothdr[slotid], sizeof(Csmp_Slothdr), 1, file);
+  fclose(file);
+  return 0;
 }

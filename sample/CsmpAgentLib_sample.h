@@ -219,6 +219,20 @@ extern void sample_data_init();
  */
 extern void sample_app_reboot();
 
+/**
+ * @brief Write fw image to file
+ *
+ * @param slotid
+ * @return int
+ */
+extern int write_fw_img(uint8_t slotid);
+
+/**
+ * @brief Read fw image from slot file
+ *
+ * @param slotid
+ * @return int
+ */
 extern int read_fw_img(uint8_t slotid);
 /**
  * @brief Convert a string to an address
