@@ -2071,7 +2071,7 @@ static const ProtobufCFieldDescriptor cgmsnotification__field_descriptors[2] =
   },
   {
     "tlvs",
-    2,
+    3,
     PROTOBUF_C_LABEL_REPEATED,
     PROTOBUF_C_TYPE_UINT32,
     offsetof(CGMSNotification, n_tlvs),
@@ -2086,9 +2086,10 @@ static const unsigned cgmsnotification__field_indices_by_name[] = {
   0,   /* field[0] = code */
   1,   /* field[1] = tlvs */
 };
-static const ProtobufCIntRange cgmsnotification__number_ranges[1 + 1] =
+static const ProtobufCIntRange cgmsnotification__number_ranges[2 + 1] =
 {
   { 1, 0 },
+  { 3, 1 },
   { 0, 2 }
 };
 const ProtobufCMessageDescriptor cgmsnotification__descriptor =
@@ -2102,7 +2103,7 @@ const ProtobufCMessageDescriptor cgmsnotification__descriptor =
   2,
   cgmsnotification__field_descriptors,
   cgmsnotification__field_indices_by_name,
-  1,  cgmsnotification__number_ranges,
+  2,  cgmsnotification__number_ranges,
   (ProtobufCMessageInit) cgmsnotification__init,
   NULL,NULL,NULL    /* reserved[123] */
 };

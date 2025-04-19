@@ -91,7 +91,7 @@ message CGMSNotification {
   oneof code_present {
   uint32 code = 1;
   }
-  repeated uint32 tlvs = 2;
+  repeated uint32 tlvs = 3;
 }
 
 // TLV 45
