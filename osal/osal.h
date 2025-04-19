@@ -589,10 +589,10 @@ void osal_sleep_ms(uint64_t ms);
  * @brief Reboots system
  *
  * input parameters
- *  @param[in] none
+ *  @param[in] NMSaddr NMS IPv6 address
  *
  * output parameters
- * @return none
+ * @return returns 1 on success and 0 on failure
  *****************************************************************************/
 osal_basetype_t osal_system_reboot(struct in6_addr *NMSaddr);
 
@@ -603,7 +603,7 @@ osal_basetype_t osal_system_reboot(struct in6_addr *NMSaddr);
  *
  * input parameters
  *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
- *  @param[in] pointer to uint8_t data array
+ *  @param[in] data pointer to uint8_t data array
  *  @param[in] size of data in bytes
  *
  * output parameters
@@ -618,7 +618,7 @@ osal_basetype_t osal_read_firmware(uint8_t slotid, uint8_t *data, uint32_t size)
  *
  * input parameters
  *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
- *  @param[in] pointer to uint8_t data array
+ *  @param[in] data pointer to uint8_t data array
  *  @param[in] size of data in bytes
  *
  * output parameters
@@ -633,7 +633,7 @@ osal_basetype_t osal_write_firmware(uint8_t slotid, uint8_t *data, uint32_t size
  *
  * input parameters
  *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
- *  @param[in] pointer to _Csmp_Slothdr slot structure
+ *  @param[in] slot pointer to _Csmp_Slothdr slot structure
  *
  * output parameters
  * @return returns 0 on success and -1 on error
@@ -647,7 +647,7 @@ osal_basetype_t osal_read_slothdr(uint8_t slotid, Csmp_Slothdr* slot);
  *
  * input parameters
  *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
- *  @param[in] pointer to _Csmp_Slothdr slot structure
+ *  @param[in] slot pointer to _Csmp_Slothdr slot structure
  *
  * output parameters
  * @return returns 0 on success and -1 on error
@@ -657,7 +657,7 @@ osal_basetype_t osal_write_slothdr(uint8_t slotid, Csmp_Slothdr* slot);
 /****************************************************************************
  * @fn   osal_copy_firmware
  *
- * @brief Copy firmware image and slot header data from one slot storage(file/flash) to another
+ * @brief Copy firmware image and slot header data from source to dest slot
  *
  * input parameters
  *  @param[in] source_slotid and dest_slotid indicating RUN/UPLOAD/BACKUP slot

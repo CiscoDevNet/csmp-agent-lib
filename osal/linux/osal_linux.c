@@ -418,6 +418,18 @@ void osal_sleep_ms(uint64_t ms)
 {
   usleep(ms * 1000);
 }
+
+/****************************************************************************
+ * @fn   osal_system_reboot
+ *
+ * @brief Reboots system
+ *
+ * input parameters
+ *  @param[in] NMSaddr NMS IPv6 address
+ *
+ * output parameters
+ * @return returns 1 on success and 0 on failure
+ *****************************************************************************/
 osal_basetype_t osal_system_reboot(struct in6_addr *NMSaddr)
 {
   DPRINTF("osal_system_reboot: Reboot requested\n");
@@ -436,7 +448,7 @@ osal_basetype_t osal_system_reboot(struct in6_addr *NMSaddr)
  *
  * input parameters
  *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
- *  @param[in] pointer to uint8_t data array
+ *  @param[in] data pointer to uint8_t data array
  *  @param[in] size of data in bytes
  *
  * output parameters
@@ -474,7 +486,7 @@ int osal_read_firmware(uint8_t slotid, uint8_t *data, uint32_t size) {
  *
  * input parameters
  *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
- *  @param[in] pointer to uint8_t data array
+ *  @param[in] data pointer to uint8_t data array
  *  @param[in] size of data in bytes
  *
  * output parameters
@@ -507,13 +519,19 @@ int osal_write_firmware(uint8_t slotid, uint8_t *data, uint32_t size) {
   fclose(file);
   return OSAL_SUCCESS;
 }
-/**
- * @brief Write irmware slot header data to file
+
+/****************************************************************************
+ * @fn   osal_write_slothdr
  *
- * @param slotid indicates RUN/UPLOAD/BACKUP slot
- * @param slot indicates pointer to global slothdr application data
- * @return int 0 for success -1 for failure
- */
+ * @brief write firmware slot header data to storage(file/flash)
+ *
+ * input parameters
+ *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
+ *  @param[in] slot pointer to _Csmp_Slothdr slot structure
+ *
+ * output parameters
+ * @return returns 0 on success and -1 on error
+ *****************************************************************************/
 int osal_write_slothdr(uint8_t slotid, Csmp_Slothdr *slot){
 FILE *file = NULL;
 size_t bytes = 0;
@@ -545,13 +563,19 @@ size_t bytes = 0;
   return OSAL_SUCCESS;
 
 }
-/**
- * @brief Read firmware slot header data from file
+
+/****************************************************************************
+ * @fn   osal_read_slothdr
  *
- * @param slotid indicates RUN/UPLOAD/BACKUP slot
- * @param slot indicates pointer to global slothdr application data
- * @return int 0 for success -1 for failure
- */
+ * @brief read firmware slot header data from storage(file/flash)
+ *
+ * input parameters
+ *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
+ *  @param[in] slot pointer to _Csmp_Slothdr slot structure
+ *
+ * output parameters
+ * @return returns 0 on success and -1 on error
+ *****************************************************************************/
 int osal_read_slothdr(uint8_t slotid, Csmp_Slothdr *slot){
   FILE *file = NULL;
   switch(slotid) {
@@ -576,13 +600,19 @@ int osal_read_slothdr(uint8_t slotid, Csmp_Slothdr *slot){
   fclose(file);
   return OSAL_SUCCESS;
 }
-/**
- * @brief Copy irmware slot and slot header data from source to dest
+
+/****************************************************************************
+ * @fn   osal_copy_firmware
  *
- * @param source_slotid and dest_slotid indicates RUN/UPLOAD/BACKUP slot
- * @param slot indicates pointer to global slothdr application data
- * @return int 0 for success -1 for failure
- */
+ * @brief Copy firmware image and slot header data from source to dest slot
+ *
+ * input parameters
+ *  @param[in] source_slotid and dest_slotid indicating RUN/UPLOAD/BACKUP slot
+ *  @param[in] pointer to _Csmp_Slothdr slot structure
+ *
+ * output parameters
+ * @return returns 0 on success and -1 on error
+ *****************************************************************************/
 int osal_copy_firmware(uint8_t source_slotid, uint8_t dest_slotid, Csmp_Slothdr *slot){
 
   FILE *source_fw = NULL, *dest_fw = NULL;
