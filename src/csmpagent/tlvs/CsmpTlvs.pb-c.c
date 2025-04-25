@@ -232,6 +232,51 @@ void   report_subscribe__free_unpacked
   assert(message->base.descriptor == &report_subscribe__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   reboot_request__init
+                     (RebootRequest         *message)
+{
+  static const RebootRequest init_value = REBOOT_REQUEST__INIT;
+  *message = init_value;
+}
+size_t reboot_request__get_packed_size
+                     (const RebootRequest *message)
+{
+  assert(message->base.descriptor == &reboot_request__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t reboot_request__pack
+                     (const RebootRequest *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &reboot_request__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t reboot_request__pack_to_buffer
+                     (const RebootRequest *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &reboot_request__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+RebootRequest *
+       reboot_request__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (RebootRequest *)
+     protobuf_c_message_unpack (&reboot_request__descriptor,
+                                allocator, len, data);
+}
+void   reboot_request__free_unpacked
+                     (RebootRequest *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &reboot_request__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 void   cgmssettings__init
                      (CGMSSettings         *message)
 {
@@ -1888,6 +1933,44 @@ const ProtobufCMessageDescriptor report_subscribe__descriptor =
   (ProtobufCMessageInit) report_subscribe__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
+static const ProtobufCFieldDescriptor reboot_request__field_descriptors[1] =
+{
+  {
+    "flag",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(RebootRequest, flag_present_case),
+    offsetof(RebootRequest, flag),
+    NULL,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned reboot_request__field_indices_by_name[] = {
+  0,   /* field[0] = flag */
+};
+static const ProtobufCIntRange reboot_request__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 1 }
+};
+const ProtobufCMessageDescriptor reboot_request__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "RebootRequest",
+  "RebootRequest",
+  "RebootRequest",
+  "",
+  sizeof(RebootRequest),
+  1,
+  reboot_request__field_descriptors,
+  reboot_request__field_indices_by_name,
+  1,  reboot_request__number_ranges,
+  (ProtobufCMessageInit) reboot_request__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
 static const ProtobufCFieldDescriptor cgmssettings__field_descriptors[2] =
 {
   {
@@ -2071,7 +2154,7 @@ static const ProtobufCFieldDescriptor cgmsnotification__field_descriptors[2] =
   },
   {
     "tlvs",
-    2,
+    3,
     PROTOBUF_C_LABEL_REPEATED,
     PROTOBUF_C_TYPE_UINT32,
     offsetof(CGMSNotification, n_tlvs),
@@ -2086,9 +2169,10 @@ static const unsigned cgmsnotification__field_indices_by_name[] = {
   0,   /* field[0] = code */
   1,   /* field[1] = tlvs */
 };
-static const ProtobufCIntRange cgmsnotification__number_ranges[1 + 1] =
+static const ProtobufCIntRange cgmsnotification__number_ranges[2 + 1] =
 {
   { 1, 0 },
+  { 3, 1 },
   { 0, 2 }
 };
 const ProtobufCMessageDescriptor cgmsnotification__descriptor =
@@ -2102,7 +2186,7 @@ const ProtobufCMessageDescriptor cgmsnotification__descriptor =
   2,
   cgmsnotification__field_descriptors,
   cgmsnotification__field_indices_by_name,
-  1,  cgmsnotification__number_ranges,
+  2,  cgmsnotification__number_ranges,
   (ProtobufCMessageInit) cgmsnotification__init,
   NULL,NULL,NULL    /* reserved[123] */
 };

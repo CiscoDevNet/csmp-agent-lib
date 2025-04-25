@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Cisco Systems, Inc.
+ *  Copyright 2021-2025 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 #define _SAMPLE_H
 
 #include "csmp_info.h"
+#include "osal.h"
 
 /*! \file
  *
@@ -219,24 +220,6 @@ extern void sample_data_init();
  */
 extern void sample_app_reboot();
 
-/**
- * @brief Write fw image to file
- *
- * @param slotid
- * @return int
- */
-extern int write_fw_img(uint8_t slotid);
-
-/**
- * @brief Read fw image from slot file
- *
- * @param slotid
- * @return int
- */
-extern int read_fw_img(uint8_t slotid);
-/**
- * @brief Convert a string to an address
- */
 int str2addr(char *str, uint8_t *addr);
 
 #endif

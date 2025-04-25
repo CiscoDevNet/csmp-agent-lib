@@ -1,5 +1,5 @@
 /*
- *  Copyright 2024 Cisco Systems, Inc.
+ *  Copyright 2024-2025 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -237,5 +237,12 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv);
  * @param tlv the request data
  */
 void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv);
+/**
+ * @brief rebootRequest post TLV request
+ *
+ * @param tlvid the tlvid to handle
+ * @param tlv the request data
+ */
+void rebootRequest_post(tlvid_t tlvid, Reboot_Request *tlv);
 
 #endif // _SAMPLE_TLVS_H_

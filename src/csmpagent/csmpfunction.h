@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Cisco Systems, Inc.
+ *  Copyright 2021-2025 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -90,6 +90,9 @@ int csmp_put_setBackupRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
                          uint8_t *out_buf, size_t out_size, size_t *out_len,
                          int32_t tlvindex);
 int csmp_put_descriptionRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
+                         uint8_t *out_buf, size_t out_size, size_t *out_len,
+                         int32_t tlvindex);
+int csmp_put_rebootRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
                          uint8_t *out_buf, size_t out_size, size_t *out_len,
                          int32_t tlvindex);
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Cisco Systems, Inc.
+ *  Copyright 2021-2025 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -51,6 +51,13 @@ message ReportSubscribe {
   repeated string tlvid = 2;
 }
 
+//TLV 32
+message RebootRequest {
+  oneof flag_present {
+   uint32 flag = 1;
+  }
+}
+
 // TLV 42
 message CGMSSettings {
   oneof regIntervalMin_present {
@@ -91,7 +98,7 @@ message CGMSNotification {
   oneof code_present {
   uint32 code = 1;
   }
-  repeated uint32 tlvs = 2;
+  repeated uint32 tlvs = 3;
 }
 
 // TLV 45

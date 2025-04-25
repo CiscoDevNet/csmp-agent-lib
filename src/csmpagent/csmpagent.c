@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Cisco Systems, Inc.
+ *  Copyright 2021-2025 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -111,6 +111,8 @@ int csmpagent_post(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_b
         return csmp_put_setBackupRequest(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
       case DESCRIPTION_REQUEST_TLVID:
         return csmp_put_descriptionRequest(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
+      case REBOOT_REQUEST_TLVID:
+        return csmp_put_rebootRequest(tlvid, buf, len, out_buf, out_size, out_len, tlvindex);
 
       default:
         DPRINTF("csmpagent_post: POST un-supported for TLV: %u.%u\n", tlvid.vendor, tlvid.type);

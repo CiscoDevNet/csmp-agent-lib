@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Cisco Systems, Inc.
+ *  Copyright 2021-2025 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ typedef struct thread_argument {
 /* \brief CSMP running slot hdr info used by FND via TLV75 to identify running fw on the node*/
 Csmp_Slothdr default_run_slot_image = {{0x61,0xe7,0xe1,0x76,0xe2,0xfb,0xcc,0x3e,0x1c,0xc8,0x5b,0xb1,0xf4,\
   0x99,0xa4,0x02,0x6d,0x28,0xcf,0x1d,0x66,0x16,0x76,0x91,0x91,0x3f,0xd9,0x80,0x5b,0xe5,0x5b,0xa1},\
-"opencsmp-node-6.6.99","6.6.99", "OPENCSMP", 27904, 0, 0, 0, 0, 0, 0, {0},0, 0, {0}};
+"opencsmp-node-6.6.99","6.6.99", "OPENCSMP", 27904, 0, 0, 0, 0, 0, 0, {0},0, 0};
 /**
  * @brief Character to hex conversion
  * @return int8_t hex value
@@ -61,16 +61,20 @@ void sample_data_init() {
   gettimeofday(&tv, NULL);
   g_init_time = tv.tv_sec;
   #ifdef OSAL_LINUX
-    ret=read_fw_img(RUN_IMAGE);
+    ret=osal_read_slothdr(RUN_IMAGE, g_slothdr);
     if(ret < 0){
       memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
+      osal_write_slothdr(RUN_IMAGE, g_slothdr);
+      //Write dummy data into run slot
+      osal_write_firmware(RUN_IMAGE, (uint8_t*)&g_slothdr[RUN_IMAGE], sizeof(Csmp_Slothdr));
       DPRINTF("sample_data_init: Run Slot not found default values will be used\n");
+      DPRINTF("sample_data_init: Wrote default run slot and slothdr to disk\n");
     }
-    ret=read_fw_img(UPLOAD_IMAGE);
+    ret=osal_read_slothdr(UPLOAD_IMAGE, g_slothdr);
     if(ret<0){
       DPRINTF("sample_data_init: Upload slot not found!\n");
     }
-    ret=read_fw_img(BACKUP_IMAGE);
+    ret=osal_read_slothdr(BACKUP_IMAGE, g_slothdr);
     if(ret<0){
       DPRINTF("sample_data_init: Backup slot not found!\n");
     }
@@ -87,21 +91,6 @@ void sample_data_init() {
     g_vendorTlv[idx].value.len = VENDOR_MAX_DATA_LEN;
     memset(g_vendorTlv[idx].value.data, idx+1, VENDOR_MAX_DATA_LEN);
   }
-}
-/**
- * @brief   This function re-initializes the application variables, reboots the app and re-registers the agent with NMS
- * @return  void
- */
-void sample_app_reboot() {
-  bool ret = false;
-  g_reboot_request = true;
-  sample_data_init();
-  ret = csmp_service_reboot(&g_devconfig);
-  if(ret == true)
-    printf("\n\nCSMP-Agent service reboot: success!\nService registration in progress...\n\n");
-  else
-    printf("CSMP-Agent service reboot: failed!\\n");
-  g_reboot_request = false;
 }
 
 

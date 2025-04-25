@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Cisco Systems, Inc.
+ *  Copyright 2021-2025 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ typedef enum {
   UPTIME_ID = 22,         /**< up time */
   INTERFACE_METRICS_ID = 23,  /**< interface metrics info */
   IPROUTE_RPLMETRICS_ID = 25, /**< ip route rpl info */
+  REBOOT_REQUEST_ID = 32, /**< reboot request */
   WPANSTATUS_ID = 35,       /**< wan status info */
   NEIGHBOR802154_G_ID = 52, /**< neighbor info */
   RPLINSTANCE_ID = 53,    /**< rpl instance info */
@@ -217,7 +218,7 @@ bool csmp_service_stop();
  * @return true
  * @return false
  */
-bool csmp_service_reboot(dev_config_t *devconfig);
+bool csmp_service_reboot(struct in6_addr *NMSaddr);
 
 /**
  * @brief externally defined stats
