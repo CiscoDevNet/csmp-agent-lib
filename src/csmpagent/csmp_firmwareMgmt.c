@@ -142,7 +142,7 @@ int csmp_put_transferRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
     const uint8_t *pbuf = buf;
     size_t rv;
     int used = 0;
-    uint8_t filehash_data[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE] = {0};
+    uint8_t filehash_data[SHA256_HASH_SIZE] = {0};
 
     TransferRequest *TransferRequestMsg = NULL;
     TransferResponse TransferResponseMsg = TRANSFER_RESPONSE__INIT;
@@ -208,7 +208,7 @@ int csmp_put_transferRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
     }
     if (TransferRequestMsg->file_name_present_case) {
         xfer_req.has_filename = true;
-        strncpy(xfer_req.filename, TransferRequestMsg->filename, OSAL_CSMP_SLOTHDR_FILE_NAME_SIZE);
+        strncpy(xfer_req.filename, TransferRequestMsg->filename, FILE_NAME_SIZE);
     }
     if (TransferRequestMsg->version_present_case) {
         xfer_req.has_version = true;
@@ -336,7 +336,6 @@ int csmp_put_imageBlock(tlvid_t tlvid, const uint8_t *buf, size_t len,
                      &image_block__descriptor);
   if (rv == 0) {
     DPRINTF("csmpagent_firmwaremgmt: csmptlv %d read error!\n", tlvid.type);
-    csmptlv_free(CurrentBlkMsg);
     return CSMP_OP_TLV_RD_ERROR;
   }
 
@@ -386,7 +385,6 @@ done:
   pbuf += rv; used += rv;
   DPRINTF("g_downloadbusy(after)=%d\n", g_downloadbusy);
   DPRINTF("** csmpagent_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
-  csmptlv_free(CurrentBlkMsg);
   return used;
 }
 
@@ -425,7 +423,7 @@ int csmp_get_loadRequest(tlvid_t tlvid, uint8_t *buf, size_t len,
   DPRINTF("loadtime=%u\n", lrc->loadtime);
 
   LoadRequestMsg.file_hash_present_case = LOAD_REQUEST__FILE_HASH_PRESENT_FILE_HASH;
-  LoadRequestMsg.filehash.len = OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE;
+  LoadRequestMsg.filehash.len = SHA256_HASH_SIZE;
   LoadRequestMsg.filehash.data = lrc->filehash.data;
   LoadRequestMsg.load_time_present_case = LOAD_REQUEST__LOAD_TIME_PRESENT_LOAD_TIME;
   LoadRequestMsg.loadtime = lrc->loadtime;
@@ -454,7 +452,7 @@ int csmp_put_loadRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
   const uint8_t *pbuf = buf;
   size_t rv;
   int used = 0;
-  uint8_t filehash_data[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE]={0};
+  uint8_t filehash_data[SHA256_HASH_SIZE]={0};
   LoadRequest *LoadRequestMsg = NULL;
   LoadResponse LoadResponseMsg = LOAD_RESPONSE__INIT;
   Load_Request lrc = LOAD_REQUEST_INIT;
@@ -488,7 +486,7 @@ int csmp_put_loadRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
           LoadRequestMsg->loadtime : 0);
 
   if ((!LoadRequestMsg->file_hash_present_case) ||
-      (LoadRequestMsg->filehash.len != OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE)
+      (LoadRequestMsg->filehash.len != SHA256_HASH_SIZE)
      ) {
     LoadResponseMsg.response = RESPONSE_INVALID_REQ;
     goto respond;
@@ -551,7 +549,7 @@ int csmp_put_cancelLoadRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
   const uint8_t *pbuf = buf;
   size_t rv;
   int used = 0;
-  uint8_t filehash_data[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE] = {0};
+  uint8_t filehash_data[SHA256_HASH_SIZE] = {0};
   CancelLoadRequest *XLoadRequestMsg = NULL;
   CancelLoadResponse XLoadResponseMsg = CANCEL_LOAD_RESPONSE__INIT;
   Cancel_Load_Request clrc = CANCEL_LOAD_REQUEST_INIT;
@@ -589,7 +587,7 @@ int csmp_put_cancelLoadRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
   }
 
   if (XLoadRequestMsg->file_hash_present_case &&
-      (XLoadRequestMsg->filehash.len != OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE)) {
+      (XLoadRequestMsg->filehash.len != SHA256_HASH_SIZE)) {
     DPRINTF("csmpagent_firmwaremgmt: Received invalid cancel load request.\n");
     XLoadResponseMsg.response = RESPONSE_INVALID_REQ;
     goto respond;
@@ -646,7 +644,7 @@ int csmp_put_setBackupRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
     const uint8_t *pbuf = buf;
     size_t rv;
     int used = 0;
-    uint8_t filehash_data[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE] = {0};
+    uint8_t filehash_data[SHA256_HASH_SIZE] = {0};
     SetBackupRequest *SetBackupRequestMsg = NULL;
     SetBackupResponse SetBackupResponseMsg = SET_BACKUP_RESPONSE__INIT;
     Set_Backup_Request sbrc = SET_BACKUP_REQUEST_INIT;
@@ -678,7 +676,7 @@ int csmp_put_setBackupRequest(tlvid_t tlvid, const uint8_t *buf, size_t len,
             SetBackupRequestMsg->filehash.data[19]);
 
     if ((!SetBackupRequestMsg->file_hash_present_case) || 
-        (SetBackupRequestMsg->filehash.len != OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE)
+        (SetBackupRequestMsg->filehash.len != SHA256_HASH_SIZE)
        ) {
         SetBackupResponseMsg.response = RESPONSE_INVALID_REQ;
         DPRINTF("csmpagent_firmwaremgmt: Received invalid set backup request.\n");
@@ -742,7 +740,7 @@ int csmp_get_firmwareImageInfo(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t 
   uint32_t num;
   int idx = (tlvindex > 0) ? (tlvindex - 1) : 0;
 
-  //Firmware_Image_Info fii[OSAL_CSMP_FWMGMT_ACTIVE_SLOTS] = {FIRMWARE_IMAGE_INFO_INIT};
+  //Firmware_Image_Info fii[CSMP_FWMGMT_ACTIVE_SLOTS] = {FIRMWARE_IMAGE_INFO_INIT};
   Firmware_Image_Info *fii = NULL;
 
   fii = g_csmptlvs_get(tlvid, &num);
@@ -857,7 +855,7 @@ int csmp_get_firmwareImageInfo(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t 
       DPRINTF("csmpagent_firmwaremgmt: Firmware Image Info tlvindex > 0\n");
       break;
     }
-    if (idx >= OSAL_CSMP_FWMGMT_ACTIVE_SLOTS) {
+    if (idx >= CSMP_FWMGMT_ACTIVE_SLOTS) {
       DPRINTF("csmpagent_firmwaremgmt: Firmware Image Info slotid >= max active slots\n");
       break;
     }

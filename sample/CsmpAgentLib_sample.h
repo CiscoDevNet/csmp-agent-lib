@@ -117,10 +117,10 @@ enum {
 #define CSMP_AGENT_REG_INTERVAL_MAX   100U
 
 /** \brief EUI64 Address of the Agent*/
-#define CSMP_AGENT_EUI64_ADDRESS      "00173bab001003ff"
+#define CSMP_AGENT_EUI64_ADDRESS      "00173bab00100302"
 
 /** \brief NMS Address*/
-#define CSMP_AGENT_NMS_ADDRESS        "fd12:3456::2"
+#define CSMP_AGENT_NMS_ADDRESS        "fd12:3456::e119:7a97:d047:fe1a"
 
 /** \brief Enable/Disable Signature Settings*/
 // #define CSMP_AGENT_SIGNATURE_SETTINGS 1
@@ -190,7 +190,7 @@ extern Cancel_Load_Request g_cancelLoadRequest;
 extern Set_Backup_Request setBackupRequest;
 
 /** \brief the firmware info data */
-extern Firmware_Image_Info g_firmwareImageInfo[OSAL_CSMP_FWMGMT_ACTIVE_SLOTS];
+extern Firmware_Image_Info g_firmwareImageInfo[CSMP_FWMGMT_ACTIVE_SLOTS];
 
 /** \brief the signature settings data */
 extern Signature_Settings g_SignatureSettings;
@@ -199,7 +199,7 @@ extern Signature_Settings g_SignatureSettings;
 extern Vendor_Tlv g_vendorTlv[VENDOR_MAX_SUBTYPES];
 
 /** \brief Csmp Slot Header Array for the 3 FW slots */
-extern osal_csmp_slothdr_t g_slothdr[OSAL_CSMP_FWMGMT_ACTIVE_SLOTS];
+extern Csmp_Slothdr g_slothdr[CSMP_FWMGMT_ACTIVE_SLOTS];
 
 /** \brief Flag to track ongoing reboot request */
 extern bool g_reboot_request;

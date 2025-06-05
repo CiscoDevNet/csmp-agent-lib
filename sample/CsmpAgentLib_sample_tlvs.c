@@ -14,7 +14,6 @@
  *  limitations under the License.
  */
 
-#include <inttypes.h>
 #include "CsmpAgentLib_sample_tlvs.h"
 
 
@@ -59,7 +58,7 @@ void* csmptlvs_get(tlvid_t tlvid, uint32_t *num) {
       return vendorTlv_get(tlvid, num);
 
     default:
-      printf("sample_get: GET un-supported for TLV: %" PRIuLEAST32 ".%" PRIuLEAST32 "\n", tlvid.vendor, tlvid.type);
+      printf("sample_get: GET un-supported for TLV: %u.%u\n", tlvid.vendor, tlvid.type);
       break;
     }
   return NULL;
@@ -77,20 +76,15 @@ void csmptlvs_post(tlvid_t tlvid, void *tlv) {
       currenttime_post((Current_Time*)tlv);
       break;
     case TRANSFER_REQUEST_ID:
-      transferRequest_post(tlvid, (Transfer_Request*)tlv);
-      break;
+      return transferRequest_post(tlvid, (Transfer_Request*)tlv);
     case IMAGE_BLOCK_ID:
-      imageBlock_post(tlvid, (Image_Block*)tlv);
-      break;
+      return imageBlock_post(tlvid, (Image_Block*)tlv);
     case LOAD_REQUEST_ID:
-      loadRequest_post(tlvid, (Load_Request*)tlv);
-      break;
+      return loadRequest_post(tlvid, (Load_Request*)tlv);
     case CANCEL_LOAD_REQUEST_ID:
-      cancelLoadRequest_post(tlvid, (Cancel_Load_Request*)tlv);
-      break;
+      return cancelLoadRequest_post(tlvid, (Cancel_Load_Request*)tlv);
     case SET_BACKUP_REQUEST_ID:
-      setBackupRequest_post(tlvid, (Set_Backup_Request*)tlv);
-      break;
+      return setBackupRequest_post(tlvid, (Set_Backup_Request*)tlv);
     case SIGNATURE_SETTINGS_ID:
       signature_settings_post((Signature_Settings*)tlv);
       break;
@@ -102,7 +96,7 @@ void csmptlvs_post(tlvid_t tlvid, void *tlv) {
       break;
 
     default:
-      printf("sample_post: POST un-supported for TLV: %" PRIuLEAST32 ".%" PRIuLEAST32 "\n", tlvid.vendor, tlvid.type);
+      printf("sample_post: POST un-supported for TLV: %u.%u\n", tlvid.vendor, tlvid.type);
       break;
     }
 }
