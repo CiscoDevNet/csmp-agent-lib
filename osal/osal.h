@@ -27,25 +27,13 @@
 #define OSAL_FAILURE -1
 
 // SIZES
-#define OSAL_CSMP_SLOTHDR_SHA1_HASH_SIZE        20
-#define OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE      32
-#define OSAL_CSMP_SLOTHDR_FILE_NAME_SIZE        128
-#define OSAL_CSMP_SLOTHDR_VERSION_SIZE          32
-#define OSAL_CSMP_SLOTHDR_BITMAP_SIZE           32
-#define OSAL_CSMP_SLOTHDR_HWID_SIZE             32
-#define OSAL_CSMP_SLOTHDR_BLOCK_SIZE            1024
-
-// IMAGE SLOT INFO
-#define OSAL_CSMP_FWMGMT_ACTIVE_SLOTS           3   // 0-RUN, 1-UPLOAD, 2-BACKUP
-
-#if defined(OSAL_EFR32_WISUN)
-#define OSAL_CSMP_FWMGMT_SLOTIMG_SIZE      (512*1024) // 512KB
-#else
-#define OSAL_CSMP_FWMGMT_SLOTIMG_SIZE      (30*1024) // 30KB
-#endif
-
-#define OSAL_CSMP_FWMGMT_BLKMAP_CNT        (32)
-
+#define SHA1_HASH_SIZE        20
+#define SHA256_HASH_SIZE      32
+#define FILE_NAME_SIZE        128
+#define VERSION_SIZE          32
+#define BITMAP_SIZE           32
+#define HWID_SIZE             32
+#define BLOCK_SIZE            1024
 
 // IMAGE SLOT INFO
 #define CSMP_FWMGMT_ACTIVE_SLOTS      3          // 0-RUN, 1-UPLOAD, 2-BACKUP
@@ -111,31 +99,6 @@ typedef struct _Csmp_Slothdr Csmp_Slothdr;               /**< firmware image slo
 #define CSMP_SLOTHDR_INIT \
   {{0}, {0}, {0}, {0}, 0, 0, 0, 0, 0, 0, 0, {0}, \
     0, 0}
-
-// Image slot header
-typedef struct _Csmp_Slothdr
-{
-  uint8_t filehash[OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE];
-  char filename[OSAL_CSMP_SLOTHDR_FILE_NAME_SIZE];
-  char version[OSAL_CSMP_SLOTHDR_VERSION_SIZE];
-  char hwid[OSAL_CSMP_SLOTHDR_HWID_SIZE];
-  uint32_t filesize;
-  uint32_t filesizelastblk;
-  uint32_t blockcnt;
-  uint32_t blocksize;
-  uint32_t reportintervalmin;
-  uint32_t reportintervalmax;
-  uint32_t status; // Boolean zero if image is complete
-  uint32_t nblkmap[OSAL_CSMP_FWMGMT_BLKMAP_CNT]; // Inverted block completion map
-  uint32_t magicU;
-  uint32_t magicL;
-  // Image
-  // The image allocation is not required for EF32 Wisun platform
-#if !defined(OSAL_EFR32_WISUN)
-  uint8_t image[OSAL_CSMP_FWMGMT_SLOTIMG_SIZE];
-#endif
-} osal_csmp_slothdr_t;
-
 
 typedef void (*trickle_timer_fired_t) ();
 
@@ -634,25 +597,9 @@ void osal_sleep_ms(uint64_t ms);
 osal_basetype_t osal_system_reboot(struct in6_addr *NMSaddr);
 
 /****************************************************************************
+ * @fn   osal_read_firmware
  *
- * @brief read firmware image slot header from storage(file/flash)
- *        Linux implementation of slot header may includes the storage allocation.
- *
- * input parameters
- *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
- *  @param[in] data pointer to uint8_t data array
- *  @param[in] size of data in bytes
- *
- * output parameters
- * @return returns 0 on success and -1 on error
- *****************************************************************************/
-osal_basetype_t osal_read_firmware_slothdr(osal_slotid_t slotid, osal_csmp_slothdr_t *slot);
-
-/****************************************************************************
- * @fn   osal_write_firmware_slothdr
- *
- * @brief write firmware image slot header to storage(file/flash)
- *        Linux implementation of slot header may includes the storage allocation.
+ * @brief read firmware image from storage(file/flash)
  *
  * input parameters
  *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
@@ -662,66 +609,38 @@ osal_basetype_t osal_read_firmware_slothdr(osal_slotid_t slotid, osal_csmp_sloth
  * output parameters
  * @return returns 0 on success and -1 on error
  *****************************************************************************/
-osal_basetype_t osal_write_firmware_slothdr(osal_slotid_t slotid, osal_csmp_slothdr_t *slot);
+osal_basetype_t osal_read_firmware(uint8_t slotid, uint8_t *data, uint32_t size);
 
 /****************************************************************************
- * @fn   osal_write_storage
- * @brief write data to the storage
- *  @param[in] slotid slot id
- *  @param[in] slot slot structure
- *  @param[in] offset offset to write
- *  @param[in] data data to write
- *  @param[in] len length of data
- * @return returns 0 on success and -1 on error
- *****************************************************************************/
-osal_basetype_t osal_write_storage(osal_slotid_t slotid, 
-                                   osal_csmp_slothdr_t *slot, 
-                                   uint32_t offset, 
-                                   uint8_t *data, 
-                                   uint32_t len);
-
-
-/****************************************************************************
- * @fn osal_erase_storage
+ * @fn   osal_write_firmware
  *
- * @brief Erase storage.
- *
- *  @param[in] slotid Slot ID.
- *  @param[in] slot Pointer to slot structure.
- *
- * @return Returns 0 on success and -1 on error.
- *****************************************************************************/
-osal_basetype_t osal_erase_storaqe(osal_slotid_t slotid, osal_csmp_slothdr_t *slot);
-
-/****************************************************************************
- * @fn   osal_deploy_and_reboot_firmware
- *
- * @brief write the selected firmware image to the internal storage(file/flash) 
- *        and perform bootload operation
+ * @brief write firmware image to storage(file/flash)
  *
  * input parameters
  *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
- *  @param[in,out] slot to _Csmp_Slothdr slot structure
+ *  @param[in] data pointer to uint8_t data array
+ *  @param[in] size of data in bytes
+ *
  * output parameters
  * @return returns 0 on success and -1 on error
  *****************************************************************************/
-osal_basetype_t osal_deploy_and_reboot_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *slot);
+osal_basetype_t osal_write_firmware(uint8_t slotid, uint8_t *data, uint32_t size);
 
 /****************************************************************************
- * @fn osal_copy_firmware_slot
- * @brief copy firmware image from source slot to destination slot
+ * @fn   osal_read_slothdr
+ *
+ * @brief read firmware slot header data from storage(file/flash)
+ *
  * input parameters
- *  @param[in] slotid indicating destination slot id
- *  @param[in] dst_slot destination slot
- *  @param[in] slotid indicating source slot id
- *  @param[in] src_slot source slot
+ *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
+ *  @param[in] slot pointer to _Csmp_Slothdr slot structure
+ *
  * output parameters
  * @return returns 0 on success and -1 on error
  *****************************************************************************/
-osal_basetype_t osal_copy_firmware_slot(osal_slotid_t dst_slotid, 
-                                        osal_csmp_slothdr_t *dst_slot,
-                                        osal_slotid_t src_slotid,  
-                                        osal_csmp_slothdr_t *src_slot);
+osal_basetype_t osal_read_slothdr(uint8_t slotid, Csmp_Slothdr* slot);
+
+/****************************************************************************
  * @fn   osal_write_slothdr
  *
  * @brief write firmware slot header data to storage(file/flash)
@@ -736,16 +655,14 @@ osal_basetype_t osal_copy_firmware_slot(osal_slotid_t dst_slotid,
 osal_basetype_t osal_write_slothdr(uint8_t slotid, Csmp_Slothdr* slot);
 
 /****************************************************************************
- * @fn   osal_copy_firmware
- *
- * @brief Copy firmware image and slot header data from source to dest slot
- *
+ * @fn osal_copy_firmware_slot
+ * @brief copy firmware image from source slot to destination slot
  * input parameters
- *  @param[in] source_slotid and dest_slotid indicating RUN/UPLOAD/BACKUP slot
- *  @param[in] pointer to _Csmp_Slothdr slot structure
- *
+ *  @param[in]  dest_slot_id indicating destination slot id
+ *  @param[in] source_slotid indicating source slot id
+ *  @param[in] slots Array of _Csmp_Slothdr slot structures
  * output parameters
  * @return returns 0 on success and -1 on error
  *****************************************************************************/
-osal_basetype_t osal_copy_firmware(uint8_t source_slotid, uint8_t dest_slotid, Csmp_Slothdr *slot);
+osal_basetype_t osal_copy_firmware(uint8_t source_slotid, uint8_t dest_slotid, Csmp_Slothdr *slots);
 #endif

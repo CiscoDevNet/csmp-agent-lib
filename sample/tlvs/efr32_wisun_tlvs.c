@@ -26,6 +26,7 @@
 #include "signature_verify.h"
 #include "osal.h"
 #include "sl_wisun_app_core.h"
+#include "btl_interface.h"
 #include "../../src/lib/debug.h"
 
 #define nexthop_IP "fe80::a00:27ff:fe3b:2ab1"
@@ -685,7 +686,7 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
   g_initxfer = false;
   
   DPRINTF("Erasing 'UPLOAD' storage slot...\n");
-  assert(osal_erase_storaqe(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) == OSAL_SUCCESS);
+  assert(bootloader_eraseStorageSlot(GECKO_BTL_UPLOAD_SLOT_ID) == BOOTLOADER_OK);
 
   DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
@@ -787,7 +788,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       DPRINTF("sample_firmwaremgmt: Image block transfer complete, filehash matched!\n");
       g_slothdr[UPLOAD_IMAGE].status = FWHDR_STATUS_COMPLETE;
       g_downloadbusy = false;
-      if (osal_write_firmware_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) < 0)
+      if (osal_write_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) < 0)
         DPRINTF("sample_firmwaremgmt: Failed to write upload image to the nvm3\n");
       else
         printf("sample_firmwaremgmt: Sucessfully wrote upload image to the nvm3\n");
@@ -800,7 +801,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
         DPRINTF("sample_firmwaremgmt: Valid image block %lu write offset=%lu\n",
           g_imageBlock.blocknum, offset);
           
-      osal_basetype_t ret = OSAL_FAILURE;
+      int32_t ret = 0L;
       uint32_t gecko_btl_slot_offset = offset;
       uint32_t gecko_btl_chunk_size = g_imageBlock.blockdata.len;
       uint8_t *gecko_btl_data_ptr = g_imageBlock.blockdata.data;
@@ -819,10 +820,9 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
         
       }
 
-      ret = osal_write_storage(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE], 
-                               gecko_btl_slot_offset, gecko_btl_data_ptr, gecko_btl_chunk_size);
+      ret = bootloader_writeStorage(GECKO_BTL_UPLOAD_SLOT_ID, gecko_btl_slot_offset, gecko_btl_data_ptr, gecko_btl_chunk_size);
 
-      if (ret != OSAL_SUCCESS) {
+      if (ret != BOOTLOADER_OK) {
         DPRINTF("sample_firmwaremgmt: Failed to write image block %lu to slot\n",
                 g_imageBlock.blocknum);
         tlv->retval = false;
@@ -832,7 +832,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
 
       // Store the header after each 10 blocks
       if (g_imageBlock.blocknum && !(g_imageBlock.blocknum % 10)) {
-        if (osal_write_firmware_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) < 0)
+        if (osal_write_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) < 0)
           DPRINTF("sample_firmwaremgmt: Failed to write upload image to the nvm3 (block %lu)\n", g_imageBlock.blocknum);
         else
           printf("sample_firmwaremgmt: Sucessfully wrote upload image to the nvm3 (block %lu)\n", g_imageBlock.blocknum);
@@ -906,7 +906,7 @@ void loadreq_timer_fired() {
 
   memcpy(&g_slothdr[RUN_IMAGE], &g_slothdr[g_curloadslot],
          sizeof(g_slothdr[RUN_IMAGE]));
-  osal_write_firmware_slothdr(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
+  osal_write_slothdr(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
   osal_trickle_timer_stop(lrq_timer);
   assert(osal_deploy_and_reboot_firmware(g_curloadslot, &g_slothdr[g_curloadslot]) == OSAL_SUCCESS);
 }
@@ -1148,7 +1148,7 @@ void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv) {
       tlv->response = RESPONSE_INVALID_REQ;
       return;
   }
-  osal_write_firmware_slothdr(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
+  osal_write_slothdr(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
   g_curbackupslot = 0xFFU;
 
   DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);

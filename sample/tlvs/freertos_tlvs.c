@@ -593,14 +593,14 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
     return;
   }
   // Check filehash len
-  if (tlv->filehash.len != OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE) {
+  if (tlv->filehash.len != SHA256_HASH_SIZE) {
     tlv->response = RESPONSE_INVALID_REQ;
     DPRINTF("sample_firmwaremgmt: Invalid filehash size: %lu\n", tlv->filehash.len);
     return;
   }
   // Check filesize
   if (tlv->filesize == 0 ||
-      tlv->filesize > OSAL_CSMP_FWMGMT_SLOTIMG_SIZE) {
+      tlv->filesize > CSMP_FWMGMT_SLOTIMG_SIZE) {
     tlv->response = RESPONSE_FILE_SIZE_TOO_BIG;
         DPRINTF("sample_firmwaremgmt: Invalid file size: %u\n", tlv->filesize);
     return;
@@ -608,8 +608,8 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
   // blocksize should be smaller than csmp's MTU (1024)
   // blocksize should be larger than filesize/1024 since there is only 1024 bitmaps
   if (tlv->blocksize == 0 ||
-      tlv->blocksize > OSAL_CSMP_SLOTHDR_BLOCK_SIZE ||
-      tlv->blocksize < tlv->filesize/(OSAL_CSMP_FWMGMT_BLKMAP_CNT * 32)) {
+      tlv->blocksize > BLOCK_SIZE ||
+      tlv->blocksize < tlv->filesize/(CSMP_FWMGMT_BLKMAP_CNT * 32)) {
     tlv->response = RESPONSE_INVALID_BLOCK_SIZE;
     DPRINTF("sample_firmwaremgmt: Invalid block size: %u\n", tlv->blocksize);
     return;
@@ -656,7 +656,7 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
   memset(&g_slothdr[UPLOAD_IMAGE], 0xFF, sizeof(g_slothdr[UPLOAD_IMAGE]));
 
   // Init upload slot from tlv context
-  memcpy(g_slothdr[UPLOAD_IMAGE].filehash, tlv->filehash.data, OSAL_CSMP_SLOTHDR_SHA256_HASH_SIZE);
+  memcpy(g_slothdr[UPLOAD_IMAGE].filehash, tlv->filehash.data, SHA256_HASH_SIZE);
   strncpy(g_slothdr[UPLOAD_IMAGE].filename, tlv->filename, sizeof(g_slothdr[UPLOAD_IMAGE].filename));
   strncpy(g_slothdr[UPLOAD_IMAGE].version, tlv->version, sizeof(g_slothdr[UPLOAD_IMAGE].version));
   strncpy(g_slothdr[UPLOAD_IMAGE].hwid, tlv->hwinfo.hwid, sizeof(g_slothdr[UPLOAD_IMAGE].hwid));
@@ -679,9 +679,6 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
   // Initiliase new transfer - done
   g_initxfer = false;
 
-  DPRINTF("Erasing 'UPLOAD' storage slot...\n");
-  assert(osal_erase_storaqe(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) == OSAL_SUCCESS);
-  
   DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
 }
 
@@ -731,7 +728,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       return;
     }
     // Check blocknum exceeds bitmap
-    if (word >= OSAL_CSMP_FWMGMT_BLKMAP_CNT) {
+    if (word >= CSMP_FWMGMT_BLKMAP_CNT) {
       DPRINTF("sample_firmwaremgmt: Image block %u exceeds bitmap length\n",
              g_imageBlock.blocknum);
       g_downloadbusy = false;
@@ -757,7 +754,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       uint32_t last_mapval;
 
       blk_whole_cnt = g_slothdr[UPLOAD_IMAGE].blockcnt & ~0x1F;
-      while ((blk_i < (OSAL_CSMP_FWMGMT_BLKMAP_CNT - 1)) &&
+      while ((blk_i < (CSMP_FWMGMT_BLKMAP_CNT - 1)) &&
             (blk_j < blk_whole_cnt)) {
         if (g_slothdr[UPLOAD_IMAGE].nblkmap[blk_i] != 0) {
           DPRINTF("sample_firmwaremgmt: Image block transfer still not complete\n");
@@ -781,33 +778,29 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       // Set slot status as complete else bad image
       DPRINTF("sample_firmwaremgmt: Image block transfer complete, filehash matched!\n");
       g_slothdr[UPLOAD_IMAGE].status = FWHDR_STATUS_COMPLETE;
+      fclose(upload_slot);
+      upload_slot = NULL;
       g_downloadbusy = false;
-      if (osal_write_firmware_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) < 0)
-        DPRINTF("sample_firmwaremgmt: Failed to write upload image to file\n");
-      else
-        printf("sample_firmwaremgmt: Sucessfully wrote upload image to file\n");
-
+      osal_write_slothdr(UPLOAD_IMAGE, g_slothdr);
       return;
     }
-
-    osal_basetype_t ret = OSAL_FAILURE;
-    
+    if(upload_slot == NULL){
+      upload_slot = fopen("opencsmp-upload-slot.bin", "wb");
+    }
     // Write image block to slot at valid offset
-    if (offset < OSAL_CSMP_FWMGMT_SLOTIMG_SIZE &&
-       ((offset + g_imageBlock.blockdata.len) < OSAL_CSMP_FWMGMT_SLOTIMG_SIZE)) {
+    if (offset < CSMP_FWMGMT_SLOTIMG_SIZE &&
+       ((offset + g_imageBlock.blockdata.len) < CSMP_FWMGMT_SLOTIMG_SIZE)) {
       DPRINTF("sample_firmwaremgmt: Valid image block %u write offset=%u\n",
              g_imageBlock.blocknum, offset);
-      
-      ret = osal_write_storage(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE], 
-                               offset, g_imageBlock.blockdata.data, g_imageBlock.blockdata.len);
-      if (ret != OSAL_SUCCESS) {
-       DPRINTF("sample_firmwaremgmt: Failed to write image block %u to slot\n",
-               g_imageBlock.blocknum);
-       tlv->retval = false;
-       g_downloadbusy = false;
-       return;
+      if(upload_slot != NULL){
+        fseek(upload_slot, offset, SEEK_SET);
+        fwrite(g_imageBlock.blockdata.data, 1, g_imageBlock.blockdata.len, upload_slot);
+        fflush(upload_slot);
+        osal_write_slothdr(UPLOAD_IMAGE, g_slothdr);
       }
-      
+      else{
+        printf("image block write to file failed!");
+      }
       mapval ^= (1 << bit);
       g_slothdr[UPLOAD_IMAGE].nblkmap[word] = mapval;
 
@@ -876,7 +869,7 @@ void loadreq_timer_fired() {
   memcpy(&g_slothdr[RUN_IMAGE], &g_slothdr[g_curloadslot],
          sizeof(g_slothdr[RUN_IMAGE]));
   DPRINTF("loadreq_timer: Writing Run Slot to disk\n");
-  osal_write_firmware_slothdr(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
+  osal_write_slothdr(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
   assert(osal_deploy_and_reboot_firmware(g_curloadslot, &g_slothdr[g_curloadslot]) == OSAL_SUCCESS);
   g_curloadslot=0xFF;
   g_curloadtime=0;
@@ -1120,7 +1113,7 @@ void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv) {
       tlv->response = RESPONSE_INVALID_REQ;
       return;
   }
-  osal_write_firmware_slothdr(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
+  osal_write_slothdr(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
   g_curbackupslot = 0xFFU;
 
   DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
