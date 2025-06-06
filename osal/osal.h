@@ -37,7 +37,11 @@
 
 // IMAGE SLOT INFO
 #define CSMP_FWMGMT_ACTIVE_SLOTS      3          // 0-RUN, 1-UPLOAD, 2-BACKUP
+#if defined(OSAL_EFR32_WISUN)
+#define CSMP_FWMGMT_SLOTIMG_SIZE      (512*1024)  // ~512 Kb
+#else
 #define CSMP_FWMGMT_SLOTIMG_SIZE      (30*1024)  // ~30 Kb
+#endif
 #define CSMP_FWMGMT_BLKMAP_CNT        (32)
 
 #define REBOOT_DELAY 5
@@ -596,6 +600,9 @@ void osal_sleep_ms(uint64_t ms);
  *****************************************************************************/
 osal_basetype_t osal_system_reboot(struct in6_addr *NMSaddr);
 
+
+osal_basetype_t osal_deploy_and_reboot_firmware(uint8_t slotid, Csmp_Slothdr *slot);
+
 /****************************************************************************
  * @fn   osal_read_firmware
  *
@@ -655,11 +662,11 @@ osal_basetype_t osal_read_slothdr(uint8_t slotid, Csmp_Slothdr* slot);
 osal_basetype_t osal_write_slothdr(uint8_t slotid, Csmp_Slothdr* slot);
 
 /****************************************************************************
- * @fn osal_copy_firmware_slot
+ * @fn osal_copy_firmware
  * @brief copy firmware image from source slot to destination slot
  * input parameters
- *  @param[in]  dest_slot_id indicating destination slot id
  *  @param[in] source_slotid indicating source slot id
+ *  @param[in]  dest_slot_id indicating destination slot id
  *  @param[in] slots Array of _Csmp_Slothdr slot structures
  * output parameters
  * @return returns 0 on success and -1 on error

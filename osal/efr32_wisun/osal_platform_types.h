@@ -32,6 +32,7 @@
 #include "sl_memory_manager.h"
 #include "sl_sleeptimer.h"
 #include "sl_wisun_ntp_timesync_config.h"
+#include "../../src/lib/debug.h"
 
 typedef void (*osal_sighandler_t)(int);
 

@@ -15,7 +15,7 @@
  */
 
 #include "CsmpAgentLib_sample_tlvs.h"
-
+#include <inttypes.h>
 
 /**
  * @brief csmp get TLV request
@@ -58,7 +58,7 @@ void* csmptlvs_get(tlvid_t tlvid, uint32_t *num) {
       return vendorTlv_get(tlvid, num);
 
     default:
-      printf("sample_get: GET un-supported for TLV: %u.%u\n", tlvid.vendor, tlvid.type);
+      printf("sample_get: GET un-supported for TLV: %"PRIuLEAST32".%"PRIuLEAST32"\n", tlvid.vendor, tlvid.type);
       break;
     }
   return NULL;
@@ -96,7 +96,7 @@ void csmptlvs_post(tlvid_t tlvid, void *tlv) {
       break;
 
     default:
-      printf("sample_post: POST un-supported for TLV: %u.%u\n", tlvid.vendor, tlvid.type);
+      printf("sample_post: POST un-supported for TLV: %"PRIuLEAST32".%"PRIuLEAST32"\n", tlvid.vendor, tlvid.type);
       break;
     }
 }

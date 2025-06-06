@@ -80,6 +80,7 @@ void sample_data_init() {
     }
   #else // Platforms other than linux cuurenlty do not support image read/write to disk function,
         // run-slot will be initialized with default values during boot-up
+      (void) ret; // Avoid unused variable warning
       if(!g_reboot_request)
         memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
   #endif

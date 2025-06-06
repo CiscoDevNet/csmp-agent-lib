@@ -446,7 +446,7 @@ static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2)
   osal_alarm_fired(NULL);
 }
 
-osal_basetype_t osal_read_slothdr(osal_slotid_t slotid, osal_csmp_slothdr_t *slot) {
+osal_basetype_t osal_read_slothdr(osal_slotid_t slotid, Csmp_Slothdr *slot) {
   FILE *file = NULL;
 
   if (slot == NULL) {
@@ -472,13 +472,13 @@ osal_basetype_t osal_read_slothdr(osal_slotid_t slotid, osal_csmp_slothdr_t *slo
       printf("read_firmware: Failed to read firmware slot-id: %u\n", slotid);
       return OSAL_FAILURE;
   }
-  fread((uint8_t*) slot, sizeof(osal_csmp_slothdr_t), 1, file);
+  fread((uint8_t*) slot, sizeof(Csmp_Slothdr), 1, file);
   fclose(file);
 
   return OSAL_SUCCESS;
 }
 
-osal_basetype_t osal_write_slothdr(osal_slotid_t slotid, osal_csmp_slothdr_t *slot) {
+osal_basetype_t osal_write_slothdr(osal_slotid_t slotid, Csmp_Slothdr *slot) {
   FILE *file = NULL;
   size_t bytes = 0;
 
@@ -517,7 +517,7 @@ osal_basetype_t osal_write_slothdr(osal_slotid_t slotid, osal_csmp_slothdr_t *sl
       return OSAL_FAILURE;
   }
   // Write CSMP header + firmware to persist slot data across agent reboot
-  bytes = fwrite((uint8_t*) slot, sizeof(uint8_t), sizeof(osal_csmp_slothdr_t), file);
+  bytes = fwrite((uint8_t*) slot, sizeof(uint8_t), sizeof(Csmp_Slothdr), file);
   DPRINTF("write_firmware: Wrote %ld bytes to slot-id: %u\n", bytes, slotid);
   fclose(file);
 
@@ -525,7 +525,7 @@ osal_basetype_t osal_write_slothdr(osal_slotid_t slotid, osal_csmp_slothdr_t *sl
 }
 
 osal_basetype_t osal_write_storage(osal_slotid_t slotid, 
-  osal_csmp_slothdr_t *slot, 
+  Csmp_Slothdr *slot, 
   uint32_t offset, 
   uint8_t *data, 
   uint32_t len)
@@ -540,7 +540,7 @@ osal_basetype_t osal_write_storage(osal_slotid_t slotid,
   return OSAL_SUCCESS;
 }
 
-osal_basetype_t osal_deploy_and_reboot_firmware(osal_slotid_t slotid, osal_csmp_slothdr_t *slot)
+osal_basetype_t osal_deploy_and_reboot_firmware(osal_slotid_t slotid, Csmp_Slothdr *slot)
 {
   (void) slotid;
   (void) slot;
@@ -548,7 +548,7 @@ osal_basetype_t osal_deploy_and_reboot_firmware(osal_slotid_t slotid, osal_csmp_
 }
 
 
-osal_basetype_t osal_copy_firmware(uint8_t source_slotid, uint8_t dest_slotid, osal_csmp_slothdr_t *slots){
+osal_basetype_t osal_copy_firmware(uint8_t source_slotid, uint8_t dest_slotid, Csmp_Slothdr *slots){
 
   FILE *source_fw = NULL, *dest_fw = NULL;
   uint8_t buff[1024] = {0};
@@ -604,7 +604,7 @@ osal_basetype_t osal_copy_firmware(uint8_t source_slotid, uint8_t dest_slotid, o
   fclose(source_fw);
   fclose(dest_fw);
   DPRINTF("osal_copy_firmware: Copied Firmware Successfully\n");
-  memcpy(&(slots[dest_slotid]), &(slots[source_slotid]), sizeof(osal_csmp_slothdr_t));
+  memcpy(&(slots[dest_slotid]), &(slots[source_slotid]), sizeof(Csmp_Slothdr));
   if(osal_write_slothdr(dest_slotid, &(slots[dest_slotid])) == OSAL_FAILURE)
     {
       printf("osal_copy_firmware: Failed to copy slothdr\n");
