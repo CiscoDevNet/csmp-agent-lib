@@ -35,6 +35,7 @@
 #include "task.h"
 #include "semphr.h"
 #include "timers.h"
+#include "../../src/lib/debug.h"
 
 typedef void (*osal_sighandler_t)(int);
 
