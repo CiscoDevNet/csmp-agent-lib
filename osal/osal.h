@@ -600,9 +600,6 @@ void osal_sleep_ms(uint64_t ms);
  *****************************************************************************/
 osal_basetype_t osal_system_reboot(struct in6_addr *NMSaddr);
 
-
-osal_basetype_t osal_deploy_and_reboot_firmware(uint8_t slotid, Csmp_Slothdr *slot);
-
 /****************************************************************************
  * @fn   osal_read_firmware
  *

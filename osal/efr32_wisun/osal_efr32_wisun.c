@@ -662,26 +662,6 @@ osal_basetype_t osal_write_firmware(uint8_t slotid, uint8_t *data, uint32_t size
   return OSAL_FAILURE;
 }
 
-osal_basetype_t osal_deploy_and_reboot_firmware(uint8_t slotid, Csmp_Slothdr *slot)
-{
-  uint32_t gecko_btl_slot_id = 0UL;
-  
-  (void) slot;
-
-  gecko_btl_slot_id = __slotid2gblslotid(slotid);
-  if (bootloader_verifyImage(gecko_btl_slot_id, NULL) != BOOTLOADER_OK) {
-    DPRINTF("deploy_and_reboot_firmware: bootloader_verifyImage failed\n");
-    return OSAL_FAILURE;
-  }
-  if (bootloader_setImageToBootload(gecko_btl_slot_id) != BOOTLOADER_OK) {
-    DPRINTF("deploy_and_reboot_firmware: bootloader_setImageToBootload failed\n");
-    return OSAL_FAILURE;
-  }
-
-  bootloader_rebootAndInstall();
-  return OSAL_SUCCESS;
-}
-
 osal_basetype_t osal_system_reboot(struct in6_addr *NMSaddr)
 {
   (void) NMSaddr;

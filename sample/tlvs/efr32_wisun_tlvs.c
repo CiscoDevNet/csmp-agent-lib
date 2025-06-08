@@ -901,6 +901,7 @@ void* loadRequest_get(tlvid_t tlvid, uint32_t *num) {
  * @brief   LOAD REQUEST TIMER HANDLER
  */
 void loadreq_timer_fired() {
+  uint32_t gecko_btl_slot_id = 0;
   DPRINTF("loadreq_timer_fired: Load request timer fired for slot=%ld with delay=%lu\n",
          g_curloadslot, g_curloadtime);
 
@@ -908,7 +909,17 @@ void loadreq_timer_fired() {
          sizeof(g_slothdr[RUN_IMAGE]));
   osal_write_slothdr(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
   osal_trickle_timer_stop(lrq_timer);
-  assert(osal_deploy_and_reboot_firmware(g_curloadslot, &g_slothdr[g_curloadslot]) == OSAL_SUCCESS);
+  gecko_btl_slot_id = (g_curloadslot == UPLOAD_IMAGE) ? GECKO_BTL_UPLOAD_SLOT_ID : GECKO_BTL_BACKUP_SLOT_ID;
+  if (bootloader_verifyImage(gecko_btl_slot_id, NULL) != BOOTLOADER_OK) {
+    DPRINTF("deploy_and_reboot_firmware: bootloader_verifyImage failed\n");
+    assert(false);
+  }
+  if (bootloader_setImageToBootload(gecko_btl_slot_id) != BOOTLOADER_OK) {
+    DPRINTF("deploy_and_reboot_firmware: bootloader_setImageToBootload failed\n");
+    assert(false);
+  }
+
+  bootloader_rebootAndInstall();
 }
 
 
