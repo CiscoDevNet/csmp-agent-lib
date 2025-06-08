@@ -21,6 +21,8 @@
 #include "nvm3.h"
 #include "nvm3_hal_flash.h"
 #include "btl_interface.h"
+#include "em_chip.h"
+
 
 #define OSAL_EFR32_WISUN_MIN_STACK_SIZE_WORDS 4096
 
@@ -669,7 +671,7 @@ osal_basetype_t osal_system_reboot(struct in6_addr *NMSaddr)
   DPRINTF("Rebooting system...\n");
   
   // Reboot the system
-  // NVIC_SystemReset();
+  CHIP_Reset();
 
   // Should not reach here
   return OSAL_FAILURE;
