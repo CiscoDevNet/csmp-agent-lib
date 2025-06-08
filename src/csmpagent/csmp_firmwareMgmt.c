@@ -336,6 +336,7 @@ int csmp_put_imageBlock(tlvid_t tlvid, const uint8_t *buf, size_t len,
                      &image_block__descriptor);
   if (rv == 0) {
     DPRINTF("csmpagent_firmwaremgmt: csmptlv %d read error!\n", tlvid.type);
+    csmptlv_free((ProtobufCMessage *)CurrentBlkMsg);
     return CSMP_OP_TLV_RD_ERROR;
   }
 
@@ -385,6 +386,7 @@ done:
   pbuf += rv; used += rv;
   DPRINTF("g_downloadbusy(after)=%d\n", g_downloadbusy);
   DPRINTF("** csmpagent_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
+  csmptlv_free((ProtobufCMessage *)CurrentBlkMsg);
   return used;
 }
 
