@@ -80,15 +80,22 @@ void sample_data_init() {
     }
   #else // Platforms other than linux cuurenlty do not support image read/write to disk function,
         // run-slot will be initialized with default values during boot-up
+      
+      ret = osal_read_slothdr(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
+      if(ret<0){
+        memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
+        (void) osal_write_slothdr(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
+        DPRINTF("sample_data_init: Run slot not found!\n");
+      }
       ret = osal_read_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]);
       if(ret<0){
-        memset(&g_slothdr[UPLOAD_IMAGE], 0, sizeof(Csmp_Slothdr));
+        memcpy(&g_slothdr[UPLOAD_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
         (void) osal_write_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]);
         DPRINTF("sample_data_init: Upload slot not found!\n");
       }
       ret = osal_read_slothdr(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
       if(ret<0){
-        memset(&g_slothdr[BACKUP_IMAGE], 0, sizeof(Csmp_Slothdr));
+        memcpy(&g_slothdr[BACKUP_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
         (void) osal_write_slothdr(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
         DPRINTF("sample_data_init: Backup slot not found!\n");
       }
