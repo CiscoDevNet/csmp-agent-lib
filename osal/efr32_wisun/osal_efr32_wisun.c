@@ -17,12 +17,16 @@
 #include <string.h>
 #include "osal.h"
 #include "../../src/lib/debug.h"
-#include "sl_system_kernel.h"
 #include "nvm3.h"
 #include "nvm3_hal_flash.h"
 #include "btl_interface.h"
-#include "em_chip.h"
+#include "sl_component_catalog.h"
 
+#if defined(SL_CATALOG_SL_MAIN_PRESENT)
+#include "sl_main_kernel.h"
+#else
+#include "sl_system_kernel.h"
+#endif
 
 #define OSAL_EFR32_WISUN_MIN_STACK_SIZE_WORDS 4096
 
@@ -87,8 +91,11 @@ void osal_kernel_start(void)
   assert(bootloader_getStorageSlotInfo(__slotid2gblslotid(BACKUP_IMAGE), 
                                        &slot_info) == BOOTLOADER_OK);
   assert(slot_info.length >= CSMP_FWMGMT_SLOTIMG_SIZE);
-
+#if defined(SL_CATALOG_SL_MAIN_PRESENT)
+  sl_main_kernel_start();
+#else
   sl_system_kernel_start();
+#endif
 }
 
 osal_basetype_t osal_task_create(osal_task_t * thread,
@@ -671,7 +678,7 @@ osal_basetype_t osal_system_reboot(struct in6_addr *NMSaddr)
   DPRINTF("Rebooting system...\n");
   
   // Reboot the system
-  CHIP_Reset();
+  NVIC_SystemReset();
 
   // Should not reach here
   return OSAL_FAILURE;

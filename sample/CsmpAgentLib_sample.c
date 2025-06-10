@@ -28,7 +28,12 @@
 #include "signature_verify.h"
 
 #if defined(OSAL_EFR32_WISUN)
-#include "sl_system_init.h"
+#include "sl_component_catalog.h"
+#if defined(SL_CATALOG_SL_MAIN_PRESENT)
+  #include "sl_main_init.h"
+#else
+  #include "sl_system_init.h"
+#endif
 #include "sl_wisun_app_core_util.h"
 #include "sl_wisun_ntp_timesync.h"
 #endif
@@ -60,7 +65,8 @@ void sample_data_init() {
   DPRINTF("sample_data_init: Initialize sample data\n");
   osal_gettime(&tv, NULL);
   g_init_time = tv.tv_sec;
-  #ifdef OSAL_LINUX
+  #if defined(OSAL_LINUX) || defined(OSAL_FREERTOS_LINUX)
+  #warning "sample_data_init: Linux/Freertos platform, reading/writing image slot data to disk"
     ret=osal_read_slothdr(RUN_IMAGE, g_slothdr);
     if(ret < 0){
       memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
@@ -493,7 +499,11 @@ int main(int argc, char **argv)
 #endif
 
 #if defined(OSAL_EFR32_WISUN)
+#if defined(SL_CATALOG_SL_MAIN_PRESENT)
+    sl_main_init();
+#else
     sl_system_init();
+#endif
 #endif
 
 // Create Sample application task

@@ -603,7 +603,8 @@ osal_basetype_t osal_system_reboot(struct in6_addr *NMSaddr);
 /****************************************************************************
  * @fn   osal_read_firmware
  *
- * @brief read firmware image from storage(file/flash)
+ * @brief read firmware image from storage to file. 
+ *        Filesystem support and sufficient memory are required.
  *
  * input parameters
  *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
@@ -618,7 +619,8 @@ osal_basetype_t osal_read_firmware(uint8_t slotid, uint8_t *data, uint32_t size)
 /****************************************************************************
  * @fn   osal_write_firmware
  *
- * @brief write firmware image to storage(file/flash)
+ * @brief write firmware image to storage to file.
+ *        Filesystem support and sufficient memory are required.
  *
  * input parameters
  *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
