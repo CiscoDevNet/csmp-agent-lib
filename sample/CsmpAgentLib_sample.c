@@ -66,7 +66,6 @@ void sample_data_init() {
   osal_gettime(&tv, NULL);
   g_init_time = tv.tv_sec;
   #if defined(OSAL_LINUX) || defined(OSAL_FREERTOS_LINUX)
-  #warning "sample_data_init: Linux/Freertos platform, reading/writing image slot data to disk"
     ret=osal_read_slothdr(RUN_IMAGE, g_slothdr);
     if(ret < 0){
       memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));

@@ -38,11 +38,13 @@
 // IMAGE SLOT INFO
 #define CSMP_FWMGMT_ACTIVE_SLOTS      3          // 0-RUN, 1-UPLOAD, 2-BACKUP
 #if defined(OSAL_EFR32_WISUN)
-#define CSMP_FWMGMT_SLOTIMG_SIZE      (512*1024)  // ~512 Kb
+#define CSMP_FWMGMT_SLOTIMG_SIZE      (512*1024) // 512 Kb
 #else
-#define CSMP_FWMGMT_SLOTIMG_SIZE      (30*1024)  // ~30 Kb
+#define CSMP_FWMGMT_SLOTIMG_SIZE      (30*1024)  // 30 Kb
 #endif
 #define CSMP_FWMGMT_BLKMAP_CNT        (32)
+
+#define CSMP_IMAGE_HDR_SIZE           256
 
 #define REBOOT_DELAY 5
 

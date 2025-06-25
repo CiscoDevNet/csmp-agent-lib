@@ -48,6 +48,8 @@ struct trickle_timer {
 
 #define __ret_freertos2posix(ret) \
     (ret == pdPASS ? OSAL_SUCCESS : OSAL_FAILURE)
+
+/// Transform CsmpAgent slot ID to Gecko Bootloader slot ID
 #define __slotid2gblslotid(slotid) \
     (slotid == UPLOAD_IMAGE ? GECKO_BTL_UPLOAD_SLOT_ID : GECKO_BTL_BACKUP_SLOT_ID)
 
@@ -627,19 +629,9 @@ osal_basetype_t osal_write_slothdr(uint8_t slotid, Csmp_Slothdr *slot)
   }
   return OSAL_SUCCESS;
 }
-/****************************************************************************
- * @fn   osal_read_firmware
- *
- * @brief read firmware image from storage(file/flash)
- *
- * input parameters
- *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
- *  @param[in] data pointer to uint8_t data array
- *  @param[in] size of data in bytes
- *
- * output parameters
- * @return returns 0 on success and -1 on error
- *****************************************************************************/
+
+/*This function is not implemented for EFR32 Wisun platform, 
+since the API requires file system support and storing the file content in RAM.*/
 osal_basetype_t osal_read_firmware(uint8_t slotid, uint8_t *data, uint32_t size)
 {
   (void) slotid;
@@ -649,19 +641,8 @@ osal_basetype_t osal_read_firmware(uint8_t slotid, uint8_t *data, uint32_t size)
   return OSAL_FAILURE;
 }
 
-/****************************************************************************
- * @fn   osal_write_firmware
- *
- * @brief write firmware image to storage(file/flash)
- *
- * input parameters
- *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
- *  @param[in] data pointer to uint8_t data array
- *  @param[in] size of data in bytes
- *
- * output parameters
- * @return returns 0 on success and -1 on error
- *****************************************************************************/
+/*This function is not implemented for EFR32 Wisun platform, 
+since the API requires file system support and storing the file content in RAM.*/
 osal_basetype_t osal_write_firmware(uint8_t slotid, uint8_t *data, uint32_t size)
 {
   (void) slotid;
