@@ -93,9 +93,7 @@ void osal_kernel_start(void)
   assert(bootloader_getStorageSlotInfo(__slotid2gblslotid(BACKUP_IMAGE), 
                                        &slot_info) == BOOTLOADER_OK);
   assert(slot_info.length >= CSMP_FWMGMT_SLOTIMG_SIZE);
-#if defined(SL_CATALOG_SL_MAIN_PRESENT)
-  sl_main_kernel_start();
-#else
+#if !defined(SL_CATALOG_SL_MAIN_PRESENT)
   sl_system_kernel_start();
 #endif
 }

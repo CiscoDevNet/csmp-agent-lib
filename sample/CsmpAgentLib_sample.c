@@ -499,7 +499,7 @@ int main(int argc, char **argv)
 
 #if defined(OSAL_EFR32_WISUN)
 #if defined(SL_CATALOG_SL_MAIN_PRESENT)
-    sl_main_init();
+    sl_main_second_stage_init();
 #else
     sl_system_init();
 #endif
@@ -517,13 +517,11 @@ int main(int argc, char **argv)
 // Start Kernel
   osal_kernel_start();
 
+#if defined(OSAL_LINUX) || defined(OSAL_FREERTOS_LINUX)
   for(;;){
-#if defined(OSAL_LINUX)
-  osal_sleep_ms(1000);
-#else
-  assert(0);
-#endif
+    osal_sleep_ms(1000);
   }
+#endif
 
   return 0;
 }
