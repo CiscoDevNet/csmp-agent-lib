@@ -212,14 +212,6 @@ extern bool g_reboot_request;
  */
 extern void sample_data_init();
 
-/**
- * @brief Initialize sample data before CSMP service start
- *
- * @param void
- * @return void
- */
-extern void sample_app_reboot();
-
 int str2addr(char *str, uint8_t *addr);
 
 #endif

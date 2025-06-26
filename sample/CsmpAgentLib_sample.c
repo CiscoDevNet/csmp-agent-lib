@@ -28,7 +28,12 @@
 #include "signature_verify.h"
 
 #if defined(OSAL_EFR32_WISUN)
-#include "sl_system_init.h"
+#include "sl_component_catalog.h"
+#if defined(SL_CATALOG_SL_MAIN_PRESENT)
+  #include "sl_main_init.h"
+#else
+  #include "sl_system_init.h"
+#endif
 #include "sl_wisun_app_core_util.h"
 #include "sl_wisun_ntp_timesync.h"
 #endif
@@ -58,9 +63,9 @@ void sample_data_init() {
   int idx=0, ret=0;
   struct timeval tv = {0};
   DPRINTF("sample_data_init: Initialize sample data\n");
-  gettimeofday(&tv, NULL);
+  osal_gettime(&tv, NULL);
   g_init_time = tv.tv_sec;
-  #ifdef OSAL_LINUX
+  #if defined(OSAL_LINUX) || defined(OSAL_FREERTOS_LINUX)
     ret=osal_read_slothdr(RUN_IMAGE, g_slothdr);
     if(ret < 0){
       memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
@@ -80,8 +85,25 @@ void sample_data_init() {
     }
   #else // Platforms other than linux cuurenlty do not support image read/write to disk function,
         // run-slot will be initialized with default values during boot-up
-      if(!g_reboot_request)
+      
+      ret = osal_read_slothdr(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
+      if(ret<0){
         memcpy(&g_slothdr[RUN_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
+        (void) osal_write_slothdr(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
+        DPRINTF("sample_data_init: Run slot not found!\n");
+      }
+      ret = osal_read_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]);
+      if(ret<0){
+        memcpy(&g_slothdr[UPLOAD_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
+        (void) osal_write_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]);
+        DPRINTF("sample_data_init: Upload slot not found!\n");
+      }
+      ret = osal_read_slothdr(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
+      if(ret<0){
+        memcpy(&g_slothdr[BACKUP_IMAGE],&default_run_slot_image, sizeof(Csmp_Slothdr));
+        (void) osal_write_slothdr(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
+        DPRINTF("sample_data_init: Backup slot not found!\n");
+      }
   #endif
   // Init sample Vendor Tlv data
   for (idx = 0; idx < VENDOR_MAX_SUBTYPES; idx++) {
@@ -476,7 +498,11 @@ int main(int argc, char **argv)
 #endif
 
 #if defined(OSAL_EFR32_WISUN)
+#if defined(SL_CATALOG_SL_MAIN_PRESENT)
+    sl_main_second_stage_init();
+#else
     sl_system_init();
+#endif
 #endif
 
 // Create Sample application task
@@ -491,13 +517,11 @@ int main(int argc, char **argv)
 // Start Kernel
   osal_kernel_start();
 
+#if defined(OSAL_LINUX) || defined(OSAL_FREERTOS_LINUX)
   for(;;){
-#if defined(OSAL_LINUX)
-  osal_sleep_ms(1000);
-#else
-  assert(0);
-#endif
+    osal_sleep_ms(1000);
   }
+#endif
 
   return 0;
 }

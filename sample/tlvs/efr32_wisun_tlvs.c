@@ -26,8 +26,11 @@
 #include "signature_verify.h"
 #include "osal.h"
 #include "sl_wisun_app_core.h"
+#include "btl_interface.h"
+#include "../../src/lib/debug.h"
 
 #define nexthop_IP "fe80::a00:27ff:fe3b:2ab1"
+
 
 /** \brief the hardware information */
 Hardware_Desc g_hardwareDesc = HARDWARE_DESC_INIT;
@@ -546,12 +549,12 @@ void* rplinstance_get(uint32_t *num) {
 void* transferRequest_get(tlvid_t tlvid, uint32_t *num) {
   (void)tlvid;
   (void)num;
-  DPRINTF("## sample_firmwaremgmt: GET for TLV %d.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: GET for TLV %ld.\n", tlvid.type);
 
   // Check upload slot download status
   if (g_slothdr[UPLOAD_IMAGE].status != FWHDR_STATUS_DOWNLOAD) {
     g_transferRequest.status = g_slothdr[UPLOAD_IMAGE].status;
-    DPRINTF("sample_firmwaremgmt: Transfer request download status = %u\n",
+    DPRINTF("sample_firmwaremgmt: Transfer request download status = %lu\n",
            g_transferRequest.status);
     return &g_transferRequest;
   }
@@ -566,7 +569,7 @@ void* transferRequest_get(tlvid_t tlvid, uint32_t *num) {
   g_transferRequest.report_int_max = g_slothdr[UPLOAD_IMAGE].reportintervalmax;
   g_transferRequest.status = g_slothdr[UPLOAD_IMAGE].status;
 
-  DPRINTF("## sample_firmwaremgmt: GET for TLV %d done.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: GET for TLV %ld done.\n", tlvid.type);
   return &g_transferRequest;
 }
 
@@ -579,7 +582,7 @@ void* transferRequest_get(tlvid_t tlvid, uint32_t *num) {
  */
 void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
   (void)tlvid;
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld.\n", tlvid.type);
 
   if (!tlv) {
     DPRINTF("sample_firmwaremgmt: Transfer request tlv context is NULL\n");
@@ -598,14 +601,14 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
   // Check filehash len
   if (tlv->filehash.len != SHA256_HASH_SIZE) {
     tlv->response = RESPONSE_INVALID_REQ;
-    DPRINTF("sample_firmwaremgmt: Invalid filehash size: %lu\n", tlv->filehash.len);
+    DPRINTF("sample_firmwaremgmt: Invalid filehash size: %u\n", tlv->filehash.len);
     return;
   }
   // Check filesize
   if (tlv->filesize == 0 ||
       tlv->filesize > CSMP_FWMGMT_SLOTIMG_SIZE) {
     tlv->response = RESPONSE_FILE_SIZE_TOO_BIG;
-        DPRINTF("sample_firmwaremgmt: Invalid file size: %u\n", tlv->filesize);
+        DPRINTF("sample_firmwaremgmt: Invalid file size: %lu\n", tlv->filesize);
     return;
   }
   // blocksize should be smaller than csmp's MTU (1024)
@@ -614,7 +617,7 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
       tlv->blocksize > BLOCK_SIZE ||
       tlv->blocksize < tlv->filesize/(CSMP_FWMGMT_BLKMAP_CNT * 32)) {
     tlv->response = RESPONSE_INVALID_BLOCK_SIZE;
-    DPRINTF("sample_firmwaremgmt: Invalid block size: %u\n", tlv->blocksize);
+    DPRINTF("sample_firmwaremgmt: Invalid block size: %lu\n", tlv->blocksize);
     return;
   }
   // Check pending reboot
@@ -681,8 +684,11 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
 
   // Initiliase new transfer - done
   g_initxfer = false;
+  
+  DPRINTF("Erasing 'UPLOAD' storage slot...\n");
+  assert(bootloader_eraseStorageSlot(GECKO_BTL_UPLOAD_SLOT_ID) == BOOTLOADER_OK);
 
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
 
 /**
@@ -694,7 +700,7 @@ void transferRequest_post(tlvid_t tlvid, Transfer_Request *tlv) {
  */
 void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
   (void)tlvid;
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld.\n", tlvid.type);
 
   if (!tlv) {
     DPRINTF("sample_firmwaremgmt: Image block tlv context is NULL\n");
@@ -720,29 +726,29 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
     uint32_t bit = 31 - (g_imageBlock.blocknum & 31);
     uint32_t mapval = 0xFFFFFFFFUL;
     uint32_t offset = g_imageBlock.blocknum * g_slothdr[UPLOAD_IMAGE].blocksize;
-    DPRINTF("sample_firmwaremgmt: Image block blocknum=%u offset=%u [word=%x bit=%x]\n",
+    DPRINTF("sample_firmwaremgmt: Image block blocknum=%lu offset=%lu [word=%lx bit=%lx]\n",
            g_imageBlock.blocknum, offset, word, bit);
 
     // Check Transfer Request intialised
     if (g_initxfer) {
-      DPRINTF("sample_firmwaremgmt: Transfer still initializing... (Image block %u)\n",
+      DPRINTF("sample_firmwaremgmt: Transfer still initializing... (Image block %lu)\n",
              g_imageBlock.blocknum);
       g_downloadbusy = false;
       return;
     }
     // Check blocknum exceeds bitmap
     if (word >= CSMP_FWMGMT_BLKMAP_CNT) {
-      DPRINTF("sample_firmwaremgmt: Image block %u exceeds bitmap length\n",
+      DPRINTF("sample_firmwaremgmt: Image block %lu exceeds bitmap length\n",
              g_imageBlock.blocknum);
       g_downloadbusy = false;
       return;
     }
 
     mapval = g_slothdr[UPLOAD_IMAGE].nblkmap[word];
-    DPRINTF("sample_firmwaremgmt: Image block mapval=0x%x\n", mapval);
+    DPRINTF("sample_firmwaremgmt: Image block mapval=0x%lx\n", mapval);
 
     if ((mapval & (1 << bit)) == 0) {
-      DPRINTF("sample_firmwaremgmt: Image block %u already written\n",
+      DPRINTF("sample_firmwaremgmt: Image block %lu already written\n",
              g_imageBlock.blocknum);
       // Check for transfer completion
       if(g_slothdr[UPLOAD_IMAGE].status == FWHDR_STATUS_COMPLETE)
@@ -782,30 +788,65 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       DPRINTF("sample_firmwaremgmt: Image block transfer complete, filehash matched!\n");
       g_slothdr[UPLOAD_IMAGE].status = FWHDR_STATUS_COMPLETE;
       g_downloadbusy = false;
-      if (write_fw_img(UPLOAD_IMAGE) < 0)
-        DPRINTF("sample_firmwaremgmt: Failed to write upload image to file\n");
+      if (osal_write_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) < 0)
+        DPRINTF("sample_firmwaremgmt: Failed to write upload image to the nvm3\n");
       else
-        printf("sample_firmwaremgmt: Sucessfully wrote upload image to file\n");
+        printf("sample_firmwaremgmt: Sucessfully wrote upload image to the nvm3\n");
 
       return;
     }
     // Write image block to slot at valid offset
     if (offset < CSMP_FWMGMT_SLOTIMG_SIZE &&
-       ((offset + g_imageBlock.blockdata.len) < CSMP_FWMGMT_SLOTIMG_SIZE)) {
-      DPRINTF("sample_firmwaremgmt: Valid image block %u write offset=%u\n",
-             g_imageBlock.blocknum, offset);
-      memcpy(&g_slothdr[UPLOAD_IMAGE].image[offset], g_imageBlock.blockdata.data,
-                   g_imageBlock.blockdata.len);
+      ((offset + g_imageBlock.blockdata.len) < CSMP_FWMGMT_SLOTIMG_SIZE)) {
+        DPRINTF("sample_firmwaremgmt: Valid image block %lu write offset=%lu\n",
+          g_imageBlock.blocknum, offset);
+          
+      int32_t ret = 0L;
+      uint32_t gecko_btl_slot_offset = offset;
+      uint32_t gecko_btl_chunk_size = g_imageBlock.blockdata.len;
+      uint8_t *gecko_btl_data_ptr = g_imageBlock.blockdata.data;
 
+      // First chunk includes the slot header information
+      if (!g_imageBlock.blocknum) {
+        gecko_btl_slot_offset = 0;
+        assert(g_imageBlock.blockdata.len > CSMP_IMAGE_HDR_SIZE);
+        gecko_btl_chunk_size = g_imageBlock.blockdata.len - CSMP_IMAGE_HDR_SIZE;
+        gecko_btl_data_ptr += CSMP_IMAGE_HDR_SIZE;
+
+      } else {
+        gecko_btl_slot_offset = offset - CSMP_IMAGE_HDR_SIZE;
+        gecko_btl_chunk_size = g_imageBlock.blockdata.len;
+        gecko_btl_data_ptr = g_imageBlock.blockdata.data;
+        
+      }
+
+      ret = bootloader_writeStorage(GECKO_BTL_UPLOAD_SLOT_ID, gecko_btl_slot_offset, gecko_btl_data_ptr, gecko_btl_chunk_size);
+
+      if (ret != BOOTLOADER_OK) {
+        DPRINTF("sample_firmwaremgmt: Failed to write image block %lu to slot\n",
+                g_imageBlock.blocknum);
+        tlv->retval = false;
+        g_downloadbusy = false;
+        return;
+      }
+
+      // Store the header after each 10 blocks
+      if (g_imageBlock.blocknum && !(g_imageBlock.blocknum % 10)) {
+        if (osal_write_slothdr(UPLOAD_IMAGE, &g_slothdr[UPLOAD_IMAGE]) < 0)
+          DPRINTF("sample_firmwaremgmt: Failed to write upload image to the nvm3 (block %lu)\n", g_imageBlock.blocknum);
+        else
+          printf("sample_firmwaremgmt: Sucessfully wrote upload image to the nvm3 (block %lu)\n", g_imageBlock.blocknum);
+      }
+      
       mapval ^= (1 << bit);
       g_slothdr[UPLOAD_IMAGE].nblkmap[word] = mapval;
 
-      DPRINTF("sample_firmwaremgmt: Write image block %u (len=%lu offset=%u) \
-             success! [mapval=0x%x word=0x%x bit=0x%x]\n",
+      DPRINTF("sample_firmwaremgmt: Write image block %lu (len=%u offset=%lu) \
+             success! [mapval=0x%lx word=0x%lx bit=0x%lx]\n",
              g_imageBlock.blocknum, g_imageBlock.blockdata.len, offset, mapval, word, bit);
     } else {
       // Invalid write offset
-      DPRINTF("sample_firmwaremgmt: Invalid image block %u write offset=%u\n",
+      DPRINTF("sample_firmwaremgmt: Invalid image block %lu write offset=%lu\n",
              g_imageBlock.blocknum, offset);
     }
   } else {
@@ -814,7 +855,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
   }
 
   g_downloadbusy = false;
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
 
 /**
@@ -827,7 +868,7 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
 void* loadRequest_get(tlvid_t tlvid, uint32_t *num) {
   (void)tlvid;
   (void)num;
-  DPRINTF("## sample_firmwaremgmt: GET for TLV %d.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: GET for TLV %ld.\n", tlvid.type);
 
   // Check for pending active load requests
   if (!g_initload) {
@@ -852,7 +893,7 @@ void* loadRequest_get(tlvid_t tlvid, uint32_t *num) {
   g_loadRequest.filehash.len = SHA256_HASH_SIZE;
   g_loadRequest.loadtime = g_curloadtime;
 
-  DPRINTF("## sample_firmwaremgmt: GET for TLV %d done.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: GET for TLV %ld done.\n", tlvid.type);
   return &g_loadRequest;
 }
 
@@ -860,18 +901,40 @@ void* loadRequest_get(tlvid_t tlvid, uint32_t *num) {
  * @brief   LOAD REQUEST TIMER HANDLER
  */
 void loadreq_timer_fired() {
-  bool ret = false;
-  struct timeval tv = {0};
-  DPRINTF("loadreq_timer_fired: Load request timer fired for slot=%d with delay=%u\n",
+  uint32_t gecko_btl_slot_id = 0;
+  DPRINTF("loadreq_timer_fired: Load request timer fired for slot=%ld with delay=%lu\n",
          g_curloadslot, g_curloadtime);
 
   memcpy(&g_slothdr[RUN_IMAGE], &g_slothdr[g_curloadslot],
          sizeof(g_slothdr[RUN_IMAGE]));
-  g_curloadslot=0xFF;
-  g_curloadtime=0;
+  osal_write_slothdr(RUN_IMAGE, &g_slothdr[RUN_IMAGE]);
   osal_trickle_timer_stop(lrq_timer);
-  sample_app_reboot();
+  gecko_btl_slot_id = (g_curloadslot == UPLOAD_IMAGE) ? GECKO_BTL_UPLOAD_SLOT_ID : GECKO_BTL_BACKUP_SLOT_ID;
+  if (bootloader_verifyImage(gecko_btl_slot_id, NULL) != BOOTLOADER_OK) {
+    DPRINTF("deploy_and_reboot_firmware: bootloader_verifyImage failed\n");
+    assert(false);
+  }
+  if (bootloader_setImageToBootload(gecko_btl_slot_id) != BOOTLOADER_OK) {
+    DPRINTF("deploy_and_reboot_firmware: bootloader_setImageToBootload failed\n");
+    assert(false);
+  }
+
+  bootloader_rebootAndInstall();
 }
+
+
+/**
+ * @brief   REBOOT REQUEST TIMER HANDLER
+ * @return  void
+ */
+void rebootreq_timer_fired() {
+  DPRINTF("rebootreq_timer: Reboot request timer fired\n");
+  osal_trickle_timer_stop(async_timer);
+  sample_data_init(); //Note: This function resets init time and g_slot_hdr to simulate reboot only for linux
+  osal_system_reboot(&g_devconfig.NMSaddr);
+  g_reboot_request = false;
+}
+
 
 /**
  * @brief   POST TLV68 LOAD_REQUEST_TLVID
@@ -884,7 +947,7 @@ void loadRequest_post(tlvid_t tlvid, Load_Request *tlv) {
   (void)tlvid;
   uint32_t newloadslot;
   uint32_t delay = MIN_LOAD_DELAY; // 1 sec
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld.\n", tlvid.type);
 
   if (!tlv) {
     DPRINTF("sample_firmwaremgmt: Load request tlv context is NULL\n");
@@ -949,7 +1012,7 @@ void loadRequest_post(tlvid_t tlvid, Load_Request *tlv) {
   if (g_loadRequest.loadtime != 0) {
     // Get current time to calculate timer delay for load request
     struct timeval tv;
-    gettimeofday(&tv, NULL);
+    osal_gettime(&tv, NULL);
 
     if (g_loadRequest.loadtime > tv.tv_sec) {
       delay = (g_loadRequest.loadtime - tv.tv_sec);
@@ -970,10 +1033,9 @@ void loadRequest_post(tlvid_t tlvid, Load_Request *tlv) {
   g_curloadtime = g_loadRequest.loadtime;
   osal_trickle_timer_start(lrq_timer, delay, delay,
                       (trickle_timer_fired_t)loadreq_timer_fired);
-  DPRINTF("sample_firmwaremgmt: Load request timer started for slot=%d with delay=%u at epoch time =%u s\n",
+  DPRINTF("sample_firmwaremgmt: Load request timer started for slot=%ld with delay=%lu at epoch time =%lu s\n",
          g_curloadslot, delay, g_curloadtime);
-
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
 
 /**
@@ -986,7 +1048,7 @@ void loadRequest_post(tlvid_t tlvid, Load_Request *tlv) {
 void cancelLoadRequest_post(tlvid_t tlvid, Cancel_Load_Request *tlv) {
   (void)tlvid;
   const uint8_t *filehash = NULL;
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld.\n", tlvid.type);
   if (!tlv) {
     DPRINTF("sample_firmwaremgmt: Cancel load request tlv context is NULL\n");
     return;
@@ -994,22 +1056,22 @@ void cancelLoadRequest_post(tlvid_t tlvid, Cancel_Load_Request *tlv) {
 
   switch (g_curloadslot) {
     case RUN_IMAGE:
-    DPRINTF("sample_firmwaremgmt: Received cancel load request for RUN_IMAGE (%u)\n",
+    DPRINTF("sample_firmwaremgmt: Received cancel load request for RUN_IMAGE (%lu)\n",
            g_curloadslot);
     filehash = g_slothdr[RUN_IMAGE].filehash;
     break;
     case UPLOAD_IMAGE:
-    DPRINTF("sample_firmwaremgmt: Received cancel load request for UPLOAD_IMAGE (%u)\n",
+    DPRINTF("sample_firmwaremgmt: Received cancel load request for UPLOAD_IMAGE (%lu)\n",
            g_curloadslot);
     filehash = g_slothdr[UPLOAD_IMAGE].filehash;
     break;
     case BACKUP_IMAGE:
-    DPRINTF("sample_firmwaremgmt: Received cancel load request for BACKUP_IMAGE (%u)\n",
+    DPRINTF("sample_firmwaremgmt: Received cancel load request for BACKUP_IMAGE (%lu)\n",
            g_curloadslot);
     filehash = g_slothdr[BACKUP_IMAGE].filehash;
     break;
     default:
-    DPRINTF("sample_firmwaremgmt: Received cancel load request for invalid slot (%u)\n",
+    DPRINTF("sample_firmwaremgmt: Received cancel load request for invalid slot (%lu)\n",
            g_curloadslot);
     if (g_curloadslot != 0xFFU){
       tlv->response = RESPONSE_INVALID_REQ;
@@ -1031,7 +1093,7 @@ void cancelLoadRequest_post(tlvid_t tlvid, Cancel_Load_Request *tlv) {
     g_curloadslot = 0xFFU;
   }
 
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
 
 /**
@@ -1043,7 +1105,7 @@ void cancelLoadRequest_post(tlvid_t tlvid, Cancel_Load_Request *tlv) {
  */
 void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv) {
   (void)tlvid;
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld.\n", tlvid.type);
 
   if (!tlv) {
     DPRINTF("sample_firmwaremgmt: Cancel load request tlv context is NULL\n");
@@ -1082,29 +1144,37 @@ void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv) {
   if (g_curbackupslot == RUN_IMAGE || g_curbackupslot == UPLOAD_IMAGE) {
     memset(&g_slothdr[BACKUP_IMAGE], 0xFF, sizeof(g_slothdr[BACKUP_IMAGE]));
   }
+
   // Copy target image to backup slot
   switch (g_curbackupslot) {
     case RUN_IMAGE:
       DPRINTF("sample_firmwaremgmt: Backing-up run image to backup slot\n");
-      memcpy(&g_slothdr[BACKUP_IMAGE], &g_slothdr[RUN_IMAGE],
-             sizeof(g_slothdr[BACKUP_IMAGE]));
+      if (osal_copy_firmware(RUN_IMAGE, BACKUP_IMAGE, g_slothdr) != OSAL_SUCCESS) {
+        DPRINTF("sample_firmwaremgmt: Failed to copy run image to backup slot\n");
+        tlv->response = RESPONSE_INVALID_REQ;
+        return;
+      }
       g_slothdr[BACKUP_IMAGE].status = FWHDR_STATUS_COMPLETE;
       break;
     case UPLOAD_IMAGE:
       DPRINTF("sample_firmwaremgmt: Backing-up upload image to backup slot\n");
-      memcpy(&g_slothdr[BACKUP_IMAGE], &g_slothdr[UPLOAD_IMAGE],
-             sizeof(g_slothdr[BACKUP_IMAGE]));
+      if (osal_copy_firmware(UPLOAD_IMAGE, BACKUP_IMAGE, g_slothdr) != OSAL_SUCCESS) {
+        DPRINTF("sample_firmwaremgmt: Failed to copy upload image to backup slot\n");
+        tlv->response = RESPONSE_INVALID_REQ;
+        return;
+      }
       g_slothdr[BACKUP_IMAGE].status = FWHDR_STATUS_COMPLETE;
       break;
     default:
-      DPRINTF("sample_firmwaremgmt: Set backup request from invalid backup slot (%u)\n",
+      DPRINTF("sample_firmwaremgmt: Set backup request from invalid backup slot (%lu)\n",
              g_curbackupslot);
       tlv->response = RESPONSE_INVALID_REQ;
       return;
   }
+  osal_write_slothdr(BACKUP_IMAGE, &g_slothdr[BACKUP_IMAGE]);
   g_curbackupslot = 0xFFU;
 
-  DPRINTF("## sample_firmwaremgmt: POST for TLV %d done.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: POST for TLV %ld done.\n", tlvid.type);
 }
 
 /**
@@ -1117,7 +1187,7 @@ void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv) {
 void* firmwareImageInfo_get(tlvid_t tlvid, uint32_t *num) {
   (void)tlvid;
   *num = 0;
-  DPRINTF("## sample_firmwaremgmt: GET for TLV %d.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: GET for TLV %ld.\n", tlvid.type);
 
   // Enumerate all active slots
   // Active slots: 0-RUN_IMAGE, 1-UPLOAD_IMAGE, 2-BACKUP_IMAGE
@@ -1127,7 +1197,7 @@ void* firmwareImageInfo_get(tlvid_t tlvid, uint32_t *num) {
 
       // Track number of inuse active slots
       (*num)++;
-      DPRINTF("sample_firmwaremgmt: Reading firmware image info for slot id:%d\n", idx);
+      DPRINTF("sample_firmwaremgmt: Reading firmware image info for slot id:%ld\n", idx);
 
       // Index
       g_firmwareImageInfo[idx].has_index = true;
@@ -1208,7 +1278,7 @@ void* firmwareImageInfo_get(tlvid_t tlvid, uint32_t *num) {
       g_firmwareImageInfo[idx].status = g_slothdr[idx].status;
   }
 
-  DPRINTF("## sample_firmwaremgmt: GET for TLV %d done.\n", tlvid.type);
+  DPRINTF("## sample_firmwaremgmt: GET for TLV %ld done.\n", tlvid.type);
   return &g_firmwareImageInfo;
 }
 
@@ -1267,18 +1337,18 @@ void signature_settings_post(Signature_Settings *tlv) {
  * @return  void* pointer to global g_vendorTlv
  */
 void* vendorTlv_get(tlvid_t tlvid, uint32_t *num) {
-  printf("## sample_vendorTlv: GET for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
+  printf("## sample_vendorTlv: GET for TLV:%lu.%lu\n", tlvid.vendor, tlvid.type);
 
   // Vendor-ID validation
   // Received Vendor-ID to match device's VENDOR_ID
   if (tlvid.vendor != VENDOR_ID) {
-    printf("sample_vendorTlv: csmptlv %d vendor-id mismatch (Expected:%d, Received:%d)\n", tlvid.type, VENDOR_ID, tlvid.vendor);
+    printf("sample_vendorTlv: csmptlv %ld vendor-id mismatch (Expected:%d, Received:%ld)\n", tlvid.type, VENDOR_ID, tlvid.vendor);
     return NULL;
   }
   // Max support subtypes by the vendor
   *num = VENDOR_MAX_SUBTYPES;
 
-  printf("## sample_vendorTlv: GET for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
+  printf("## sample_vendorTlv: GET for TLV:%lu.%lu done\n", tlvid.vendor, tlvid.type);
   return &g_vendorTlv;
 }
 
@@ -1290,14 +1360,14 @@ void* vendorTlv_get(tlvid_t tlvid, uint32_t *num) {
  * @return  void
  */
 void vendorTlv_post(tlvid_t tlvid, Vendor_Tlv *tlv) {
-  printf("## sample_vendorTlv: POST for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
+  printf("## sample_vendorTlv: POST for TLV:%lu.%lu\n", tlvid.vendor, tlvid.type);
 
   int idx;
 
   // Vendor-ID validation
   // Received Vendor-ID to match device's VENDOR_ID
   if (tlvid.vendor != VENDOR_ID) {
-    printf("sample_vendorTlv: csmptlv %d vendor-id mismatch (Expected:%d, Received:%d)\n", tlvid.type, VENDOR_ID, tlvid.vendor);
+    printf("sample_vendorTlv: csmptlv %ld vendor-id mismatch (Expected:%d, Received:%ld)\n", tlvid.type, VENDOR_ID, tlvid.vendor);
     return;
   }
   // Lookup and update subtype
@@ -1305,8 +1375,8 @@ void vendorTlv_post(tlvid_t tlvid, Vendor_Tlv *tlv) {
     if (tlv->subtype == g_vendorTlv[idx].subtype) {
       g_vendorTlv[idx].value.len = tlv->value.len;
       memcpy(g_vendorTlv[idx].value.data, tlv->value.data, g_vendorTlv[idx].value.len);
-      printf("sample_vendorTlv: Updated vendor subtype:%u\n", g_vendorTlv[idx].subtype);
-      printf("## sample_vendorTlv: POST for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
+      printf("sample_vendorTlv: Updated vendor subtype:%lu\n", g_vendorTlv[idx].subtype);
+      printf("## sample_vendorTlv: POST for TLV:%lu.%lu done\n", tlvid.vendor, tlvid.type);
       return;
     }
   }
@@ -1314,7 +1384,27 @@ void vendorTlv_post(tlvid_t tlvid, Vendor_Tlv *tlv) {
   g_vendorTlv[0].subtype = tlv->subtype;
   g_vendorTlv[0].value.len = tlv->value.len;
   memcpy(g_vendorTlv[0].value.data, tlv->value.data, g_vendorTlv[0].value.len);
-  printf("sample_vendorTlv: Added vendor subtype:%u\n", g_vendorTlv[0].subtype);
+  printf("sample_vendorTlv: Added vendor subtype:%lu\n", g_vendorTlv[0].subtype);
 
-  printf("## sample_vendorTlv: POST for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
+  printf("## sample_vendorTlv: POST for TLV:%lu.%lu done\n", tlvid.vendor, tlvid.type);
+}
+
+/**
+ * @brief   POST TLV32 REBOOT_REQUEST_TLVID
+ *
+ * @param   tlvid tlvid structure
+ * @param   tlv Vendor_Tlv structure
+ * @return  void
+ */
+void rebootRequest_post(tlvid_t tlvid, Reboot_Request *tlv) {
+  printf("## app_reboot_request: POST for TLV:%lu.%lu\n", tlvid.vendor, tlvid.type);
+  switch(tlv->flag){
+    case REBOOT:
+      DPRINTF("** app_rebootRequest: Reboot timer initializing...\n");
+      osal_trickle_timer_start(async_timer, REBOOT_DELAY, REBOOT_DELAY, (trickle_timer_fired_t)rebootreq_timer_fired);
+      g_reboot_request = true;
+      break;
+    default:
+      DPRINTF("** app_rebootRequest: Reboot flag not supported!\n");
+  }
 }

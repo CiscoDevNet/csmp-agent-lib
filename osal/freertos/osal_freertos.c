@@ -16,7 +16,8 @@
 
 #include "osal.h"
 #include "../../src/lib/debug.h"
-
+#include <string.h>
+#include "csmpservice.h"
 
 struct trickle_timer {
   uint32_t t0;
@@ -53,7 +54,7 @@ void osal_kernel_start(void)
                                        pdTRUE, 
                                        (void *)i, 
                                        osal_alarm_fired);
-        DPRINTF("timer%d %s\n", i, timers[i].timer == NULL ? "create failed" : "create success");
+        DPRINTF("timer%ld %s\n", i, timers[i].timer == NULL ? "create failed" : "create success");
         assert(timers[i].timer != NULL);
         xTimerStop(timers[i].timer, 0);
 
@@ -444,4 +445,194 @@ static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2)
   (void) param1;
   (void) param2;
   osal_alarm_fired(NULL);
+}
+
+osal_basetype_t osal_system_reboot(struct in6_addr *NMSaddr)
+{
+  DPRINTF("osal_system_reboot: Reboot requested\n");
+  int ret=0;
+  ret = csmp_service_reboot(NMSaddr);
+  if(ret)
+    printf("\n\nosal_system_reboot: success!\nService registration in progress...\n\n");
+  else
+    printf("osal_system_reboot: csmp_service_reboot failed!\\n");
+  return ret;
+}
+
+osal_basetype_t osal_read_firmware(uint8_t slotid, uint8_t *data, uint32_t size) {
+  FILE *file = NULL;
+  switch(slotid){
+    case RUN_IMAGE:
+      file = fopen("opencsmp-run-slot.bin", "rb");
+      break;
+    case UPLOAD_IMAGE:
+      file = fopen("opencsmp-upload-slot.bin", "rb");
+      break;
+    case BACKUP_IMAGE:
+      file = fopen("opencsmp-backup-slot.bin", "rb");
+      break;
+    default:
+      printf("osal_read_firmware: Invalid slotid\n");
+      return OSAL_FAILURE;
+  }
+  if (file == NULL) {
+      printf("osal_read_firmware: Failed to read firmware, slot-id: %u\n", slotid);
+      return OSAL_FAILURE;
+  }
+  fread(data, sizeof(uint8_t), size, file);
+  fclose(file);
+  return OSAL_SUCCESS;
+}
+
+osal_basetype_t osal_write_firmware(uint8_t slotid, uint8_t *data, uint32_t size) {
+  FILE *file = NULL;
+  size_t bytes=0;
+  (void) bytes;
+  switch(slotid){
+    case RUN_IMAGE:
+      file = fopen("opencsmp-run-slot.bin", "wb");
+      break;
+    case UPLOAD_IMAGE:
+      file = fopen("opencsmp-upload-slot.bin", "wb");
+      break;
+    case BACKUP_IMAGE:
+      file = fopen("opencsmp-backup-slot.bin", "wb");
+      break;
+    default:
+      printf("osal_write_firmware: Invalid slotid\n");
+      return OSAL_FAILURE;
+  }
+  if (file == NULL) {
+      printf("osal_read_firmware: Failed to read firmware, slot-id: %u\n", slotid);
+      return OSAL_FAILURE;
+  }
+  bytes = fwrite(data,sizeof(uint8_t),size, file);
+  DPRINTF("osal_write_firmware: Wrote %ld bytes to slot-id: %u\n", bytes, slotid);
+  fclose(file);
+  return OSAL_SUCCESS;
+}
+
+osal_basetype_t osal_write_slothdr(uint8_t slotid, Csmp_Slothdr *slot){
+FILE *file = NULL;
+size_t bytes = 0;
+(void) bytes;
+  switch(slotid){
+    case RUN_IMAGE:
+      file = fopen("opencsmp-run-slothdr.bin", "wb");
+      break;
+    case UPLOAD_IMAGE:
+      file = fopen("opencsmp-upload-slothdr.bin", "wb");
+      break;
+    case BACKUP_IMAGE:
+      file = fopen("opencsmp-backup-slothdr.bin", "wb");
+      break;
+    default:
+      printf("osal_write_slothdr: Invalid slotid\n");
+      return OSAL_FAILURE;
+  }
+  if (file == NULL) {
+      printf("osal_write_slothdr: Failed to write for slothdr, slot-id: %u\n", slotid);
+      return OSAL_FAILURE;
+  }
+
+  // Write CSMP header + firmware to persist slot data across agent reboot
+  bytes = fwrite(&(slot[slotid]), sizeof(Csmp_Slothdr), 1, file);
+  DPRINTF("osal_write_slothdr: Wrote %ld bytes to slot-id: %u\n", bytes, slotid);
+  fclose(file);
+
+  return OSAL_SUCCESS;
+
+}
+
+osal_basetype_t osal_read_slothdr(uint8_t slotid, Csmp_Slothdr *slot){
+  FILE *file = NULL;
+  switch(slotid) {
+    case RUN_IMAGE:
+      file = fopen("opencsmp-run-slothdr.bin", "rb");
+      break;
+    case UPLOAD_IMAGE:
+      file = fopen("opencsmp-upload-slothdr.bin", "rb");
+      break;
+    case BACKUP_IMAGE:
+      file = fopen("opencsmp-backup-slothdr.bin", "rb");
+      break;
+    default:
+      printf("osal_read_slothdr: Invalid slot id\n");
+      return OSAL_FAILURE;
+  }
+  if (file == NULL) {
+      printf("osal_read_slothdr: Failed to read slothdr for slot-id: %u\n", slotid);
+      return OSAL_FAILURE;
+  }
+  fread(&(slot[slotid]), sizeof(Csmp_Slothdr), 1, file);
+  fclose(file);
+  return OSAL_SUCCESS;
+}
+
+
+osal_basetype_t osal_copy_firmware(uint8_t source_slotid, uint8_t dest_slotid, Csmp_Slothdr *slots){
+
+  FILE *source_fw = NULL, *dest_fw = NULL;
+  uint8_t buff[1024] = {0};
+  int ret=0;
+  (void) ret;
+  if(source_slotid == dest_slotid)
+    return OSAL_SUCCESS;
+  switch (source_slotid)
+  {
+  case RUN_IMAGE:
+    source_fw = fopen("opencsmp-run-slot.bin", "rb");
+    break;
+  case UPLOAD_IMAGE:
+    source_fw = fopen("opencsmp-upload-slot.bin", "rb");
+    break;
+  case BACKUP_IMAGE:
+    source_fw = fopen("opencsmp-backup-slot.bin", "rb");
+    break;
+  default:
+      printf("osal_copy_firmware: Invalid slot id\n");
+      return OSAL_FAILURE;
+    break;
+  }
+  if(source_fw == NULL){
+    printf("osal_copy_firmware: Copy function failed, source file could not be opened\n");
+    return OSAL_FAILURE;
+  }
+  switch (dest_slotid)
+  {
+  case RUN_IMAGE:
+    dest_fw = fopen("opencsmp-run-slot.bin", "wb");
+    break;
+  case UPLOAD_IMAGE:
+    dest_fw = fopen("opencsmp-upload-slot.bin", "wb");
+    break;
+  case BACKUP_IMAGE:
+    dest_fw = fopen("opencsmp-backup-slot.bin", "wb");
+    break;
+  default:
+      printf("osal_copy_firmware: Invalid slot id\n");
+      return OSAL_FAILURE;
+    break;
+  }
+  if(dest_fw == NULL){
+    printf("osal_copy_firmware: Copy function failed, dest file could not be opened\n");
+    fclose(source_fw);
+    return OSAL_FAILURE;
+  }
+
+  while ((ret = fread(buff, 1, sizeof(buff), source_fw)) > 0) {
+    fwrite(buff, 1, ret, dest_fw);
+  }
+  fclose(source_fw);
+  fclose(dest_fw);
+  DPRINTF("osal_copy_firmware: Copied Firmware Successfully\n");
+  memcpy(&(slots[dest_slotid]), &(slots[source_slotid]), sizeof(Csmp_Slothdr));
+  if(osal_write_slothdr(dest_slotid, &(slots[dest_slotid])) == OSAL_FAILURE)
+    {
+      printf("osal_copy_firmware: Failed to copy slothdr\n");
+      return OSAL_FAILURE;
+    }
+
+  DPRINTF("osal_copy_firmware: Copied Slothdr Successfully\n");
+  return OSAL_SUCCESS;
 }

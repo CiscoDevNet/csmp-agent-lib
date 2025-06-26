@@ -32,6 +32,7 @@
 #include "sl_memory_manager.h"
 #include "sl_sleeptimer.h"
 #include "sl_wisun_ntp_timesync_config.h"
+#include "../../src/lib/debug.h"
 
 typedef void (*osal_sighandler_t)(int);
 
@@ -51,5 +52,8 @@ typedef int osal_sd_set_t;
 #define OSAL_SOCK_DGRAM SOCK_DGRAM
 
 #define s6_addr address
+
+#define GECKO_BTL_UPLOAD_SLOT_ID 0
+#define GECKO_BTL_BACKUP_SLOT_ID 1
 
 #endif

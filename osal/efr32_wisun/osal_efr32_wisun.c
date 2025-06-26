@@ -14,11 +14,27 @@
  *  limitations under the License.
  */
 
+#include <string.h>
 #include "osal.h"
 #include "../../src/lib/debug.h"
+#include "nvm3.h"
+#include "nvm3_hal_flash.h"
+#include "btl_interface.h"
+#include "sl_component_catalog.h"
+
+#if defined(SL_CATALOG_SL_MAIN_PRESENT)
+#include "sl_main_kernel.h"
+#else
 #include "sl_system_kernel.h"
+#endif
 
 #define OSAL_EFR32_WISUN_MIN_STACK_SIZE_WORDS 4096
+
+#define OSAL_EFR32_WISUN_NVM_KEY_BASE         0x00000F0
+#define OSAL_EFR32_WISUN_NVM_KEY_RUN_IMG      (OSAL_EFR32_WISUN_NVM_KEY_BASE + 0x0000U)
+#define OSAL_EFR32_WISUN_NVM_KEY_UPLOAD_IMG   (OSAL_EFR32_WISUN_NVM_KEY_BASE + 0x0001U)
+#define OSAL_EFR32_WISUN_NVM_KEY_BACKUP_IMG   (OSAL_EFR32_WISUN_NVM_KEY_BASE + 0x0002U)
+#define GECKO_BTL_SLOT_CPY_CHUNK_SIZE         1024U
 
 struct trickle_timer {
   uint32_t t0;
@@ -33,6 +49,10 @@ struct trickle_timer {
 #define __ret_freertos2posix(ret) \
     (ret == pdPASS ? OSAL_SUCCESS : OSAL_FAILURE)
 
+/// Transform CsmpAgent slot ID to Gecko Bootloader slot ID
+#define __slotid2gblslotid(slotid) \
+    (slotid == UPLOAD_IMAGE ? GECKO_BTL_UPLOAD_SLOT_ID : GECKO_BTL_BACKUP_SLOT_ID)
+
 extern uint8_t g_csmplib_eui64[8];
 
 /// Vars for trickle timers
@@ -44,23 +64,38 @@ static bool m_timert_isrunning = false;
 static void osal_update_timer();
 static void osal_alarm_fired(TimerHandle_t xTimer);
 static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2);
-
+static void osal_print_csmp_slot_hdr(const Csmp_Slothdr *slot_hdr);
 
 void osal_kernel_start(void)
 {
-    for (BaseType_t i = 0; i < timer_num; i++) {
-        timers[i].is_running = false;
-        timers[i].timer = xTimerCreate("trickle_timer", 
-                                       pdMS_TO_TICKS(m_remaining * 1000), 
-                                       pdTRUE, 
-                                       (void *)i, 
-                                       osal_alarm_fired);
-        assert(timers[i].timer != NULL);
-        xTimerStop(timers[i].timer, 0);
+  static BootloaderStorageInformation_t storage_info = { 0U };
+  static BootloaderStorageSlot_t slot_info = { 0U };
 
-    }
+  for (BaseType_t i = 0; i < timer_num; i++) {
+      timers[i].is_running = false;
+      timers[i].timer = xTimerCreate("trickle_timer", 
+                                     pdMS_TO_TICKS(m_remaining * 1000), 
+                                     pdTRUE, 
+                                     (void *)i, 
+                                     osal_alarm_fired);
+      assert(timers[i].timer != NULL);
+      xTimerStop(timers[i].timer, 0);
+  }
+  
+  // Check bootloader storage slots
+  bootloader_getStorageInfo(&storage_info);
+  
+  assert(storage_info.numStorageSlots >= 2);
+  assert(bootloader_getStorageSlotInfo(__slotid2gblslotid(UPLOAD_IMAGE), 
+                                       &slot_info) == BOOTLOADER_OK);
+  assert(slot_info.length >= CSMP_FWMGMT_SLOTIMG_SIZE);
 
-    sl_system_kernel_start();
+  assert(bootloader_getStorageSlotInfo(__slotid2gblslotid(BACKUP_IMAGE), 
+                                       &slot_info) == BOOTLOADER_OK);
+  assert(slot_info.length >= CSMP_FWMGMT_SLOTIMG_SIZE);
+#if !defined(SL_CATALOG_SL_MAIN_PRESENT)
+  sl_system_kernel_start();
+#endif
 }
 
 osal_basetype_t osal_task_create(osal_task_t * thread,
@@ -75,7 +110,7 @@ osal_basetype_t osal_task_create(osal_task_t * thread,
                       name, 
                       (OSAL_EFR32_WISUN_MIN_STACK_SIZE_WORDS + stacksize), 
                       arg, 
-                      priority, 
+                      23 + priority, 
                       thread);
 
     return __ret_freertos2posix(ret);
@@ -482,4 +517,234 @@ static void osal_alarm_fired_pend_fnc(void * param1, uint32_t param2)
   (void) param1;
   (void) param2;
   osal_alarm_fired(NULL);
+}
+
+
+static void osal_print_csmp_slot_hdr(const Csmp_Slothdr *slot_hdr)
+{
+  if (slot_hdr == NULL) {
+    return;
+  }
+
+  DPRINTF("filehash: ");
+  for (int i = 0; i < SHA256_HASH_SIZE; i++) {
+    DPRINTF("%02x,", slot_hdr->filehash[i]);
+  }
+  DPRINTF("\n");
+  DPRINTF("filename: %s\n", slot_hdr->filename);
+  DPRINTF("version: %s\n", slot_hdr->version);
+  DPRINTF("hwid: %s\n", slot_hdr->hwid);
+  DPRINTF("filesize: %lu\n", slot_hdr->filesize);
+  DPRINTF("blocksize: %lu\n", slot_hdr->blocksize);
+  DPRINTF("reportintervalmin: %lu\n", slot_hdr->reportintervalmin);
+  DPRINTF("reportintervalmax: %lu\n", slot_hdr->reportintervalmax);
+  DPRINTF("status: 0x%08lx\n", slot_hdr->status);
+  DPRINTF("nblkmap: ");
+  for (int i = 0; i < CSMP_FWMGMT_BLKMAP_CNT; i++) {
+    DPRINTF("%08lx%c", slot_hdr->nblkmap[i], 
+           ((i % 4) == 3 || i == (CSMP_FWMGMT_BLKMAP_CNT - 1)) ? '\n' : ',');
+  }
+  DPRINTF("\n");
+}
+
+osal_basetype_t osal_read_slothdr(uint8_t slotid, Csmp_Slothdr *slot)
+{
+  sl_status_t ret = SL_STATUS_FAIL;
+  nvm3_ObjectKey_t nvm_key = 0UL;
+  uint32_t nvm_type = 0UL;
+  size_t nvm_size = 0UL;
+
+  if (slot == NULL) {
+    return OSAL_FAILURE;
+  }
+
+  switch(slotid) {
+    case RUN_IMAGE:
+      printf("Reading Run Slot\n");
+      nvm_key = OSAL_EFR32_WISUN_NVM_KEY_RUN_IMG;
+      break;
+    case UPLOAD_IMAGE:
+      printf("Reading Upload Slot\n");
+      nvm_key = OSAL_EFR32_WISUN_NVM_KEY_UPLOAD_IMG;
+      break;
+    case BACKUP_IMAGE:
+      printf("Reading Backup Slot\n");
+      nvm_key = OSAL_EFR32_WISUN_NVM_KEY_BACKUP_IMG;
+      break;
+    default:
+      printf("read_firmware: Invalid slot id\n");
+      return OSAL_FAILURE;
+  }
+  
+  ret = nvm3_getObjectInfo(nvm3_defaultHandle, nvm_key, &nvm_type, &nvm_size);
+  if (ret != SL_STATUS_OK) {
+    printf("nvm3_getObjectInfo failed\n");
+    return OSAL_FAILURE;
+  }
+  
+  ret = nvm3_readData(nvm3_defaultHandle, nvm_key, slot, nvm_size);
+  osal_print_csmp_slot_hdr(slot);
+
+  if (ret != SL_STATUS_OK) {
+    printf("nvm3_readData failed\n");
+    return OSAL_FAILURE;
+  }
+
+  return OSAL_SUCCESS;
+}
+
+osal_basetype_t osal_write_slothdr(uint8_t slotid, Csmp_Slothdr *slot)
+{
+  sl_status_t ret = SL_STATUS_OK;
+  nvm3_ObjectKey_t nvm_key = 0UL;
+
+  if (slot == NULL) {
+    return OSAL_FAILURE;
+  }
+  switch(slotid) {
+    case RUN_IMAGE:
+      printf("Writing Run Slot\n");
+      nvm_key = OSAL_EFR32_WISUN_NVM_KEY_RUN_IMG;
+      break;
+    case UPLOAD_IMAGE:
+      printf("Writing Upload Slot\n");
+      nvm_key = OSAL_EFR32_WISUN_NVM_KEY_UPLOAD_IMG;
+      break;
+    case BACKUP_IMAGE:
+      printf("Writing Backup Slot\n");
+      nvm_key = OSAL_EFR32_WISUN_NVM_KEY_BACKUP_IMG;
+      break;
+    default:
+      printf("read_firmware: Invalid slot id\n");
+      return OSAL_FAILURE;
+  }
+  osal_print_csmp_slot_hdr(slot);
+
+  ret = nvm3_writeData(nvm3_defaultHandle, nvm_key, slot, sizeof(Csmp_Slothdr));
+  if (ret != SL_STATUS_OK) {
+    printf("nvm3_write failed\n");
+    return OSAL_FAILURE;
+  }
+  return OSAL_SUCCESS;
+}
+
+/*This function is not implemented for EFR32 Wisun platform, 
+since the API requires file system support and storing the file content in RAM.*/
+osal_basetype_t osal_read_firmware(uint8_t slotid, uint8_t *data, uint32_t size)
+{
+  (void) slotid;
+  (void) data;
+  (void) size;
+  DPRINTF("osal_read_firmware: Not implemented for EFR32 Wisun platform\n");
+  return OSAL_FAILURE;
+}
+
+/*This function is not implemented for EFR32 Wisun platform, 
+since the API requires file system support and storing the file content in RAM.*/
+osal_basetype_t osal_write_firmware(uint8_t slotid, uint8_t *data, uint32_t size)
+{
+  (void) slotid;
+  (void) data;
+  (void) size;
+  DPRINTF("osal_write_firmware: Not implemented for EFR32 Wisun platform\n");
+  return OSAL_FAILURE;
+}
+
+osal_basetype_t osal_system_reboot(struct in6_addr *NMSaddr)
+{
+  (void) NMSaddr;
+
+  DPRINTF("Rebooting system...\n");
+  
+  // Reboot the system
+  NVIC_SystemReset();
+
+  // Should not reach here
+  return OSAL_FAILURE;
+}
+
+osal_basetype_t osal_copy_firmware(uint8_t source_slotid, uint8_t dest_slotid, Csmp_Slothdr *slots) {
+  uint32_t gecko_btl_dst_slot_id = 0UL;
+  uint32_t gecko_btl_src_slot_id = 0UL;
+  static BootloaderStorageSlot_t slotinf = { 0U };
+  uint32_t dst_length = 0UL;
+  uint32_t src_length = 0UL;
+  uint32_t chunk_size = GECKO_BTL_SLOT_CPY_CHUNK_SIZE;
+  uint8_t *chunk = NULL;
+  uint32_t offset = 0;
+
+  if (slots == NULL) {
+    DPRINTF("copy_firmware_slot: slot is NULL\n");
+    return OSAL_FAILURE;
+  }
+
+  if (dest_slotid == source_slotid || 
+      dest_slotid == RUN_IMAGE || 
+      dest_slotid == RUN_IMAGE) {
+    DPRINTF("copy_firmware_slot: src and/or dst slot id is invalid\n");
+    return OSAL_FAILURE;
+  }
+
+
+  // copy slot image
+  gecko_btl_dst_slot_id = __slotid2gblslotid(dest_slotid);
+  gecko_btl_src_slot_id = __slotid2gblslotid(source_slotid);
+
+  if (bootloader_getStorageSlotInfo(gecko_btl_dst_slot_id, &slotinf) != BOOTLOADER_OK) {
+    DPRINTF("copy_firmware_slot: dest bootloader_getStorageSlotInfo failed\n");
+    return OSAL_FAILURE;
+  }
+  dst_length = slotinf.length;
+
+  if (bootloader_getStorageSlotInfo(gecko_btl_src_slot_id, &slotinf) != BOOTLOADER_OK) {
+    DPRINTF("copy_firmware_slot: src bootloader_getStorageSlotInfo failed\n");
+    return OSAL_FAILURE;
+  }
+
+  if (dst_length < slotinf.length) {
+    DPRINTF("copy_firmware_slot: dst slot is smaller than src slot\n");
+    return OSAL_FAILURE;
+  }
+
+  src_length = slotinf.length;
+
+  chunk = osal_malloc(GECKO_BTL_SLOT_CPY_CHUNK_SIZE);
+  if (chunk == NULL) {
+    DPRINTF("copy_firmware_slot: malloc failed\n");
+    return OSAL_FAILURE;
+  }
+
+  DPRINTF("Erasing destination slot...\n");
+  assert(bootloader_eraseStorageSlot(gecko_btl_dst_slot_id) == BOOTLOADER_OK);
+  DPRINTF("Copying source slot to destination slot...\n");
+
+  while(src_length) {
+    chunk_size = src_length < GECKO_BTL_SLOT_CPY_CHUNK_SIZE ? src_length : GECKO_BTL_SLOT_CPY_CHUNK_SIZE;
+    
+    if (bootloader_readStorage(gecko_btl_src_slot_id, offset, chunk, chunk_size) != BOOTLOADER_OK) {
+      DPRINTF("copy_firmware_slot: bootloader_readStorage failed\n");
+      osal_free(chunk);
+      return OSAL_FAILURE;
+    }
+
+    if (bootloader_writeStorage(gecko_btl_dst_slot_id, offset, chunk, chunk_size) != BOOTLOADER_OK) {
+      DPRINTF("copy_firmware_slot: bootloader_writeStorage failed\n");
+      osal_free(chunk);
+      return OSAL_FAILURE;
+    }
+
+    offset += chunk_size;
+    src_length -= chunk_size;
+  }
+
+  osal_free(chunk);
+
+  // copy header
+  memcpy(&slots[dest_slotid], &slots[source_slotid], sizeof(Csmp_Slothdr));
+  if (osal_write_slothdr(dest_slotid, &slots[dest_slotid]) != OSAL_SUCCESS) {
+    DPRINTF("copy_firmware_slot: osal_write_slothdr failed\n");
+    return OSAL_FAILURE;
+  }
+
+  return OSAL_SUCCESS;
 }

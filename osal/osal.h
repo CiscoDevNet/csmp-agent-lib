@@ -37,8 +37,14 @@
 
 // IMAGE SLOT INFO
 #define CSMP_FWMGMT_ACTIVE_SLOTS      3          // 0-RUN, 1-UPLOAD, 2-BACKUP
-#define CSMP_FWMGMT_SLOTIMG_SIZE      (30*1024)  // ~30 Kb
+#if defined(OSAL_EFR32_WISUN)
+#define CSMP_FWMGMT_SLOTIMG_SIZE      (512*1024) // 512 Kb
+#else
+#define CSMP_FWMGMT_SLOTIMG_SIZE      (30*1024)  // 30 Kb
+#endif
 #define CSMP_FWMGMT_BLKMAP_CNT        (32)
+
+#define CSMP_IMAGE_HDR_SIZE           256
 
 #define REBOOT_DELAY 5
 
@@ -599,8 +605,10 @@ osal_basetype_t osal_system_reboot(struct in6_addr *NMSaddr);
 /****************************************************************************
  * @fn   osal_read_firmware
  *
- * @brief read firmware image from storage(file/flash)
- *
+ * @brief read firmware image from storage to file. 
+ *        Filesystem support and sufficient memory are required.
+ *        Note: This function is not implemented for EFR32 Wi-SUN platform, 
+ *        since the API requires file system support and storing the file content in RAM.
  * input parameters
  *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
  *  @param[in] data pointer to uint8_t data array
@@ -614,8 +622,10 @@ osal_basetype_t osal_read_firmware(uint8_t slotid, uint8_t *data, uint32_t size)
 /****************************************************************************
  * @fn   osal_write_firmware
  *
- * @brief write firmware image to storage(file/flash)
- *
+ * @brief write firmware image to storage to file.
+ *        Filesystem support and sufficient memory are required.
+ *        Note: This function is not implemented for EFR32 Wi-SUN platform, 
+ *        since the API requires file system support and storing the file content in RAM.
  * input parameters
  *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
  *  @param[in] data pointer to uint8_t data array
@@ -655,16 +665,14 @@ osal_basetype_t osal_read_slothdr(uint8_t slotid, Csmp_Slothdr* slot);
 osal_basetype_t osal_write_slothdr(uint8_t slotid, Csmp_Slothdr* slot);
 
 /****************************************************************************
- * @fn   osal_copy_firmware
- *
- * @brief Copy firmware image and slot header data from source to dest slot
- *
+ * @fn osal_copy_firmware
+ * @brief copy firmware image from source slot to destination slot
  * input parameters
- *  @param[in] source_slotid and dest_slotid indicating RUN/UPLOAD/BACKUP slot
- *  @param[in] pointer to _Csmp_Slothdr slot structure
- *
+ *  @param[in] source_slotid indicating source slot id
+ *  @param[in]  dest_slot_id indicating destination slot id
+ *  @param[in] slots Array of _Csmp_Slothdr slot structures
  * output parameters
  * @return returns 0 on success and -1 on error
  *****************************************************************************/
-osal_basetype_t osal_copy_firmware(uint8_t source_slotid, uint8_t dest_slotid, Csmp_Slothdr *slot);
+osal_basetype_t osal_copy_firmware(uint8_t source_slotid, uint8_t dest_slotid, Csmp_Slothdr *slots);
 #endif

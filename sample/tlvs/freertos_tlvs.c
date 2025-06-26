@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Cisco Systems, Inc.
+ *  Copyright 2021-2025 Cisco Systems, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -108,7 +108,7 @@ uint32_t g_curbackupslot  = 0xFFU;  // Track current backup slot
 
 // Firmware image slots (Slot-id: 0-RUN, 1-UPLOAD, 2-BACKUP)
 Csmp_Slothdr g_slothdr[CSMP_FWMGMT_ACTIVE_SLOTS] = {0};
-
+FILE *upload_slot = NULL;
 /* public key */
 //new key
 static const char pubkey[PUBLIC_KEY_LEN] = {
@@ -158,7 +158,7 @@ void* hardware_desc_get(uint32_t *num) {
     g_hardwareDesc.entphysicalclass = CLASS_MODULE;
     sprintf(g_hardwareDesc.entphysicalname,"lowpan");
     sprintf(g_hardwareDesc.entphysicalhardwarerev,"1.0");
-    sprintf(g_hardwareDesc.entphysicalfirmwarerev,"1.0.0");
+    memcpy(g_hardwareDesc.entphysicalfirmwarerev, g_slothdr[RUN_IMAGE].version, sizeof(g_hardwareDesc.entphysicalfirmwarerev));
     snprintf(g_hardwareDesc.entphysicalserialnum,sizeof(g_hardwareDesc.entphysicalserialnum),
              "%02X%02X%02X%02X%02X%02X%02X%02X",
              g_eui64[0],g_eui64[1],g_eui64[2],g_eui64[3],
@@ -175,12 +175,12 @@ void* hardware_desc_get(uint32_t *num) {
     g_hardwareDesc.entphysicalclass = CLASS_MODULE;
     sprintf(g_hardwareDesc.entphysicalname,"lowpan");
     sprintf(g_hardwareDesc.entphysicalhardwarerev,"1.0");
-    sprintf(g_hardwareDesc.entphysicalfirmwarerev,"6.5(6.5.9)");
+    memcpy(g_hardwareDesc.entphysicalfirmwarerev, g_slothdr[RUN_IMAGE].version, sizeof(g_hardwareDesc.entphysicalfirmwarerev));
     snprintf(g_hardwareDesc.entphysicalserialnum,sizeof(g_hardwareDesc.entphysicalserialnum),
              "%02X%02X%02X%02X%02X%02X%02X%02X",
              g_eui64[0],g_eui64[1],g_eui64[2],g_eui64[3],
              g_eui64[4],g_eui64[5],g_eui64[6],g_eui64[7]);
-            sprintf(g_hardwareDesc.entphysicalmfgname,"Cisco IIoT");
+        sprintf(g_hardwareDesc.entphysicalmfgname,"Cisco IIoT");
     sprintf(g_hardwareDesc.entphysicalmodelname,"CISCO_IR510");
     g_hardwareDesc.entphysicalfunction = FUNCTION_DAG; // Gateway
     break;
@@ -192,7 +192,7 @@ void* hardware_desc_get(uint32_t *num) {
     g_hardwareDesc.entphysicalclass = CLASS_MODULE;
     sprintf(g_hardwareDesc.entphysicalname,"lowpan");
     sprintf(g_hardwareDesc.entphysicalhardwarerev,"3.1");
-    sprintf(g_hardwareDesc.entphysicalfirmwarerev,"6.2(6.2.33)");
+    memcpy(g_hardwareDesc.entphysicalfirmwarerev, g_slothdr[RUN_IMAGE].version, sizeof(g_hardwareDesc.entphysicalfirmwarerev));
     snprintf(g_hardwareDesc.entphysicalserialnum,sizeof(g_hardwareDesc.entphysicalserialnum),
              "%02X%02X%02X%02X%02X%02X%02X%02X",
              g_eui64[0],g_eui64[1],g_eui64[2],g_eui64[3],
@@ -534,6 +534,66 @@ void* rplinstance_get(uint32_t *num) {
 }
 
 /**
+ * @brief   GET TLV127 VENDOR_TLVID
+ *
+ * @param   tlvid tlvid structure
+ * @param   num instances of subtypes or g_vendorTlv
+ * @return  void* pointer to global g_vendorTlv
+ */
+void* vendorTlv_get(tlvid_t tlvid, uint32_t *num) {
+  printf("## sample_vendorTlv: GET for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
+
+  // Vendor-ID validation
+  // Received Vendor-ID to match device's VENDOR_ID
+  if (tlvid.vendor != VENDOR_ID) {
+    printf("sample_vendorTlv: csmptlv %d vendor-id mismatch (Expected:%d, Received:%d)\n", tlvid.type, VENDOR_ID, tlvid.vendor);
+    return NULL;
+  }
+  // Max support subtypes by the vendor
+  *num = VENDOR_MAX_SUBTYPES;
+
+  printf("## sample_vendorTlv: GET for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
+  return &g_vendorTlv;
+}
+
+/**
+ * @brief   POST TLV127 VENDOR_TLVID
+ *
+ * @param   tlvid tlvid structure
+ * @param   tlv Vendor_Tlv structure
+ * @return  void
+ */
+void vendorTlv_post(tlvid_t tlvid, Vendor_Tlv *tlv) {
+  printf("## sample_vendorTlv: POST for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
+
+  int idx;
+
+  // Vendor-ID validation
+  // Received Vendor-ID to match device's VENDOR_ID
+  if (tlvid.vendor != VENDOR_ID) {
+    printf("sample_vendorTlv: csmptlv %d vendor-id mismatch (Expected:%d, Received:%d)\n", tlvid.type, VENDOR_ID, tlvid.vendor);
+    return;
+  }
+  // Lookup and update subtype
+  for (idx = 0; idx < VENDOR_MAX_SUBTYPES; idx++) {
+    if (tlv->subtype == g_vendorTlv[idx].subtype) {
+      g_vendorTlv[idx].value.len = tlv->value.len;
+      memcpy(g_vendorTlv[idx].value.data, tlv->value.data, g_vendorTlv[idx].value.len);
+      printf("sample_vendorTlv: Updated vendor subtype:%u\n", g_vendorTlv[idx].subtype);
+      printf("## sample_vendorTlv: POST for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
+      return;
+    }
+  }
+  // New subtype will be added, overwrites subtype at g_vendorTlv[0]
+  g_vendorTlv[0].subtype = tlv->subtype;
+  g_vendorTlv[0].value.len = tlv->value.len;
+  memcpy(g_vendorTlv[0].value.data, tlv->value.data, g_vendorTlv[0].value.len);
+  printf("sample_vendorTlv: Added vendor subtype:%u\n", g_vendorTlv[0].subtype);
+
+  printf("## sample_vendorTlv: POST for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
+}
+
+/**
  * @brief   GET TLV65 TRANSFER_REQUEST_TLVID
  *
  * @param   tlvid tlvid structure
@@ -778,22 +838,29 @@ void imageBlock_post(tlvid_t tlvid, Image_Block *tlv) {
       // Set slot status as complete else bad image
       DPRINTF("sample_firmwaremgmt: Image block transfer complete, filehash matched!\n");
       g_slothdr[UPLOAD_IMAGE].status = FWHDR_STATUS_COMPLETE;
+      fclose(upload_slot);
+      upload_slot = NULL;
       g_downloadbusy = false;
-      if (write_fw_img(UPLOAD_IMAGE) < 0)
-        DPRINTF("sample_firmwaremgmt: Failed to write upload image to file\n");
-      else
-        printf("sample_firmwaremgmt: Sucessfully wrote upload image to file\n");
-
+      osal_write_slothdr(UPLOAD_IMAGE, g_slothdr);
       return;
+    }
+    if(upload_slot == NULL){
+      upload_slot = fopen("opencsmp-upload-slot.bin", "wb");
     }
     // Write image block to slot at valid offset
     if (offset < CSMP_FWMGMT_SLOTIMG_SIZE &&
        ((offset + g_imageBlock.blockdata.len) < CSMP_FWMGMT_SLOTIMG_SIZE)) {
       DPRINTF("sample_firmwaremgmt: Valid image block %u write offset=%u\n",
              g_imageBlock.blocknum, offset);
-      memcpy(&g_slothdr[UPLOAD_IMAGE].image[offset], g_imageBlock.blockdata.data,
-                   g_imageBlock.blockdata.len);
-
+      if(upload_slot != NULL){
+        fseek(upload_slot, offset, SEEK_SET);
+        fwrite(g_imageBlock.blockdata.data, 1, g_imageBlock.blockdata.len, upload_slot);
+        fflush(upload_slot);
+        osal_write_slothdr(UPLOAD_IMAGE, g_slothdr);
+      }
+      else{
+        printf("image block write to file failed!");
+      }
       mapval ^= (1 << bit);
       g_slothdr[UPLOAD_IMAGE].nblkmap[word] = mapval;
 
@@ -855,20 +922,32 @@ void* loadRequest_get(tlvid_t tlvid, uint32_t *num) {
 
 /**
  * @brief   LOAD REQUEST TIMER HANDLER
+ * @return  void
  */
 void loadreq_timer_fired() {
-  bool ret = false;
-  struct timeval tv = {0};
   DPRINTF("loadreq_timer: Load request timer fired for slot=%d with delay=%u\n",
          g_curloadslot, g_curloadtime);
-
-  memcpy(&g_slothdr[RUN_IMAGE], &g_slothdr[g_curloadslot],
-         sizeof(g_slothdr[RUN_IMAGE]));
-
+  DPRINTF("loadreq_timer: Writing Run Slot to disk\n");
+  osal_copy_firmware(g_curloadslot, RUN_IMAGE, g_slothdr);
   g_curloadslot=0xFF;
   g_curloadtime=0;
   osal_trickle_timer_stop(lrq_timer);
-  sample_app_reboot();
+  g_reboot_request = true;
+  sample_data_init(); //Note: This function resets init time and g_slot_hdr to simulate reboot only for linux
+  osal_system_reboot(&g_devconfig.NMSaddr);
+  g_reboot_request = false;
+}
+
+/**
+ * @brief   REBOOT REQUEST TIMER HANDLER
+ * @return  void
+ */
+void rebootreq_timer_fired() {
+  DPRINTF("rebootreq_timer: Reboot request timer fired\n");
+  osal_trickle_timer_stop(async_timer);
+  sample_data_init(); //Note: This function resets init time and g_slot_hdr to simulate reboot only for linux
+  osal_system_reboot(&g_devconfig.NMSaddr);
+  g_reboot_request = false;
 }
 
 /**
@@ -985,6 +1064,7 @@ void cancelLoadRequest_post(tlvid_t tlvid, Cancel_Load_Request *tlv) {
   (void)tlvid;
   const uint8_t *filehash = NULL;
   DPRINTF("## sample_firmwaremgmt: POST for TLV %d.\n", tlvid.type);
+
   if (!tlv) {
     DPRINTF("sample_firmwaremgmt: Cancel load request tlv context is NULL\n");
     return;
@@ -1084,14 +1164,12 @@ void setBackupRequest_post(tlvid_t tlvid, Set_Backup_Request *tlv) {
   switch (g_curbackupslot) {
     case RUN_IMAGE:
       DPRINTF("sample_firmwaremgmt: Backing-up run image to backup slot\n");
-      memcpy(&g_slothdr[BACKUP_IMAGE], &g_slothdr[RUN_IMAGE],
-             sizeof(g_slothdr[BACKUP_IMAGE]));
+      osal_copy_firmware(RUN_IMAGE, BACKUP_IMAGE, g_slothdr);
       g_slothdr[BACKUP_IMAGE].status = FWHDR_STATUS_COMPLETE;
       break;
     case UPLOAD_IMAGE:
       DPRINTF("sample_firmwaremgmt: Backing-up upload image to backup slot\n");
-      memcpy(&g_slothdr[BACKUP_IMAGE], &g_slothdr[UPLOAD_IMAGE],
-             sizeof(g_slothdr[BACKUP_IMAGE]));
+      osal_copy_firmware(UPLOAD_IMAGE, BACKUP_IMAGE, g_slothdr);
       g_slothdr[BACKUP_IMAGE].status = FWHDR_STATUS_COMPLETE;
       break;
     default:
@@ -1210,7 +1288,6 @@ void* firmwareImageInfo_get(tlvid_t tlvid, uint32_t *num) {
   return &g_firmwareImageInfo;
 }
 
-
 /**
  * @brief get the signature settings
  *
@@ -1259,61 +1336,21 @@ void signature_settings_post(Signature_Settings *tlv) {
 }
 
 /**
- * @brief   GET TLV127 VENDOR_TLVID
- *
- * @param   tlvid tlvid structure
- * @param   num instances of subtypes or g_vendorTlv
- * @return  void* pointer to global g_vendorTlv
- */
-void* vendorTlv_get(tlvid_t tlvid, uint32_t *num) {
-  printf("## sample_vendorTlv: GET for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
-
-  // Vendor-ID validation
-  // Received Vendor-ID to match device's VENDOR_ID
-  if (tlvid.vendor != VENDOR_ID) {
-    printf("sample_vendorTlv: csmptlv %d vendor-id mismatch (Expected:%d, Received:%d)\n", tlvid.type, VENDOR_ID, tlvid.vendor);
-    return NULL;
-  }
-  // Max support subtypes by the vendor
-  *num = VENDOR_MAX_SUBTYPES;
-
-  printf("## sample_vendorTlv: GET for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
-  return &g_vendorTlv;
-}
-
-/**
- * @brief   POST TLV127 VENDOR_TLVID
+ * @brief   POST TLV32 REBOOT_REQUEST_TLVID
  *
  * @param   tlvid tlvid structure
  * @param   tlv Vendor_Tlv structure
  * @return  void
  */
-void vendorTlv_post(tlvid_t tlvid, Vendor_Tlv *tlv) {
-  printf("## sample_vendorTlv: POST for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
-
-  int idx;
-
-  // Vendor-ID validation
-  // Received Vendor-ID to match device's VENDOR_ID
-  if (tlvid.vendor != VENDOR_ID) {
-    printf("sample_vendorTlv: csmptlv %d vendor-id mismatch (Expected:%d, Received:%d)\n", tlvid.type, VENDOR_ID, tlvid.vendor);
-    return;
+void rebootRequest_post(tlvid_t tlvid, Reboot_Request *tlv) {
+  printf("## app_reboot_request: POST for TLV:%u.%u\n", tlvid.vendor, tlvid.type);
+  switch(tlv->flag){
+    case REBOOT:
+      DPRINTF("** app_rebootRequest: Reboot timer initializing...\n");
+      osal_trickle_timer_start(async_timer, REBOOT_DELAY, REBOOT_DELAY, (trickle_timer_fired_t)rebootreq_timer_fired);
+      g_reboot_request = true;
+      break;
+    default:
+      DPRINTF("** app_rebootRequest: Reboot flag not supported!\n");
   }
-  // Lookup and update subtype
-  for (idx = 0; idx < VENDOR_MAX_SUBTYPES; idx++) {
-    if (tlv->subtype == g_vendorTlv[idx].subtype) {
-      g_vendorTlv[idx].value.len = tlv->value.len;
-      memcpy(g_vendorTlv[idx].value.data, tlv->value.data, g_vendorTlv[idx].value.len);
-      printf("sample_vendorTlv: Updated vendor subtype:%u\n", g_vendorTlv[idx].subtype);
-      printf("## sample_vendorTlv: POST for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
-      return;
-    }
-  }
-  // New subtype will be added, overwrites subtype at g_vendorTlv[0]
-  g_vendorTlv[0].subtype = tlv->subtype;
-  g_vendorTlv[0].value.len = tlv->value.len;
-  memcpy(g_vendorTlv[0].value.data, tlv->value.data, g_vendorTlv[0].value.len);
-  printf("sample_vendorTlv: Added vendor subtype:%u\n", g_vendorTlv[0].subtype);
-
-  printf("## sample_vendorTlv: POST for TLV:%u.%u done\n", tlvid.vendor, tlvid.type);
 }
