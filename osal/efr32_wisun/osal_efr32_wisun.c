@@ -560,15 +560,15 @@ osal_basetype_t osal_read_slothdr(uint8_t slotid, Csmp_Slothdr *slot)
 
   switch(slotid) {
     case RUN_IMAGE:
-      printf("Reading Run Slot:\n");
+      printf("Reading Run Slot\n");
       nvm_key = OSAL_EFR32_WISUN_NVM_KEY_RUN_IMG;
       break;
     case UPLOAD_IMAGE:
-    printf("Reading Upload Slot:\n");
+      printf("Reading Upload Slot\n");
       nvm_key = OSAL_EFR32_WISUN_NVM_KEY_UPLOAD_IMG;
       break;
     case BACKUP_IMAGE:
-    printf("Reading Backup Slot:\n");
+      printf("Reading Backup Slot\n");
       nvm_key = OSAL_EFR32_WISUN_NVM_KEY_BACKUP_IMG;
       break;
     default:
@@ -603,15 +603,15 @@ osal_basetype_t osal_write_slothdr(uint8_t slotid, Csmp_Slothdr *slot)
   }
   switch(slotid) {
     case RUN_IMAGE:
-      printf("Writing Run Slot:\n");
+      printf("Writing Run Slot\n");
       nvm_key = OSAL_EFR32_WISUN_NVM_KEY_RUN_IMG;
       break;
     case UPLOAD_IMAGE:
-      printf("Writing Upload Slot:\n");
+      printf("Writing Upload Slot\n");
       nvm_key = OSAL_EFR32_WISUN_NVM_KEY_UPLOAD_IMG;
       break;
     case BACKUP_IMAGE:
-      printf("Writing Backup Slot:\n");
+      printf("Writing Backup Slot\n");
       nvm_key = OSAL_EFR32_WISUN_NVM_KEY_BACKUP_IMG;
       break;
     default:
