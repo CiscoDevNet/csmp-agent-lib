@@ -607,7 +607,8 @@ osal_basetype_t osal_system_reboot(struct in6_addr *NMSaddr);
  *
  * @brief read firmware image from storage to file. 
  *        Filesystem support and sufficient memory are required.
- *
+ *        Note: This function is not implemented for EFR32 Wi-SUN platform, 
+ *        since the API requires file system support and storing the file content in RAM.
  * input parameters
  *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
  *  @param[in] data pointer to uint8_t data array
@@ -623,7 +624,8 @@ osal_basetype_t osal_read_firmware(uint8_t slotid, uint8_t *data, uint32_t size)
  *
  * @brief write firmware image to storage to file.
  *        Filesystem support and sufficient memory are required.
- *
+ *        Note: This function is not implemented for EFR32 Wi-SUN platform, 
+ *        since the API requires file system support and storing the file content in RAM.
  * input parameters
  *  @param[in] slotid indicating RUN/UPLOAD/BACKUP slot
  *  @param[in] data pointer to uint8_t data array
