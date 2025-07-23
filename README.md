@@ -65,7 +65,7 @@ NOTE: a valid FND IPv6 address must be supplied.
 Wireshark network analyzer may be used to observe CSMP messaging exchanged between the CSMP Agent and the FND instance. Note that this is a partial decode of the CoAP messaging and does not yet include decode of the TLV message payloads.
 
 ### Install Wireshark
-Follow the instructions here ... https://itsfoss.com/install-wireshark-ubuntu/.  As of this writting, version 3.2.7 is installed.
+Follow the instructions here ... https://itsfoss.com/install-wireshark-ubuntu/.  As of this writting, version 3.6.2 is used.
 
 ### Configure Wireshark for CSMP decoding.
 Wireshark `Menu` -> `Analyze` -> `Decode As...` `+` -> `Field : UDP port` -> `value : 61628` -> `Current : CoAP` -> `OK`
@@ -74,7 +74,7 @@ Wireshark `Menu` -> `Analyze` -> `Decode As...` `+` -> `Field : UDP port` -> `va
 Test your Wireshark install by opening and observing the contents of the sample PCAPs provided in the folder `test/*.pcap`.
 
 ## TLV Support
-CSMP messaging implements RESTful idioms with payloads encoded as Type/Length/Value tuples  Value is encoded using Google Protocol Buffers.  
+CSMP messaging implements RESTful idioms with payloads encoded as Type/Length/Value tuples. The Value is encoded using Google Protocol Buffers.  
 The Protocol Buffer definitions of CSMP TLVs are contained in the .proto file located in the src/csmpagent/tlvs folder.
 See 'src/csmpagent/csmpagent.c' for TLVs supported by the agent GET and POST methods.
 
