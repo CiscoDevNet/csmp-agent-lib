@@ -1,3 +1,5 @@
+![Logo](images/logo.png)
+
 ## Overview
 CoAP Simple Management Protocol (CSMP) is a device lifecycle management protocol optimized for resource constrained devices deployed within large-scale, bandwidth constrained IoT networks.
 
