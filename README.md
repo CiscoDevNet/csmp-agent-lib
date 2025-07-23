@@ -20,6 +20,8 @@ Install build-essential package (gcc compiler, make, etc.) as described here ...
 If you are going to build for a different target platform, please set the correct gcc compiler for your target platform by modifying the line "CC=gcc" in "Makefile".
 
 ### Build
+From the root of the directory structure ...
+
 >   chmod 777 build.sh
 
 #### Linux
@@ -50,10 +52,10 @@ Additional debug output is enabled by modifying Makefile to include the line 'CF
 
 ## Running CSMP Agent Sample
 1. Run "CsmpAgentLib_sample" to start CSMP agent either with:
-> ./CsmpAgentLib_sample -d <FND IPv6 address>
+> sample/CsmpAgentLib_sample -d <FND IPv6 address>
 
 Or provide full comamnd line parameter set to configure FND server's IPv6 address, agent's registration interval (in seconds), EUI of the Agent (example) ...
->./CsmpAgentLib_sample -d 2020::2020 -min 10 -max 100 -eid 00173B1122334455
+> sample/CsmpAgentLib_sample -d 2020::2020 -min 10 -max 100 -eid 00173B1122334455
 
 NOTE: a valid FND IPv6 address must be supplied.
 
