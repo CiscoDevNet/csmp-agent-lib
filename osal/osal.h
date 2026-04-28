@@ -675,4 +675,32 @@ osal_basetype_t osal_write_slothdr(uint8_t slotid, Csmp_Slothdr* slot);
  * @return returns 0 on success and -1 on error
  *****************************************************************************/
 osal_basetype_t osal_copy_firmware(uint8_t source_slotid, uint8_t dest_slotid, Csmp_Slothdr *slots);
+
+/****************************************************************************
+ * @fn   osal_read_groups
+ *
+ * @brief read group ids from storage (file/flash)
+ *
+ * input parameters
+ *  @param[in] groups pointer to array with group ids
+ *  @param[in] num_groups size of the array
+ *
+ * output parameters
+ * @return returns 0 on success and -1 on error
+ *****************************************************************************/
+osal_basetype_t osal_read_groups(uint32_t *groups, uint8_t num_groups);
+
+/****************************************************************************
+ * @fn   osal_write_groups
+ *
+ * @brief write group ids to storage (file/flash)
+ *
+ * input parameters
+ *  @param[in] groups pointer to array with group ids
+ *  @param[in] num_groups size of the array
+ *
+ * output parameters
+ * @return returns 0 on success and -1 on error
+ *****************************************************************************/
+osal_basetype_t osal_write_groups(uint32_t *groups, uint8_t num_groups);
 #endif
