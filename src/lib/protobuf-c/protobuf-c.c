@@ -2892,7 +2892,7 @@ parse_member(ScannedMember *scanned_member,
 			message->unknown_fields +
 			(message->n_unknown_fields++);
 		ufield->tag = scanned_member->tag;
-		ufield->wire_type = scanned_member->wire_type;
+		ufield->wire_type = (ProtobufCWireType) scanned_member->wire_type;
 		ufield->len = scanned_member->len;
 		ufield->data = do_alloc(allocator, scanned_member->len);
 		if (ufield->data == NULL)

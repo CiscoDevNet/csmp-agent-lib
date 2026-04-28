@@ -49,7 +49,7 @@ int csmp_get_transferRequest(tlvid_t tlvid, uint8_t *buf, size_t len,
 
     if(xfer_req) {
         // Firmware status check
-        if (!xfer_req->has_status || xfer_req->status != FWHDR_STATUS_DOWNLOAD) {
+        if (!xfer_req->has_status || xfer_req->status != (uint32_t) FWHDR_STATUS_DOWNLOAD) {
           DPRINTF("csmpagent_firmwaremgmt: Transfer request status error! (%x)\n", 
                   xfer_req->status);  
           return CSMP_OP_TLV_RD_EMPTY;
