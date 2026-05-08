@@ -20,21 +20,72 @@
 #include <stdint.h>
 #include "osal.h"
 
-#ifdef OPENSSL
+#if defined(OPENSSL)
 #include <openssl/evp.h>
 #include <openssl/ecdsa.h>
 #include <openssl/err.h>
+#elif defined(MBEDTLS)
+#include <stddef.h>
+#include <stdbool.h>
+#include "mbedtls/pk.h"
+#include "mbedtls/sha256.h"
+#include "mbedtls/asn1.h"
 #endif
 
 #include "signature_verify.h"
 
 #define SHA256_HASH_SIZE  32
 
+#ifdef MBEDTLS
+extern void pubkey_get(const char** key, size_t len);
+#else
 extern void pubkey_get(char *key);
+#endif
+
+#ifdef MBEDTLS
+/* Parse an ECDSA signature in DER format and extract r and s values. */
+static int ecdsa_der_to_rs(const unsigned char *sig, size_t siglen,
+                           mbedtls_mpi *r, mbedtls_mpi *s)
+{
+    int ret;
+    const unsigned char *p   = sig;
+    const unsigned char *end = sig + siglen;
+    size_t len;
+
+    // SEQUENCE
+    if ((ret = mbedtls_asn1_get_tag((unsigned char **)&p, end, &len,MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0)
+    {
+        return ret;
+    }
+
+    // INTEGER r
+    if ((ret = mbedtls_asn1_get_mpi((unsigned char **)&p, end, r)) != 0)
+    {
+        return ret;
+    }
+
+    // INTEGER s
+    if ((ret = mbedtls_asn1_get_mpi((unsigned char **)&p, end, s)) != 0)
+    {
+        return ret;
+    }
+
+    return 0;
+}
+
+static void ecdsa_cleanup(mbedtls_ecdsa_context *ctx,
+                          mbedtls_mpi *r,
+                          mbedtls_mpi *s)
+{
+    if (ctx) mbedtls_ecdsa_free(ctx);
+    if (r) mbedtls_mpi_free(r);
+    if (s) mbedtls_mpi_free(s);
+}
+#endif /* MBEDTLS */
 
 bool signature_verify(const void *data, size_t datalen, const void *sig, size_t siglen)
 {
-#ifdef OPENSSL
+#if defined(OPENSSL)
   unsigned char digest[SHA256_HASH_SIZE];
   unsigned int dgst_len = 0;
   int ret;
@@ -116,6 +167,88 @@ bool signature_verify(const void *data, size_t datalen, const void *sig, size_t 
     printf("verify error: %s\n", ERR_error_string(err_code, NULL));
     return false;
   }
+
+#elif defined(MBEDTLS) // Signature verify function with MbedTLS
+
+  int ret = 0;
+  unsigned char hash[SHA256_HASH_SIZE];
+
+  /* Validate input data and datalen */
+  if (!data || datalen == 0)
+  {
+    return false;
+  }
+
+  /* Validate input sig and siglen */
+  if (!sig || siglen == 0)
+  {
+    return false;
+  }
+
+  const unsigned char *signature = (const unsigned char *)sig;
+
+  /* Hash the message with SHA-256 */
+  if ((ret = mbedtls_sha256_ret((const unsigned char *)data, datalen, hash, 0)) != 0)
+  {
+    return false;
+  }
+
+  /* Initialize ECDSA context */
+  mbedtls_ecdsa_context ctx;
+  mbedtls_ecdsa_init(&ctx);
+
+  /* Load curve group with secp256r1 */
+  if ((ret = mbedtls_ecp_group_load(&ctx.grp, MBEDTLS_ECP_DP_SECP256R1)) != 0)
+  {
+    mbedtls_ecdsa_free(&ctx);
+    return false;
+  }
+
+  /*Get public key from FND server's SSM certificate for signature verification */
+  const char *public_key = NULL;
+  pubkey_get(&public_key, PUBLIC_KEY_LEN);
+  /* Read public point Q from binary */
+  if ((ret = mbedtls_ecp_point_read_binary(&ctx.grp, &ctx.Q, (const unsigned char *)public_key, PUBLIC_KEY_LEN)) != 0)
+  {
+    mbedtls_ecdsa_free(&ctx);
+    return false;
+  }
+
+  /* Validate public key against the group */
+  if ((ret = mbedtls_ecp_check_pubkey(&ctx.grp, &ctx.Q)) != 0)
+  {
+      mbedtls_ecdsa_free(&ctx);
+      return false;
+  }
+
+  /* Parse an ECDSA signature in DER format and extract r and s values. */
+  mbedtls_mpi r, s;
+  mbedtls_mpi_init(&r);
+  mbedtls_mpi_init(&s);
+  if (signature[0] == 0x30)
+  {
+    if ((ret = ecdsa_der_to_rs(signature, siglen, &r, &s)) != 0)
+    {
+        ecdsa_cleanup(&ctx, &r, &s);
+        return false;
+    }
+  }
+  else
+  {
+      ecdsa_cleanup(&ctx, &r, &s);
+      return false;
+  }
+
+  /* Do verify signature */
+  ret = mbedtls_ecdsa_verify(&ctx.grp, hash, sizeof(hash), &ctx.Q, &r, &s);
+  ecdsa_cleanup(&ctx, &r, &s);
+
+  if (ret != 0)
+  {
+      return false;
+  }
+
+  return true;
 
 #else
   // Temporary stub for first release.
