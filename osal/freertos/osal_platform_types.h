@@ -54,4 +54,9 @@ typedef fd_set osal_sd_set_t;
 #define OSAL_AF_INET6 AF_INET6
 #define OSAL_SOCK_DGRAM SOCK_DGRAM
 
+// Firmware Management Configuration
+#define CSMP_FWMGMT_ACTIVE_SLOTS      3          // 0-RUN, 1-UPLOAD, 2-BACKUP
+#define CSMP_FWMGMT_SLOTIMG_SIZE      (30*1024)  // 30 Kb
+#define CSMP_FWMGMT_BLKMAP_CNT        (32)
+
 #endif

@@ -56,4 +56,9 @@ typedef int osal_sd_set_t;
 #define GECKO_BTL_UPLOAD_SLOT_ID 0
 #define GECKO_BTL_BACKUP_SLOT_ID 1
 
+// Firmware Management Configuration
+#define CSMP_FWMGMT_ACTIVE_SLOTS      3          // 0-RUN, 1-UPLOAD, 2-BACKUP
+#define CSMP_FWMGMT_SLOTIMG_SIZE      (512*1024) // 512 Kb
+#define CSMP_FWMGMT_BLKMAP_CNT        (32)
+
 #endif
