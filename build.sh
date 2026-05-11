@@ -28,6 +28,7 @@ build_lib()
   [ ! -f csmp_agent_lib.a ] || mv csmp_agent_lib.a sample/
   [ ! -f csmp_agent_lib_freertos.a ] || mv csmp_agent_lib_freertos.a sample/
   [ ! -f csmp_agent_lib_efr32_wisun.a ] || mv csmp_agent_lib_efr32_wisun.a sample/
+  [ ! -f csmp_agent_lib_ti_simplelink_wisun.a ] || mv csmp_agent_lib_ti_simplelink_wisun.a sample/
 }
 
 clean_all()
