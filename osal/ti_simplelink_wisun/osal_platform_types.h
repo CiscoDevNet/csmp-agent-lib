@@ -9,9 +9,6 @@
 /* struct timeval — from TI POSIX shim */
 #include <sys/time.h>
 
-/* -----------------------------------------------------------------------
- * FreeRTOS — from TI SimpleLink SDK.
- * --------------------------------------------------------------------- */
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
@@ -26,32 +23,26 @@
 #endif
 void ns_trace_printf(uint8_t dlevel, const char *grp, const char *fmt, ...);
 #undef  DPRINTF
+/* Route CSMP debug output through mbed-trace when CSMP_USE_MBED_TRACE is set */
 #define DPRINTF(...) ns_trace_printf(TRACE_LEVEL_DEBUG, "csmp", __VA_ARGS__)
 #endif
 
-/* -----------------------------------------------------------------------
- * TI POSIX shim only provides __socklen_t; define directly.
- * --------------------------------------------------------------------- */
+extern int close(int fd);
+
 typedef uint32_t socklen_t;
 typedef int32_t  ssize_t;
 
-/* -----------------------------------------------------------------------
- * Socket constants and macros
- * --------------------------------------------------------------------- */
 #ifndef AF_INET6
 #define AF_INET6        28
 #endif
 #define OSAL_AF_INET6   AF_INET6
 #define OSAL_SOCK_DGRAM 2
 
+/* Convert 16-bit value from host to network byte order */
 #define htons(x)  ((uint16_t)(__builtin_bswap16((uint16_t)(x))))
+/* Convert 16-bit value from network to host byte order */
 #define ntohs(x)  ((uint16_t)(__builtin_bswap16((uint16_t)(x))))
 
-/* -----------------------------------------------------------------------
- * POSIX socket structs — not provided by TI SDK, defined here.
- * Nanostack uses ns_address_t internally; these exist only at the
- * OSAL boundary that csmp-agent-lib sees.
- * --------------------------------------------------------------------- */
 struct iovec {
     void  *iov_base;
     size_t iov_len;
@@ -88,9 +79,6 @@ struct timezone {
 };
 #endif
 
-/* -----------------------------------------------------------------------
- * OSAL type definitions
- * --------------------------------------------------------------------- */
 typedef void                  (*osal_sighandler_t)(int);
 typedef struct sockaddr_in6     osal_sockaddr_t;
 typedef SemaphoreHandle_t       osal_sem_t;
@@ -104,22 +92,17 @@ typedef BaseType_t              osal_basetype_t;
 typedef int                     osal_socket_handle_t;
 typedef struct { int _u; }      osal_sd_set_t;
 
-/* -----------------------------------------------------------------------
- * TI CC13xx flash layout for CSMP OTA firmware management.
- * These are shared by osal_ti_simplelink_wisun.c and ti_simplelink_wisun_tlvs.c.
- * Defaults can be overridden at compile time with -D flags.
- * ----------------------------------------------------------------------- */
 #ifndef CSMP_TI_RUN_SLOT_ADDR
 #define CSMP_TI_RUN_SLOT_ADDR       0x00000000UL
 #endif
 #ifndef CSMP_TI_UPLOAD_SLOT_ADDR
-#define CSMP_TI_UPLOAD_SLOT_ADDR    0x0005E000UL
+#define CSMP_TI_UPLOAD_SLOT_ADDR    0x00000000UL
 #endif
 #ifndef CSMP_TI_BACKUP_SLOT_ADDR
-#define CSMP_TI_BACKUP_SLOT_ADDR    0x00088000UL
+#define CSMP_TI_BACKUP_SLOT_ADDR    0x00000000UL
 #endif
 #ifndef CSMP_TI_SLOT_MAX_SIZE
-#define CSMP_TI_SLOT_MAX_SIZE       (328UL * 1024UL)
+#define CSMP_TI_SLOT_MAX_SIZE       0x000A8000UL
 #endif
 #ifndef CSMP_TI_FLASH_SECTOR_SIZE
 #define CSMP_TI_FLASH_SECTOR_SIZE   0x1000UL
@@ -131,17 +114,6 @@ typedef struct { int _u; }      osal_sd_set_t;
 #define CSMP_TI_NV_SLOTHDR_ITEM     0x01u
 #endif
 
-/* -----------------------------------------------------------------------
- * External SPI flash (Off-Chip OAD secondary slot).
- *
- * TI's MCUBoot uses VERSION COMPARISON (ih_ver field) to decide whether to
- * install the secondary slot — no trailer magic bytes are needed or written.
- * Simply reboot after the download is complete; MCUBoot checks the version
- * on every boot and installs if secondary.ih_ver > primary.ih_ver.
- *
- * The secondary slot lives entirely in external SPI flash (e.g. W25Q32FV).
- * CSMP_TI_EXT_FLASH_SECTOR_SIZE: minimum erase granularity for W25Q32 = 4 KB.
- * ----------------------------------------------------------------------- */
 #define CSMP_TI_EXT_FLASH_SECTOR_SIZE   0x1000UL    /* 4 KB erase unit on MX25R8035F */
 
 /* Forward declaration — defined in osal_ti_simplelink_wisun.c, called from ti_simplelink_wisun_tlvs.c */

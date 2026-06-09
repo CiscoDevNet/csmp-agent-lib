@@ -18,7 +18,7 @@ SYSCFG_C_FILES = $(filter %.c,$(SYSCFG_FILES))
 SYSCFG_H_FILES = $(filter %.h,$(SYSCFG_FILES))
 SYSCFG_OPT_FILES = $(filter %.opt,$(SYSCFG_FILES))
 
-OBJECTS = rcp_rcp_mlme.obj csmp_sample_tlvs_ti_simplelink_wisun_tlvs.obj mbed_ti-nv-driver_nvocmp.obj mbed_mbednanostack2tirtos_nanostack_nanostack-hal-mbed-cmsis-rtos_arm_hal_interrupt.obj rcp_rcp_queue.obj rcp_rcp_host.obj software_stack_ti15_4mac_osal_port_osal_port.obj application_main.obj software_stack_ti15_4mac_radio_configuration_mac_user_config.obj mbed_mbednanostack2tirtos_platform_ns_trace.obj mbed_mbednanostack2tirtos_nanostack_nanostack-hal-mbed-cmsis-rtos_ns_event_loop_mutex.obj mbed_mbednanostack2tirtos_nanostack_nanostack-hal-mbed-cmsis-rtos_arm_hal_timer.obj mbed_nanostack_mac_sw_mac.obj rcp_rcp_host_helpers.obj software_stack_ti15_4mac_stack_user_api_api_mac_timac_fhss_config.obj mbed_mbednanostack2tirtos_nanostack_nanostack-hal-mbed-cmsis-rtos_ns_hal_init.obj rcp_rcp_mcps_sap.obj mbed_mbednanostack2tirtos_nanostack_nanostack-hal-mbed-cmsis-rtos_arm_hal_random.obj software_stack_ti15_4mac_macTask.obj mbed_nanostack_mbed-mesh-api_source_wisun_tasklet.obj software_stack_ti15_4mac_mac_settings_mac_settings.obj rcp_rcp_lmac.obj mbed_ti-nv-driver_crc.obj mbed_ti-rf-driver_source_RFQueue.obj csmp_osal_osal_ti_simplelink_wisun.obj software_stack_ti15_4mac_mac_settings_mac_cfg.obj software_stack_ti15_4mac_osal_port_osal_port_timers.obj mbed_nanostack_mac_mac_header_helper_functions.obj rcp_rcp_security_mib.obj application_application.obj rcp_rcp_lmac_helpers.obj mbed_mbednanostack2tirtos_nanostack_nanostack-hal-mbed-cmsis-rtos_ns_event_loop.obj mbed_mbednanostack2tirtos_nanostack_nanostack-hal-mbed-cmsis-rtos_arm_hal_fhss_timer.obj wisun_ncp_platform_uart.obj wisun_ncp_platform_debug_uart.obj wisun_ncp_src_ncp_ncp_base_mtd.obj $(patsubst %.c,%.obj,$(notdir $(SYSCFG_C_FILES)))
+OBJECTS = rcp_rcp_mlme.obj csmp_sample_tlvs_ti_simplelink_wisun_tlvs.obj mbed_ti-nv-driver_nvocmp.obj mbed_mbednanostack2tirtos_nanostack_nanostack-hal-mbed-cmsis-rtos_arm_hal_interrupt.obj rcp_rcp_queue.obj rcp_rcp_host.obj software_stack_ti15_4mac_osal_port_osal_port.obj application_main.obj software_stack_ti15_4mac_radio_configuration_mac_user_config.obj mbed_mbednanostack2tirtos_platform_ns_trace.obj mbed_mbednanostack2tirtos_nanostack_nanostack-hal-mbed-cmsis-rtos_ns_event_loop_mutex.obj mbed_mbednanostack2tirtos_nanostack_nanostack-hal-mbed-cmsis-rtos_arm_hal_timer.obj mbed_nanostack_mac_sw_mac.obj rcp_rcp_host_helpers.obj software_stack_ti15_4mac_stack_user_api_api_mac_timac_fhss_config.obj mbed_mbednanostack2tirtos_nanostack_nanostack-hal-mbed-cmsis-rtos_ns_hal_init.obj rcp_rcp_mcps_sap.obj mbed_mbednanostack2tirtos_nanostack_nanostack-hal-mbed-cmsis-rtos_arm_hal_random.obj software_stack_ti15_4mac_macTask.obj mbed_nanostack_mbed-mesh-api_source_wisun_tasklet.obj software_stack_ti15_4mac_mac_settings_mac_settings.obj rcp_rcp_lmac.obj mbed_ti-nv-driver_crc.obj mbed_ti-rf-driver_source_RFQueue.obj csmp_osal_osal_ti_simplelink_wisun.obj software_stack_ti15_4mac_mac_settings_mac_cfg.obj software_stack_ti15_4mac_osal_port_osal_port_timers.obj mbed_nanostack_mac_mac_header_helper_functions.obj rcp_rcp_security_mib.obj application_application.obj application_sntp_sync.obj rcp_rcp_lmac_helpers.obj mbed_mbednanostack2tirtos_nanostack_nanostack-hal-mbed-cmsis-rtos_ns_event_loop.obj mbed_mbednanostack2tirtos_nanostack_nanostack-hal-mbed-cmsis-rtos_arm_hal_fhss_timer.obj wisun_ncp_platform_uart.obj wisun_ncp_platform_debug_uart.obj wisun_ncp_src_ncp_ncp_base_mtd.obj $(patsubst %.c,%.obj,$(notdir $(SYSCFG_C_FILES)))
 NAME = ns_node_csmp
 
 # Each config-specific .mak file will initialize appropriate options (AFLAGS, CFLAGS, LFLAGS),
@@ -352,6 +352,7 @@ LFLAGS += "$(CSMP_AGENT_LIB_INSTALL_DIR)/build/debug/csmp_agent_lib_ti_simplelin
     "-L$(SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR)/source" \
     "-L$(SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR)/kernel" \
      -Wl,--diag_suppress=10063 \
+     -Wl,--diag_suppress=10247 \
     -Wl,--define=FREERTOS \
     ti_utils_build_linker.cmd.genlibs \
     ../../freertos/ticlang/cc13x2x7_cc26x2x7.cmd \
@@ -400,6 +401,10 @@ application_main.obj: $(CSMP_AGENT_LIB_INSTALL_DIR)/Vendors/TI/application/main.
 application_application.obj: $(CSMP_AGENT_LIB_INSTALL_DIR)/Vendors/TI/application/application.c $(SYSCFG_H_FILES)
 	@ echo Building $@
 	@ $(CC) $(CFLAGS) -c $< -o $@
+application_sntp_sync.obj: $(CSMP_AGENT_LIB_INSTALL_DIR)/Vendors/TI/application/sntp_sync.c $(SYSCFG_H_FILES)
+	@ echo Building $@
+	@ $(CC) $(CFLAGS) -c $< -o $@
+
 
 mbed_ti-rf-driver_source_RFQueue.obj: $(SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR)/source/ti/ti_wisunfan/mbed_port/ti-rf-driver/source/RFQueue.c $(SYSCFG_H_FILES)
 	@ echo Building $@

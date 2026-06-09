@@ -30,10 +30,6 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- *  ======== application.c ========
- */
-
 #ifndef WISUN_NCP_ENABLE
 #undef EXCLUDE_TRACE
 #endif
@@ -65,7 +61,7 @@
 #include "fhss_config.h"
 #include "randLIB.h"
 #include "ws_management_api.h"
-#include "eventOS_event_timer.h" 
+#include "eventOS_event_timer.h"
 
 #include "6LoWPAN/ws/ws_common_defines.h"
 #include "Common_Protocols/ipv6_constants.h"
@@ -88,7 +84,6 @@
 #include "RPL/rpl_upward.h"
 #include "RPL/rpl_downward.h"
 #include "RPL/rpl_structures.h"
-// #define WISUN_TEST_METRICS  /* Commented out to reduce code size */
 #ifdef WISUN_NCP_ENABLE
 /* OpenThread Internal/Example Header files */
 #include "otsupport/otrtosapi.h"
@@ -125,6 +120,25 @@ extern int8_t g_tx_power_dbm;
 #include "csmp_service.h"
 #include "osal.h"
 #include "signature_verify.h"
+#include "sntp_sync.h"
+
+/* NTP server reachable from mesh nodes — the Ubuntu host (border router side)
+ * is NTP-synchronised and accessible at fd00::1 once Wi-SUN join completes. */
+#ifndef CSMP_NTP_SERVER
+#define CSMP_NTP_SERVER  "fd00::1"
+#endif
+
+/* TI Wi-SUN firmware metadata reported to FND via TLV75 (FirmwareImageInfo).
+ * hwid must match hw_info in the FND cc13xx device meta file.
+ * filename/version are the display strings shown in FND firmware management. */
+#define TI_FW_HWID      "CC13XX"
+#define TI_FW_FILENAME  "ti-node-1.0.00"
+#define TI_FW_VERSION   "1.0.00"
+
+/* default_run_slot_image is defined in CsmpAgentLib_sample.c (shared library).
+ * We patch it here before sample_data_init() reads it so that NV is
+ * initialised with TI-specific values on first boot (empty NV). */
+extern Csmp_Slothdr default_run_slot_image;
 
 /******************************************************************************
 Defines & enums
@@ -176,7 +190,6 @@ typedef enum connection_status {
     CON_STATUS_CONNECTING         = 3,        /*!< connecting to network */
     CON_STATUS_ERROR_UNSUPPORTED  = 4
 } connection_status_t;
-
 
 /******************************************************************************
  Static & Global Variables
@@ -298,7 +311,6 @@ configurable_props_t cfg_props =
     .regulatory_channel_list = CONFIG_REGULATION_CHANNEL_MASK,
 };
 
-
 /******************************************************************************
 Function declarations Local & Global
  *****************************************************************************/
@@ -340,9 +352,7 @@ void get_test_metrics(test_metrics_s *test_metrics);
 Function definitions
  *****************************************************************************/
 
-/*!
- * Callback for handling any status while a node is joining a network.
- */
+/* Handle mesh network connection status changes and update connectedFlg/connect state. */
 void nanostackNetworkHandler(mesh_connection_status_t status)
 {
     tr_debug("nanostackNetworkHandler: %x", status);
@@ -400,15 +410,12 @@ void nanostackNetworkHandler(mesh_connection_status_t status)
     }
 }
 
-/*!
- * Configure the network settings like network name,
- * regulatory domain etc. before starting the network
- */
 extern const char *ti154stack_lib_version;
 extern const char *ti154stack_lib_date;
 extern const char *ti154stack_lib_time;
 extern const char *wisun_stack_version;
 extern const char *wisun_protocol_version;
+/* Configure Wi-SUN interface parameters (network name, regulatory domain, channel plan) before bringup. */
 mesh_error_t nanostack_wisunInterface_configure(void)
 {
     int32_t ret;
@@ -427,7 +434,6 @@ mesh_error_t nanostack_wisunInterface_configure(void)
         return MESH_ERROR_PARAM;
     }
 
-
     ret = ws_management_regulatory_domain_set(interface_id, CONFIG_REG_DOMAIN,
                                                             CONFIG_OP_MODE_CLASS,
                                                             CONFIG_OP_MODE_ID);
@@ -435,14 +441,12 @@ mesh_error_t nanostack_wisunInterface_configure(void)
         return MESH_ERROR_PARAM;
     }
 
-
     ret = ws_management_fhss_unicast_channel_function_configure(interface_id, cfg_props.uc_channel_function,
                                                                               cfg_props.uc_fixed_channel,
                                                                               cfg_props.uc_dwell_interval);
     if (ret < 0) {
         return MESH_ERROR_PARAM;
     }
-
 
     ret = ws_management_fhss_broadcast_channel_function_configure(interface_id, cfg_props.bc_channel_function,
                                                                                 cfg_props.bc_fixed_channel,
@@ -469,9 +473,7 @@ mesh_error_t nanostack_wisunInterface_configure(void)
     return MESH_ERROR_NONE;
 }
 
-/*!
- *
- */
+/* Register the RF PHY, seed the RNG, and initialise the Wi-SUN tasklet/interface. */
 mesh_error_t nanostack_wisunInterface_bringup()
 {
     int8_t device_id = 0;
@@ -499,14 +501,7 @@ mesh_error_t nanostack_wisunInterface_bringup()
     return MESH_ERROR_NONE;
 }
 
-/*!
- * Connect to the Wi-SUN network. Should be called only after calling
- * nanostack_wisunInterface_bringup(). This function also submits
- * the network handler function for handling different events
- * during the connection process, while calling "connect".
- * Only blocking mode has been tested. So, it is recommended for
- * the input parameter blocking to be set to true.
- */
+/* Start the Wi-SUN network connection process and register the status callback. */
 mesh_error_t nanostack_wisunInterface_connect(bool blocking)
 {
 
@@ -523,11 +518,7 @@ mesh_error_t nanostack_wisunInterface_connect(bool blocking)
    return MESH_ERROR_NONE;
 }
 
-/*!
- * Connect to the Wi-SUN network. Should be called only after calling
- * nanostack_wisunInterface_bringup().
- * It is recommended to start the node join process in blocking mode
- */
+/* Block until the node has joined the Wi-SUN network, blinking the red LED to indicate join progress. */
 void nanostack_wait_till_connect()
 {
     uint8_t _net_state;
@@ -557,6 +548,7 @@ void nanostack_wait_till_connect()
 
 #if !defined(WISUN_NCP_ENABLE) && !defined(NWK_TEST)
 
+/* GPIO interrupt handler for board buttons (BTN1/BTN2). */
 static void btn_interrupt_handler(uint8_t index)
 {
     if(index == CONFIG_GPIO_BTN1)
@@ -571,6 +563,7 @@ static void btn_interrupt_handler(uint8_t index)
 
 #ifdef COAP_SERVICE_ENABLE
 #ifdef COAP_PANID_LIST
+/* Create the pan_rediscover tasklet and trigger its init event. */
 static void pan_rediscover_tasklet_start(void)
 {
     pan_rediscover_tasklet_id = eventOS_event_handler_create(
@@ -578,6 +571,7 @@ static void pan_rediscover_tasklet_start(void)
         PAN_REDISCOVER_INIT_EVT);
 }
 
+/* Post an event to the pan_rediscover tasklet. */
 static void pan_rediscover_update(uint8_t event_type)
 {
     arm_event_s event = {
@@ -592,6 +586,7 @@ static void pan_rediscover_update(uint8_t event_type)
 }
 
 extern void read_mac_addr(uint8_t *mac_addr);
+/* State machine tasklet handling PAN ID rediscovery: LED feedback, join CoAP notification, and stack restart. */
 static void pan_rediscover_tasklet(arm_event_s *event)
 {
     pan_rediscover_evt_t event_type;
@@ -660,10 +655,7 @@ static void pan_rediscover_tasklet(arm_event_s *event)
 }
 #endif // COAP_PANID_LIST
 
-
-/*!
- * Callback for processing received coap message
- */
+/* CoAP callback for LED GET/POST/PUT requests; reads or sets board LED state. */
 static int coap_recv_cb(int8_t service_id, uint8_t source_address[static 16],
                  uint16_t source_port, sn_coap_hdr_s *request_ptr)
 {
@@ -729,9 +721,7 @@ static int coap_recv_cb(int8_t service_id, uint8_t source_address[static 16],
 }
 
 #ifdef WISUN_TEST_METRICS
-/*!
- * Callback for processing received coap message for Test metrics
- */
+/* CoAP callback for test metrics GET requests; returns collected test_metrics_s data. */
 static int coap_recv_cb_tstmetrics(int8_t service_id, uint8_t source_address[static 16],
                  uint16_t source_port, sn_coap_hdr_s *request_ptr)
 {
@@ -754,6 +744,7 @@ static int coap_recv_cb_tstmetrics(int8_t service_id, uint8_t source_address[sta
 #endif
 
 #ifdef COAP_PANID_LIST
+/* CoAP callback for PAN ID allow/deny list management and PAN rediscovery trigger. */
 static int coap_panid_list_cb(int8_t service_id, uint8_t source_address[static 16],
                  uint16_t source_port, sn_coap_hdr_s *request_ptr)
 {
@@ -809,12 +800,6 @@ static int coap_panid_list_cb(int8_t service_id, uint8_t source_address[static 1
         // Cancel timer set by PAN_REDISCOVER_JOIN_EVT
         eventOS_event_timer_cancel(PAN_REDISCOVER_JOIN_RESP_TIMER_ID, pan_rediscover_tasklet_id);
 
-        /*
-         * Format of CoAP PANID bulk update:
-         * <2 byte allow/deny list timeout (seconds) +
-         * <2 byte allowlist len> + <2 byte denylist len> +
-         * <2 byte allowlist entry>*(allowlist len) + <2 byte denylist entry>*(denylist len)
-         */
         // Length checking
         if (request_ptr->payload_len < 6) // Min length considering 0 entries in both lists
         {
@@ -983,6 +968,7 @@ static int coap_panid_list_cb(int8_t service_id, uint8_t source_address[static 1
 
 void fetch_neighbor_details();
 
+/* CoAP callback for RSSI GET requests; fetches neighbor metrics and returns them as payload. */
 static int coap_recv_cb_rssi(int8_t service_id, uint8_t source_address[static 16],
                  uint16_t source_port, sn_coap_hdr_s *request_ptr)
 {
@@ -1006,9 +992,7 @@ static int coap_recv_cb_rssi(int8_t service_id, uint8_t source_address[static 16
 #endif // COAP_SERVICE_ENABLE
 
 #ifndef WISUN_NCP_ENABLE
-/*
- *  ======== mainThread ========
- */
+/* Application main thread: configures GPIO, joins Wi-SUN, then starts the CSMP agent. */
 void *mainThread(void *arg0)
 {
     int16_t ret;
@@ -1168,7 +1152,13 @@ void *mainThread(void *arg0)
 
     /* Step 2: NVOCMP already initialized by main.c via NVOCMP_loadApiPtrs(). */
 
-    /* Step 3: Init CSMP sample data (slot headers, vendor TLV buffers).
+    /* Step 3: Patch default slot image with TI-specific firmware metadata
+     * before sample_data_init() writes it to NV on first boot. */
+    strncpy(default_run_slot_image.hwid,     TI_FW_HWID,     HWID_SIZE      - 1);
+    strncpy(default_run_slot_image.filename, TI_FW_FILENAME, FILE_NAME_SIZE - 1);
+    strncpy(default_run_slot_image.version,  TI_FW_VERSION,  VERSION_SIZE   - 1);
+
+    /* Step 4: Init CSMP sample data (slot headers, vendor TLV buffers).
      * sample_data_init() resets g_init_time to osal_gettime()=0.
      * We override it after with the real join time in seconds. */
     sample_data_init();
@@ -1226,23 +1216,33 @@ void *mainThread(void *arg0)
     g_csmp_handle.csmptlvs_post = (csmptlvs_post_t)csmptlvs_post;
     g_csmp_handle.signature_verify = (signature_verify_t)signature_verify;
 
-    /* Seed the device clock with an approximate build-time epoch so FND sees
-     * a sane "last heard" time instead of 1970.  The exact value doesn't
-     * matter — FND corrects it to accurate wall-clock time by pushing
-     * CURRENT_TIME_TLVID back in its registration response.
-     * Update CSMP_APPROX_EPOCH whenever the firmware is significantly older
-     * than 6 months to avoid FND classifying the device as "Unheard". */
-#define CSMP_APPROX_EPOCH  1777334400UL  /* 2026-04-27 00:00:00 UTC */
+#ifndef CSMP_BUILD_EPOCH
+#  define CSMP_BUILD_EPOCH  1780000000UL  /* 2026-05-25 — fallback only */
+#endif
     {
-        struct timeval tv = { (time_t)CSMP_APPROX_EPOCH, 0 };
-        osal_settime(&tv, NULL);
-        tr_info("CSMP: initial clock seeded to %lu", (unsigned long)tv.tv_sec);
+        struct timeval tv_seed = { (time_t)CSMP_BUILD_EPOCH, 0 };
+        osal_settime(&tv_seed, NULL);
+
+        if (sntp_sync(CSMP_NTP_SERVER) == 0)
+        {
+            struct timeval tv_now = {0};
+            osal_gettime(&tv_now, NULL);
+            tr_info("CSMP: clock synchronised via SNTP — epoch=%lu", (unsigned long)tv_now.tv_sec);
+        }
+        else
+        {
+            tr_warn("CSMP: SNTP failed — using build-epoch %lu (LoadRequest timers may lag)",
+                    (unsigned long)CSMP_BUILD_EPOCH);
+        }
     }
 
     /* Create FreeRTOS timer handles and RX semaphore used by the CSMP OSAL.
      * Must be called before csmp_service_start() because osal_trickle_timer_start()
      * calls xTimerStart() — which asserts on a NULL handle if this is skipped. */
     osal_kernel_start();
+
+    extern void ti_ota_check_pending_activation(void);
+    ti_ota_check_pending_activation();
 
     int csmp_ret = csmp_service_start(&g_devconfig, &g_csmp_handle);
     tr_info("CSMP: csmp_service_start - done");
@@ -1258,7 +1258,7 @@ void *mainThread(void *arg0)
                 g_devconfig.reginterval_max);
     }
 
-    /* Step 6: Status log loop — log registration state every 10 s */
+    /* Step 6: Status log loop */
     tr_info("CSMP: entering_loop_status");
     for (uint32_t tick = 0u;;)
     {
@@ -1279,12 +1279,7 @@ void *mainThread(void *arg0)
 
 #else //WISUN_NCP_ENABLE
 
-/*!
- * Signal NCP tasklet with the event NCP_SEND_RESPONSE_EVENT,
- * so that NCP_tasklet can process the sending of a response
- * back to the host, when the host sends a command.
- * e.g. Response to a command from host to set/get configuration.
- */
+/* Post NCP_SEND_RESPONSE_EVENT to the NCP tasklet to trigger response transmission to the host. */
 void platformNcpSendRspSignal()
 {
     //post an event to ncp_tasklet
@@ -1300,11 +1295,7 @@ void platformNcpSendRspSignal()
    eventOS_event_send(&event);
 }
 
-/*!
- * Signal NCP tasklet with the event NCP_SEND_ASYNC_RSPONSE_EVENT
- * so that NCP tasket can process the sending of an async response
- * back to the host - e.g. reception of a packet by the NWP
- */
+/* Post NCP_SEND_ASYNC_RSPONSE_EVENT to the NCP tasklet to trigger async response transmission. */
 void platformNcpSendAsyncRspSignal()
 {
     //post an event to ncp_tasklet
@@ -1320,9 +1311,7 @@ void platformNcpSendAsyncRspSignal()
    eventOS_event_send(&event);
 }
 
-/*!
- * Callback from the UART module indicating need for processing.
- */
+/* Forward a UART event to the NCP tasklet for processing. */
 void platformUartSignal(uintptr_t arg)
 {
     //post an event to ncp_tasklet
@@ -1339,9 +1328,7 @@ void platformUartSignal(uintptr_t arg)
 }
 
 #ifdef WISUN_AUTO_START
-/*!
- * Blink Leds continuously when an assert occurs
- */
+/* Blink both LEDs indefinitely to signal an unrecoverable assert condition. */
 static inline void auto_start_assert_led()
 {
     while(1)
@@ -1352,11 +1339,7 @@ static inline void auto_start_assert_led()
     }
 }
 
-/*!
- * Post event to NCP tasklet to do net interface configuration
- * and start wisun stack without having to receive commands on
- * the NCP interface
- */
+/* Post NCP_AUTO_START_EVENT to the NCP tasklet to bring up the interface without host commands. */
 static inline void autoStartSignal()
 {
     arm_event_s auto_event = {
@@ -1372,10 +1355,7 @@ static inline void autoStartSignal()
 }
 #endif //WISUN_AUTO_START
 
-/*!
- * Core logic for NCP tasklet. Helps process incoming, outgoing
- * messages on NCP interface based on the received event
- */
+/* NCP tasklet event handler: initialises OpenThread NCP, processes UART and NCP send events. */
 void ncp_tasklet(arm_event_s *event)
 {
     arm_library_event_type_e event_type;
@@ -1442,10 +1422,7 @@ void ncp_tasklet(arm_event_s *event)
      } //end of switch case
 }
 
-/*!
- * Create the NCP tasklet whose core logic is defined in ncp_tasklet()
- * Also, post the event to initialize it after creating the tasklet
- */
+/* Register the NCP tasklet with the event OS and trigger ARM_LIB_TASKLET_INIT_EVENT. */
 void ncp_tasklet_start(void)
 {
         eventOS_event_handler_create(
@@ -1453,14 +1430,7 @@ void ncp_tasklet_start(void)
         ARM_LIB_TASKLET_INIT_EVENT);
 }
 
-
-/* Below functions are invoked on receiving
- * the appropriate commands from host */
-
-/*!
- * Check if bringing up of network interface is done or not
- * return value: true if already done, false if not
- */
+/* Return true if the Wi-SUN network interface has been brought up. */
 bool is_net_if_up(void)
 {
     if(interface_id < 0)
@@ -1473,9 +1443,7 @@ bool is_net_if_up(void)
     }
 }
 
-/*!
- * Bring up the network interface
- */
+/* Configure and bring up the Wi-SUN network interface; return OT_ERROR_FAILED on any error. */
 otError nanostack_net_if_up(void)
 {
     if( MESH_ERROR_NONE != nanostack_wisunInterface_configure())
@@ -1492,20 +1460,13 @@ otError nanostack_net_if_up(void)
 
 }
 
-/*!
- * Check if the node joined the network or not on starting
- * the connection to network
- * return value: true if connected, false if not or in the
- * process of connecting
- */
+/* Return true if the node has completed Wi-SUN network join (connectedFlg is set). */
 bool is_net_stack_up(void)
 {
     return(connectedFlg);
 }
 
-/*!
- * Start the process to connect node to the network
- */
+/* Initiate Wi-SUN network join in blocking mode; return OT_ERROR_FAILED on connect error. */
 otError nanostack_net_stack_up(void)
 {
     GPIO_write(CONFIG_GPIO_RLED, 0);
@@ -1523,10 +1484,7 @@ otError nanostack_net_stack_up(void)
     // or reading current_net_state()
 }
 
-/*!
- * Helper function - returns the first non-zero channel from a list of
- * channels that is sent as input.
- */
+/* Scan a channel bitmap and return the number of the first set (active) channel. */
 uint8_t get_first_fixed_channel(uint8_t * channel_list)
 {
     uint8_t idx, sizeOfChannelMask;
@@ -1556,9 +1514,7 @@ uint8_t get_first_fixed_channel(uint8_t * channel_list)
     return fixedChannelNum;
 }
 
-/*!
- * Helper function - returns the Link Local address of the node
- */
+/* Return the IPv6 link-local address entry for the 6LoWPAN interface. */
 if_address_entry_t *get_linkLocal_address(void)
 {
     protocol_interface_info_entry_t *cur;
@@ -1577,9 +1533,7 @@ if_address_entry_t *get_linkLocal_address(void)
 
 }
 
-/*!
- * Helper function - returns the global unicast address of the node
- */
+/* Return the DHCP-assigned global unicast address entry for the 6LoWPAN interface. */
 if_address_entry_t *get_globalUnicast_address(void)
 {
     protocol_interface_info_entry_t *cur;
@@ -1599,10 +1553,7 @@ if_address_entry_t *get_globalUnicast_address(void)
 
 #endif //WISUN_NCP_ENABLE
 
-/*!
- * Helper function to get neighbor node metrics like rssi_in, rssi_out
- * Metrics are copied over to a global structure instance.
- */
+/* Populate nbr_nodes_metrics with MAC address and RSL in/out for each trusted neighbor. */
 void fetch_neighbor_details()
 {
     protocol_interface_info_entry_t *cur;
@@ -1643,12 +1594,7 @@ void fetch_neighbor_details()
     }//end of for
 }
 
-/*!
- * Returns the current state of the node based on
- * at what state is the node during the network joining process
- * Return value used to vary the rate of red led blinking
- * while the node is joining the network
- */
+/* Map the current nanostack bootstrap state to a numeric level used to set LED blink rate. */
 uint8_t get_current_net_state(void)
 {
     protocol_interface_info_entry_t *cur;
@@ -1686,9 +1632,7 @@ uint8_t get_current_net_state(void)
     return(curNetState);
 }
 
-/*!
- * Helper function - get current multicast groups a node is subscribed to
- */
+/* Return a pointer to the multicast group list for the 6LoWPAN interface. */
 if_group_list_t *get_multicast_ip_groups()
 {
     protocol_interface_info_entry_t *cur;
@@ -1697,10 +1641,7 @@ if_group_list_t *get_multicast_ip_groups()
     return &cur->ip_groups;
 }
 
-/*!
- * Helper function - add multicast address
- * return 0 if successful or -1 when an error occurs
- */
+/* Add an IPv6 multicast address to the 6LoWPAN interface; returns 0 on success, -1 on error. */
 int8_t add_multicast_addr(const uint8_t *address)
 {
     protocol_interface_info_entry_t *cur;
@@ -1719,10 +1660,7 @@ int8_t add_multicast_addr(const uint8_t *address)
     return 0;
 }
 
-/*!
- * Helper function - remove multicast address
- * return 0 if successful or -1 when an error occurs
- */
+/* Remove an IPv6 multicast address from the 6LoWPAN interface; returns 0 on success, -1 on error. */
 int8_t remove_multicast_addr(const uint8_t *address)
 {
     protocol_interface_info_entry_t *cur;
@@ -1738,6 +1676,7 @@ int8_t remove_multicast_addr(const uint8_t *address)
     return 0;
 }
 
+/* Return the first RPL instance from the 6LoWPAN interface's RPL domain, or NULL if none. */
 rpl_instance_t *get_rpl_instance()
 {
     protocol_interface_info_entry_t *cur;
@@ -1751,12 +1690,14 @@ rpl_instance_t *get_rpl_instance()
     return instance;
 }
 
+/* Stub for border-router-only function; always returns NULL on non-BR devices. */
 rpl_dao_target_t *get_dao_target_from_addr(rpl_instance_t *instance, const uint8_t *addr)
 {
     // Always return NULL, only valid for BR devices
     return NULL;
 }
 
+/* Return the PAN ID of the connected Wi-SUN network, or 0xFFFF if not available. */
 uint16_t get_network_panid(void)
 {
     protocol_interface_info_entry_t *cur;
@@ -1767,13 +1708,10 @@ uint16_t get_network_panid(void)
     return cur->ws_info->network_pan_id;
 }
 
-
 #ifdef WISUN_TEST_METRICS
 extern JOIN_TIME_s node_join_time;
 
-/*
- * Get latest test metrics
- */
+/* Collect join time, MAC debug counters, heap stats, RPL rank, and UDP packet count into test_metrics. */
 void get_test_metrics(test_metrics_s *test_metrics)
 {
     rpl_instance_t *rpl_inst;

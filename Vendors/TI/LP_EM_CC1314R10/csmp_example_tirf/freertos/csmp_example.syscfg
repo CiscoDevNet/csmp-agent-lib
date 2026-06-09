@@ -200,9 +200,9 @@ for(var setting in ccfgSettings)
 
 /* ======== RTOS ======== */
 const FreeRTOS = scripting.addModule("/freertos/FreeRTOS");
-FreeRTOS.heapSize = 0x8000;
+FreeRTOS.heapSize = 0xC000;
 FreeRTOS.posixThreadStackSize = 0x00000200;
 FreeRTOS.idleStackSize = 0x00000180;
-FreeRTOS.timerStackSize = 0x00000800;
+FreeRTOS.timerStackSize = 0x00001000;
 
 const POSIX = scripting.addModule("/ti/posix/freertos/Settings");

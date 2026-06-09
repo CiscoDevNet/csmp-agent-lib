@@ -44,7 +44,11 @@
 #else
 #define CSMP_FWMGMT_SLOTIMG_SIZE      (30*1024)  // 30 Kb
 #endif
+#if defined(OSAL_TI_SIMPLELINK_WISUN)
+#define CSMP_FWMGMT_BLKMAP_CNT        (34)
+#else
 #define CSMP_FWMGMT_BLKMAP_CNT        (32)
+#endif
 
 #define CSMP_IMAGE_HDR_SIZE           256
 

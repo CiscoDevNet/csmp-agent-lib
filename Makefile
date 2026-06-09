@@ -23,7 +23,7 @@ efr32_wisun:
 	make -f efr32_wisun.target
 
 ti_simplelink_wisun:
-	make -f ti_simplelink_wisun.target
+	make clean && make CONFIG=SECUREBOOT -f ti_simplelink_wisun.target
 
 clean:
 	-rm -rf build/

@@ -18,21 +18,25 @@ DEVICE_FAMILY ?= CC13X4
 
 ifeq ($(DEVICE_FAMILY),CC13X4)
   C_DEFS        += -DDeviceFamily_CC13X4
+  C_FLAGS       += -mcpu=cortex-m33 -mfloat-abi=hard -mfpu=fpv5-sp-d16
   DEVICE_DIR     = cc13x4_cc26x4
   FREERTOS_PORT  = ARM_CM33/non_secure
   FREERTOS_CFG   = cc13x4_cc26x4
 else ifeq ($(DEVICE_FAMILY),CC13X2X7)
   C_DEFS        += -DDeviceFamily_CC13X2X7
+  C_FLAGS       += -mcpu=cortex-m4 -march=armv7e-m -mfloat-abi=hard -mfpu=fpv4-sp-d16
   DEVICE_DIR     = cc13x2x7_cc26x2x7
   FREERTOS_PORT  = ARM_CM4F
   FREERTOS_CFG   = cc13x2x7_cc26x2x7
 else ifeq ($(DEVICE_FAMILY),CC13X2)
   C_DEFS        += -DDeviceFamily_CC13X2
+  C_FLAGS       += -mcpu=cortex-m4 -march=armv7e-m -mfloat-abi=hard -mfpu=fpv4-sp-d16
   DEVICE_DIR     = cc13x2_cc26x2
   FREERTOS_PORT  = ARM_CM4F
   FREERTOS_CFG   = cc13x2_cc26x2
 else ifeq ($(DEVICE_FAMILY),CC13X1)
   C_DEFS        += -DDeviceFamily_CC13X1
+  C_FLAGS       += -mcpu=cortex-m4 -march=armv7e-m -mfloat-abi=hard -mfpu=fpv4-sp-d16
   DEVICE_DIR     = cc13x1_cc26x1
   FREERTOS_PORT  = ARM_CM4F
   FREERTOS_CFG   = cc13x1_cc26x1

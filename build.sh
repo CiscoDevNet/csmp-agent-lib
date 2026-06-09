@@ -9,21 +9,24 @@ SAMPLEDIR=$TOPDIR/sample
 TLVPROTODIR=$TOPDIR/src/csmpagent/tlvs
 
 export OS=$1
+# Extra make variables forwarded to all sub-makes 
+shift
+EXTRA_ARGS="$@"
 
 build_header()
 {
   echo "########## generating protobuf header files...##########"
-  make $OS -C $TLVPROTODIR
+  make $OS -C $TLVPROTODIR $EXTRA_ARGS
 }
 
 build_sample()
 {
-  make $OS -C $SAMPLEDIR
+  make $OS -C $SAMPLEDIR $EXTRA_ARGS
 }
 
 build_lib()
 {
-  make $OS -C $DESTDIR
+  make $OS -C $DESTDIR $EXTRA_ARGS
   rm -f *.o
   [ ! -f csmp_agent_lib.a ] || mv csmp_agent_lib.a sample/
   [ ! -f csmp_agent_lib_freertos.a ] || mv csmp_agent_lib_freertos.a sample/

@@ -140,21 +140,20 @@ Before touching any commands, understand what network addresses are involved. Th
 
 ## 4. Part A: Configure the NMS Address
 
-The CSMP Agent firmware needs to know the IPv6 address of your FND server at **compile time**. This setting applies to all boards from a single shared file.
+The CSMP Agent firmware needs to know the IPv6 address of your FND server at **compile time**. The address is defined in **two places** — both must match your FND address before building.
 
-### Step A.1 - Open router.opts
+| File | Used by | What it controls |
+|------|---------|-----------------|
+| `Vendors/TI/application/defines/router.opts` | TI board builds (`CONFIG=SECUREBOOT`) | Passed as `-D` compiler flag, overrides the header at build time |
+| `sample/CsmpAgentLib_sample.h` | Linux / FreeRTOS builds; also the fallback default | `#define CSMP_AGENT_NMS_ADDRESS` used if the `-D` flag is not present |
+
+Update both files so the address is consistent regardless of which build target is used.
+
+### Step A.1 - Update `router.opts` (TI board builds)
 
 ```bash
-# Run from the csmp-agent-lib root directory
-cd /path/to/csmp-agent-lib
 nano Vendors/TI/application/defines/router.opts
 ```
-
-**File location:** `csmp-agent-lib/Vendors/TI/application/defines/router.opts`
-
-This file is shared by all boards. Changing it once updates the NMS address for every board in the next build.
-
-### Step A.2 - Set the FND address
 
 Find this line:
 
@@ -165,16 +164,34 @@ Find this line:
 Replace `fd00::3` with your FND server's actual IPv6 address:
 
 ```
--DCSMP_AGENT_NMS_ADDRESS=\"<your-FND-IPv6-address>\"
-```
-
-For example, if FND is at `fd00::2`:
-
-```
 -DCSMP_AGENT_NMS_ADDRESS=\"fd00::2\"
 ```
 
 Save and close (`Ctrl+X`, `Y`, `Enter` in nano).
+
+This file is shared by all TI boards — changing it once updates every board in the next build.
+
+### Step A.2 - Update `CsmpAgentLib_sample.h` (all build targets)
+
+```bash
+nano sample/CsmpAgentLib_sample.h
+```
+
+Find this line near the top of the configuration block (around line 123):
+
+```c
+#define CSMP_AGENT_NMS_ADDRESS        "fd00::3"
+```
+
+Replace the address to match what you set in Step A.1:
+
+```c
+#define CSMP_AGENT_NMS_ADDRESS        "fd00::2"
+```
+
+Save and close.
+
+> Both files must have the same FND address. For TI board builds the `router.opts` `-D` flag takes precedence at compile time, but keeping the header in sync ensures Linux and FreeRTOS builds work correctly without a separate change.
 
 ---
 
@@ -226,7 +243,25 @@ SIMPLELINK_SDK_LINUX = /path/to/simplelink_cc13xx_cc26xx_sdk
 
 ---
 
-### Step B.2 - Run the build
+### Step B.2 - Set the IANA Vendor ID to TI
+
+The file `include/iana_pen.h` controls which IANA Private Enterprise Number (PEN) the device reports to FND in the VendorTLV. The default value is `CISCO`; change it to `TI` so the firmware identifies itself as a Texas Instruments device (PEN 294).
+
+Open `include/iana_pen.h` and change line 32:
+
+```c
+/* Before */
+#define VENDOR_ID CISCO
+
+/* After */
+#define VENDOR_ID TI
+```
+
+The `TI = 294` enum value is already defined in the same file. This single-line change ensures the `vendorId` field in every VendorTLV report matches the `"294"` value in the `cc13xx` FND device metadata file.
+
+---
+
+### Step B.3 - Run the build
 
 Once the three files above are configured, build from the csmp-agent-lib root:
 
@@ -236,16 +271,18 @@ cd /path/to/csmp-agent-lib
 # Make the build script executable (only needed once)
 chmod 777 build.sh
 
-# Build firmware for all supported boards
-./build.sh ti_simplelink_wisun
+# Build firmware for all supported boards with MCUBoot secure boot support
+./build.sh ti_simplelink_wisun CONFIG=SECUREBOOT
 ```
+
+The `CONFIG=SECUREBOOT` flag enables MCUBoot bootloader support, which is required for OTA firmware updates. Without it the build produces a standard `.hex` only; with it the post-build step also invokes `imgtool` to produce a signed `.bin` file that MCUBoot can validate and apply.
 
 The build does three things in sequence:
 1. Compiles the CSMP Agent library into `csmp_agent_lib_ti_simplelink_wisun.a`
 2. Moves the `.a` file into the `sample/` directory
 3. Loops over every board under `Vendors/TI/*/csmp_example_tirf/freertos/ticlang/`, running SysConfig, compiling the board-specific glue/HAL layer from source, and linking against the SDK's prebuilt Wi-SUN libraries — all five boards are built in one pass
 
-### Step B.3 - Confirm the output
+### Step B.4 - Confirm the output
 
 A successful build ends with output similar to:
 
@@ -275,18 +312,21 @@ Vendors/TI/LP_EM_CC1354P10_1/csmp_example_tirf/freertos/ticlang/ns_node_csmp.hex
 Vendors/TI/LP_EM_CC1354P10_6/csmp_example_tirf/freertos/ticlang/ns_node_csmp.hex
 ```
 
-The file you will flash to your specific board is:
+The files you will use for your specific board are:
 
-```
-Vendors/TI/<BOARD>/csmp_example_tirf/freertos/ticlang/ns_node_csmp.hex
-```
+| File | Purpose |
+|------|---------|
+| `Vendors/TI/<BOARD>/csmp_example_tirf/freertos/ticlang/ns_node_csmp.hex` | Full flash image — use with UniFlash for initial flashing |
+| `Vendors/TI/<BOARD>/csmp_example_tirf/freertos/ticlang/ns_node_csmp.bin` | MCUBoot-signed binary — used as input to `add_tpdheader.py` for OTA |
+| `Vendors/TI/<BOARD>/csmp_example_tirf/freertos/ticlang/ns_node_csmp-noheader.bin` | Intermediate file only — do not use directly |
 
 For example, for LP-CC1352P7-1:
 ```
-Vendors/TI/LP_CC1352P7_1/csmp_example_tirf/freertos/ticlang/ns_node_csmp.hex
+Vendors/TI/LP_CC1352P7_1/csmp_example_tirf/freertos/ticlang/ns_node_csmp.hex   ← flash this initially
+Vendors/TI/LP_CC1352P7_1/csmp_example_tirf/freertos/ticlang/ns_node_csmp.bin   ← use this for OTA
 ```
 
-### Step B.4 - Clean the build
+### Step B.5 - Clean the build
 
 To remove all build artifacts (library, objects, and board hex):
 
@@ -294,7 +334,7 @@ To remove all build artifacts (library, objects, and board hex):
 ./build.sh clean
 ```
 
-### Step B.5 - If the build fails
+### Step B.6 - If the build fails
 
 Common issues:
 
@@ -310,15 +350,95 @@ Common issues:
 
 ## 6. Part C: Pre-provision the Device in Cisco FND
 
-Before the mesh node can register, FND must have the device's identity in its database.
+Before the mesh node can register, FND must have two things: the device type definition (created once per FND installation) and the device's EUI-64 identity (added once per physical device).
 
-For full device provisioning steps, refer to the TPD integration guide included in this repository:
+For the complete provisioning walkthrough with screenshots, refer to the TPD integration guide included in this repository:
 
 ```
 docs/Cisco FND-OpenCSMP TPD Integration Guide.pdf
 ```
 
-When adding the device in FND, register it as device type **CC13XX**.
+### Step C.1 - Create the CC13XX device type on the FND server
+
+This step is done **once per FND installation**. It registers the CC13XX device type so FND knows how to categorize, display, and manage TI Wi-SUN devices.
+
+SSH into the FND server and run:
+
+```bash
+cd /opt/cgms/bin
+./addGenericEndpoints.sh
+# When prompted for device type name, enter: cc13xx
+```
+
+The script creates the directory:
+```
+/opt/cgms/server/cgms/conf/endpoint-meta/cc13xx/
+```
+
+### Step C.2 - Deploy the CC13XX metadata file
+
+Replace the generated template with the correct metadata for TI Wi-SUN devices. On the FND server, open the generated file for editing:
+
+```bash
+nano /opt/cgms/server/cgms/conf/endpoint-meta/cc13xx/cc13xxMeta.json
+```
+
+Replace the contents with exactly the following:
+
+```json
+{
+    "device_info": {
+        "device_type": "cc13xx",
+        "device_function": "extender",
+        "device_description": "TI CC13xx Wi-SUN FAN Router Node",
+        "display_string": "CC13XX",
+        "pids": ["OPENCSMP"],
+        "vendorId": "294",
+        "vendorName": "Texas Instruments",
+        "configure_vendortlv": "true",
+        "device_actions": [
+            "reboot",
+            "ping",
+            "traceroute",
+            "inventory"
+        ],
+        "hw_info": "CC13XX"
+    }
+}
+```
+
+**Why each field matters:**
+
+| Field | Value | Why |
+|-------|-------|-----|
+| `device_type` | `"cc13xx"` | Must match the directory name and the type used when importing devices via CSV |
+| `device_function` | `"extender"` | Matches `FUNCTION_RE = 2` reported in TLV 11 by the firmware — determines which category devices appear under in FND |
+| `vendorId` | `"294"` | TI's IANA PEN — matches `VENDOR_ID = TI = 294` in `include/iana_pen.h`; FND displays this in the VendorTLV Info tab |
+| `vendorName` | `"Texas Instruments"` | Shown alongside the vendor ID in FND |
+| `configure_vendortlv` | `"true"` | Enables FND to push Vendor TLV 127 config to the device |
+| `hw_info` | `"CC13XX"` | **Must match `hwid` in `tools/tpd_config_cc13xx.json` and the TPD binary header** — FND uses this to validate firmware images before assigning them to this device group |
+
+> **Important:** `hw_info` and `hwid` must always be in sync. If you upload a firmware binary whose TPD header contains a different `hwid`, FND will refuse to assign it to the `cc13xx` group.
+
+### Step C.3 - Restart FND to load the new device type
+
+```bash
+service cgms restart
+```
+
+FND reads the `endpoint-meta` directory at startup and creates the necessary database tables for the new device type. Any errors are logged to `/opt/cgms/logs/server.log`.
+
+### Step C.4 - Import your device EUI-64s into FND
+
+Create a CSV file with your device EUI-64s:
+
+```
+eid,devicetype
+001234567890ABCD,cc13xx
+001234567890ABCE,cc13xx
+```
+
+In the FND web UI: **Devices → Field Devices → Import** — upload the CSV. Each device now appears under the **Endpoints → CC13XX** category in the left panel, waiting for its first registration.
 
 ---
 
@@ -453,7 +573,34 @@ sudo ip6tables -I DOCKER-USER -i eno2 -o br-f76e88221080 -j ACCEPT
 sudo ip6tables -I DOCKER-USER -i br-f76e88221080 -o eno2 -j ACCEPT
 ```
 
-### Step F.5 - Fix Docker's raw table DROP rule (critical)
+### Step F.5 - Add Linux host route for Wi-SUN mesh subnet
+
+The Linux host must know to forward packets destined for the Wi-SUN mesh (`2020:abcd::/64`) into the Docker bridge, where the wfantund container will deliver them via the `wfan0` TUN interface. Without this route, the Linux host drops packets that FND sends toward mesh nodes.
+
+First, find the wfantund container's IPv6 address on the Docker bridge:
+
+```bash
+docker inspect wfantund | grep -i "globalipv6"
+# e.g., fddb:a737:317c::4
+```
+
+Add the route (replace the container address and bridge name with your actual values from Step F.4):
+
+```bash
+sudo ip -6 route add 2020:abcd::/64 via fddb:a737:317c::4 dev br-9510734a7037
+```
+
+Verify:
+
+```bash
+ip -6 route show | grep 2020
+# Expected:
+# 2020:abcd::/64 via fddb:a737:317c::4 dev br-9510734a7037
+```
+
+> **Note:** This route is lost on reboot. To make it persistent, add it to `/etc/rc.local` or create a systemd network route unit.
+
+### Step F.6 - Fix Docker's raw table DROP rule (critical)
 
 Docker adds a `PREROUTING` rule in the `raw` table that silently drops any packet destined for a container address if the packet did NOT arrive on the Docker bridge. This runs before routing and before the filter table - it is invisible to most debugging tools. You must insert an ACCEPT rule before it.
 
@@ -472,7 +619,7 @@ sudo ip6tables -t raw -I PREROUTING -i eno2 -d fddb:a737:317c::2 -j ACCEPT
 
 > **Why this matters:** Without this rule, every packet FND sends to the container's Docker bridge address is silently dropped at the kernel level before any other rule even sees it. This was the root cause of the "101 dropped packets" issue seen during development.
 
-### Step F.6 - Save the ip6tables rules
+### Step F.7 - Save the ip6tables rules
 
 Docker rewrites its own chains on every restart but leaves `DOCKER-USER` and the `raw` table alone. Save the rules so they survive reboots:
 
@@ -483,7 +630,7 @@ sudo netfilter-persistent save
 
 This writes rules to `/etc/iptables/rules.v6` and restores them at boot before Docker starts.
 
-### Step F.7 - Add routes on FND
+### Step F.8 - Add routes on FND
 
 FND needs to know how to reach the Docker bridge subnet and the Wi-SUN mesh subnet. Both paths go via the Linux host's `fd00::1` address.
 
@@ -503,7 +650,7 @@ ip -6 route show | grep -E "fddb|2020"
 # 2020:abcd::/64 via fd00::1 dev ens192
 ```
 
-### Step F.8 - Configure forwarding inside the container
+### Step F.9 - Configure forwarding inside the container
 
 Inside the wfantund container, enable IPv6 forwarding so it can forward between the `wfan0` TUN interface and the IPv6 tunnel (`eth0`) toward the Linux Host container. Also add a route back to FND's subnet.
 
@@ -524,6 +671,91 @@ ip -6 route show
 ```
 
 > **Note:** These container settings are lost when the container restarts.
+
+---
+
+### Step F.10 - Set up NTP server on the Linux host (required for OTA scheduling)
+
+The TI mesh node synchronises its clock via SNTP (RFC 4330) over the Wi-SUN network immediately after joining, before CSMP starts.  This is the same approach used by Silicon Labs EFR32 devices (`sl_wisun_ntp_timesync()`).  Without an accurate clock, the device may activate scheduled firmware updates several minutes late.
+
+The Linux host (`fd00::1`) must run an NTP **server** — Ubuntu's default `systemd-timesyncd` is a client only and does not respond to queries.
+
+#### Install and configure ntpd
+
+```bash
+sudo apt update
+sudo apt install ntp -y
+```
+
+Edit `/etc/ntp.conf` and add the following lines in the `restrict` section:
+
+```
+# Allow Wi-SUN mesh nodes and the management network to query this server
+restrict fd00:: mask ffff::          nomodify notrap
+restrict 2020:abcd:: mask ffff:ffff:: nomodify notrap
+```
+
+The full restrict block should look like this:
+
+```
+restrict default kod nomodify notrap nopeer noquery
+restrict 127.0.0.1
+restrict ::1
+restrict fd00:: mask ffff::          nomodify notrap
+restrict 2020:abcd:: mask ffff:ffff:: nomodify notrap
+```
+
+#### Start and enable the service
+
+```bash
+sudo systemctl enable ntp
+sudo systemctl start ntp
+sudo systemctl status ntp
+```
+
+#### Allow UDP port 123 through any local firewall
+
+```bash
+# UFW (if enabled)
+sudo ufw allow 123/udp
+
+# Or directly via ip6tables
+sudo ip6tables -I INPUT -p udp --dport 123 -j ACCEPT
+```
+
+#### Verify ntpd is listening on IPv6
+
+```bash
+ss -ulnp | grep 123
+# Expected output includes a line with :::123 (IPv6 wildcard)
+```
+
+#### Verify ntpd has synchronised with upstream
+
+```bash
+ntpq -p
+# Look for a server with * (selected) or + (candidate) in the first column.
+# ntpd takes 5-10 minutes on first start to reach synchronisation.
+```
+
+#### Test that the NTP server responds
+
+From the Linux host itself:
+
+```bash
+ntpdate -q fd00::1
+# Expected: server fd00::1, stratum N, offset X.XXXX, delay Y.YYYY
+```
+
+Once ntpd is running, the TI mesh node will print the following at boot (visible on the serial terminal):
+
+```
+[INFO][sntp]: sntp: request sent to [fd00::1]:123
+[INFO][sntp]: sntp: clock set to Unix=1780466595 (NTP=3989455395)
+[INFO][main]: CSMP: clock synchronised via SNTP — epoch=1780466595
+```
+
+If the NTP server is not reachable, the device falls back to `CSMP_BUILD_EPOCH` (the Unix timestamp injected at compile time), which is accurate to within seconds of the actual build date.
 
 ---
 
@@ -607,4 +839,266 @@ Log into the FND web interface. Navigate to **Devices > Field Devices**. Your me
 - Status: **Up**
 - IP Address: `2020:abcd::0212:4b00:xxxx`
 - Last Registration: recent timestamp
+
+---
+
+## 12. Part H: OTA Firmware Update
+
+This section covers upgrading the firmware on a running mesh node over the air using Cisco FND. OTA requires MCUBoot to be present on the device, which is why the `CONFIG=SECUREBOOT` flag is used in the build.
+
+The process has three phases: build and flash the initial image, build the upgrade image, and trigger the update through FND.
+
+---
+
+### Phase 1: Build and Flash the Initial Image
+
+This is the baseline firmware that the device runs before any OTA. It must be flashed physically via UniFlash.
+
+#### Step H.1 - Build the initial image
+
+From the csmp-agent-lib root directory:
+
+```bash
+./build.sh ti_simplelink_wisun CONFIG=SECUREBOOT
+```
+
+The build produces two files per board. For LP-CC1352P7-1:
+- `Vendors/TI/LP_CC1352P7_1/csmp_example_tirf/freertos/ticlang/ns_node_csmp.hex` — full flash image for UniFlash
+- `Vendors/TI/LP_CC1352P7_1/csmp_example_tirf/freertos/ticlang/ns_node_csmp.bin` — MCUBoot-signed binary used for OTA
+
+The version embedded in the initial image defaults to `1.0.0` as set in the board makefile's `imgtool` post-build step.
+
+#### Step H.2 - Flash MCUBoot and the initial image
+
+MCUBoot must be flashed to the device before the application. Flash in this order using UniFlash:
+
+1. Open UniFlash and connect your board.
+2. **First — add the MCUBoot image:**
+   - Click **Add file** and select the MCUBoot binary from the SimpleLink SDK:
+     ```
+     <SDK>/examples/nortos/<BOARD>/mcuboot_app/mcuboot/freertos/ticlang/mcuboot.hex
+     ```
+   - Leave the address at the default (MCUBoot's linker script sets its own load address at the top of flash).
+
+3. **Second — add the CSMP application image:**
+   - Click **Add file** and select:
+     ```
+     Vendors/TI/LP_CC1352P7_1/csmp_example_tirf/freertos/ticlang/ns_node_csmp.hex
+     ```
+
+4. Click **Load Images** to flash both files to the device.
+
+5. The device boots. MCUBoot runs first, validates the application, then hands control to the CSMP firmware. You should see the Wi-SUN stack initialize on the serial terminal and the device register with FND as described in Section 11.
+
+---
+
+### Phase 2: Build the Upgrade Image
+
+The upgrade image must have a **strictly higher version** than the currently running image. MCUBoot rejects any image with a version equal to or lower than what is already running.
+
+#### Step H.3 - Update the version string in `CsmpAgentLib_sample.c`
+
+Open `sample/CsmpAgentLib_sample.c` and find the `default_run_slot_image` line (around line 49):
+
+```c
+Csmp_Slothdr default_run_slot_image = {{0x61,0xe7,...},
+"opencsmp-node-1.0.00","1.0.00", "CC13XX", 27904, 0, 0, 0, 0, 0, 0, {0},0, 0};
+```
+
+Update the filename and version strings to match what you are about to build. For example, if the upgrade version will be `2.0.0`:
+
+```c
+Csmp_Slothdr default_run_slot_image = {{0x61,0xe7,...},
+"opencsmp-node-2.0.00","2.0.00", "CC13XX", 27904, 0, 0, 0, 0, 0, 0, {0},0, 0};
+```
+
+> This controls what version FND reads from **TLV 75 FirmwareImageInfo** after the OTA completes and the device reboots. It must match the `--version` argument in the next step.
+
+#### Step H.4 - Update the imgtool version in the board makefile
+
+Open the makefile for your board. For LP-CC1352P7-1:
+
+```bash
+nano Vendors/TI/LP_CC1352P7_1/csmp_example_tirf/freertos/ticlang/makefile
+```
+
+Find the `imgtool sign` line in the `postbuild` section:
+
+```makefile
+$(SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR)/tools/common/mcuboot/imgtool sign \
+    --header-size 0x80 --align 4 --slot-size 0xA8000 --pad \
+    --version 1.0.0 \
+    --pad-header \
+    --key $(SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR)/source/third_party/mcuboot/root-ec-p256.pem \
+    $(NAME)-noheader.bin $(NAME).bin;
+```
+
+Change `--version 1.0.0` to a version **higher** than what is currently running on the device:
+
+```makefile
+    --version 2.0.0 \
+```
+
+> The version here must be strictly greater than the running version. `2.0.0 > 1.0.0` ✓. MCUBoot compares major → minor → revision in order. The build number is ignored.
+
+#### Step H.5 - Build the upgrade image
+
+```bash
+./build.sh ti_simplelink_wisun CONFIG=SECUREBOOT
+```
+
+The output `.bin` is now signed with version `2.0.0`:
+```
+Vendors/TI/LP_CC1352P7_1/csmp_example_tirf/freertos/ticlang/ns_node_csmp.bin
+```
+
+#### Step H.6 - Update `tpd_config_cc13xx.json` to match the upgrade version
+
+Before wrapping the binary, update `tools/tpd_config_cc13xx.json` so the metadata embedded in the TPD header matches the version you just built. FND reads this header to display the image name and version in its firmware list.
+
+```bash
+nano tools/tpd_config_cc13xx.json
+```
+
+The file looks like this — edit `major`, `minor`, `build`, and `name` to match the version set in Step H.4:
+
+```json
+{
+    "major": "2",
+    "minor": "0",
+    "build": "0",
+    "name": "opencsmp-node-2.0.00",
+    "hwid": "CC13XX",
+    "sub_hwid": "0",
+    "branch": "main",
+    "commit": "0000000",
+    "date": "Jun 02 2026",
+    "kernelrev": "WISUN_2.0"
+}
+```
+
+Fields to update every time you build a new upgrade image:
+
+| Field | What to set | Example |
+|-------|-------------|---------|
+| `major` | Major version number (string) | `"2"` |
+| `minor` | Minor version number (string) | `"0"` |
+| `build` | Build/patch number (string) | `"0"` |
+| `name` | Human-readable image name shown in FND | `"opencsmp-node-2.0.00"` |
+| `date` | Build date (cosmetic only) | `"Jun 02 2026"` |
+
+> **Keep `hwid`, `sub_hwid`, `branch`, and `kernelrev` unchanged.** `hwid` must always stay `"CC13XX"` to match the `hw_info` field in `cc13xxMeta.json` on the FND server. Changing it will cause FND to reject the image when you try to assign it to the `cc13xx` device group.
+
+Save and close the file before running `add_tpdheader.py`.
+
+#### Step H.7 - Wrap the image with the CSMP TPD header
+
+FND requires the firmware binary to have a 256-byte CSMP metadata header prepended before it can be uploaded. Use the `add_tpdheader.py` tool for this.
+
+Run from the csmp-agent-lib root directory:
+
+```bash
+python3 tools/add_tpdheader.py \
+    Vendors/TI/LP_CC1352P7_1/csmp_example_tirf/freertos/ticlang/ns_node_csmp.bin \
+    ota_upgrade_v2.bin \
+    tools/tpd_config_cc13xx.json
+```
+
+Replace the arguments with your actual paths and preferred output filename:
+- **Argument 1** — path to the `.bin` built in Step H.5
+- **Argument 2** — name for the output file that you will upload to FND (any name ending in `.bin`)
+- **Argument 3** — TPD config file (`tools/tpd_config_cc13xx.json` contains the `hwid: "CC13XX"` and version metadata)
+
+This creates `ota_upgrade_v2.bin` in the current directory.
+
+#### Step H.8 - Transfer the image to the FND server
+
+Copy the wrapped binary to the machine where you access FND (or to any machine with a browser that can reach the FND web UI):
+
+```bash
+scp ota_upgrade_v2.bin user@fnd-server:/tmp/
+```
+
+---
+
+### Phase 3: Trigger the OTA from FND
+
+#### Step H.9 - Upload the firmware image to FND
+
+1. Log in to the Cisco FND web interface.
+2. Navigate to **CONFIG → Firmware Update**.
+3. In the left panel, click **Images**, then select **PLC-RF** from the firmware image categories.
+4. Click the **+** button next to the "FIRMWARE IMAGES" heading.
+5. In the dialog that appears, click **Browse**, select `ota_upgrade_v2.bin` from your machine.
+6. Click **Add File**. FND reads the 256-byte header and registers the image name and version.
+
+#### Step H.10 - Assign the image to a device group and start upload
+
+1. In the left panel, click **Groups**.
+2. Select the device group that contains your mesh node (e.g., `default-cc13xx`).
+3. In the right panel, click **Upload Image**.
+4. In the dialog:
+   - **Select Type:** choose `PLC-RF`
+   - **Select an Image:** choose the image you uploaded in Step H.8 (`ota_upgrade_v2.bin`)
+5. Click **Upload Image** to start sending blocks to the device.
+
+#### Step H.11 - Monitor the OTA progress
+
+On the same firmware group page, click the **Logs** tab. You will see progress similar to:
+
+```
+Sent block 1/1060
+Sent block 2/1060
+...
+Sent block 1060/1060
+Upload Finished
+```
+
+The **Status** column on the Firmware Management page also updates as the transfer progresses. Click **Refresh** periodically to get the latest status. The current status values are:
+
+| Status | Meaning |
+|--------|---------|
+| `Upload Finished` | All blocks sent to the device; device has confirmed receipt |
+| `Reload Scheduled` | FND has sent a LoadRequest; device activation timer is running |
+| `Reload Scheduling Finished` | Device acknowledged the load request |
+
+> You can also monitor block reception on the device's serial terminal. Look for `OTA: block N written` and `OTA: download complete!` log lines.
+
+#### Step H.12 - Reboot the device to apply the new firmware
+
+After the upload is complete, schedule a reboot via FND so MCUBoot can apply the image from external flash.
+
+1. Navigate to **Config → Firmware Update**.
+2. Scroll down to the **Image List** table.
+3. Scroll horizontally to the last column — the **Actions** column.
+4. Click the **calendar icon** next to your device to schedule a reboot.
+5. In the scheduler dialog, note the FND server's time zone and set the reboot time accordingly.
+
+The device reboots at the scheduled time. MCUBoot runs, finds the new image in external flash, verifies the ECDSA-P256 signature, copies it to internal flash, and boots it.
+
+#### Step H.13 - Verify the upgrade
+
+After the device rejoins the Wi-SUN network and re-registers with FND (allow 60–90 seconds):
+
+1. In **Devices → Field Devices**, open the device detail page.
+2. Check the **Firmware** tab — the running firmware version should now show `2.0.0` (or whatever version you set in Steps H.3–H.4).
+3. Alternatively, run `getoadfwver` from the border router if using pySpinel, or check the TLV 75 FirmwareImageInfo response in FND's Troubleshooting tab.
+
+---
+
+### OTA Quick Reference
+
+| Step | Action | Where |
+|------|--------|-------|
+| H.3 | Update version in `default_run_slot_image` | `sample/CsmpAgentLib_sample.c` line ~49 |
+| H.4 | Update `--version` in imgtool command | `Vendors/TI/<BOARD>/.../makefile` postbuild section |
+| H.5 | Build | `./build.sh ti_simplelink_wisun CONFIG=SECUREBOOT` |
+| H.6 | Update `tpd_config_cc13xx.json` version fields | `tools/tpd_config_cc13xx.json` — match major/minor/build/name to H.4 version |
+| H.7 | Wrap with TPD header | `python3 tools/add_tpdheader.py <in.bin> <out.bin> tools/tpd_config_cc13xx.json` |
+| H.8 | Copy to FND host | `scp <out.bin> user@fnd-server:/tmp/` |
+| H.9 | Upload image to FND | CONFIG → Firmware Update → Images → PLC-RF → + |
+| H.10 | Assign to group | CONFIG → Firmware Update → Groups → Upload Image |
+| H.11 | Monitor | Logs tab on the group firmware page |
+| H.12 | Reboot device | Config → Firmware Update → Image List → Actions column → calendar icon |
+| H.13 | Verify | Device detail → Firmware tab shows new version |
 
