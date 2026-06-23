@@ -1241,8 +1241,6 @@ void *mainThread(void *arg0)
      * calls xTimerStart() — which asserts on a NULL handle if this is skipped. */
     osal_kernel_start();
 
-    extern void ti_ota_check_pending_activation(void);
-    ti_ota_check_pending_activation();
 
     int csmp_ret = csmp_service_start(&g_devconfig, &g_csmp_handle);
     tr_info("CSMP: csmp_service_start - done");
