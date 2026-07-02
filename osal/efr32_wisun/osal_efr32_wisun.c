@@ -188,6 +188,11 @@ osal_socket_handle_t osal_socket(osal_basetype_t domain,
     return socket(domain, type, protocol);
 }
 
+osal_basetype_t osal_socket_close(osal_socket_handle_t sockd)
+{
+     return close(sockd);
+}
+
 osal_ssize_t osal_recvfrom(osal_socket_handle_t sockd, void *buf, size_t len, osal_basetype_t flags,
                            osal_sockaddr_t *src_addr, osal_socklen_t *addrlen)
 {

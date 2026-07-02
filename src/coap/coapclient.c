@@ -45,7 +45,7 @@ int coapclient_stop()
 {
   m_client_opened = false;
   osal_task_cancel(recvt_id_task);
-  return close(m_sock);
+  return osal_socket_close(m_sock);
 }
 
 int coapclient_open(response_handler_t response_handler)
