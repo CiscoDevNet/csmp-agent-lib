@@ -46,7 +46,7 @@ int coapserver_stop()
 {
   m_server_opened = false;
   osal_task_cancel(recvt_id_task);
-  return close(m_sockfd);
+  return osal_socket_close(m_sockfd);
 }
 
 int coapserver_listen(uint16_t sport, recv_handler_t recv_handler)
@@ -77,7 +77,7 @@ int coapserver_listen(uint16_t sport, recv_handler_t recv_handler)
   osal_update_sockaddr(&listen_addr, sport);
   if (osal_bind(sockfd, &listen_addr, sizeof(listen_addr)) < 0) {
     DPRINTF("coapserver_listen bind error!\n");
-    close(sockfd);
+    osal_socket_close(sockfd);
     return -1;
   }
 
