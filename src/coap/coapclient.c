@@ -39,7 +39,6 @@ static void recv_fn(void*);
 #endif
 int write_option( uint8_t *buf, uint16_t buf_len, coap_option_t this_option, coap_option_t *last_option,
     const uint8_t* option_buf, uint32_t option_len, uint32_t *written_len );
-void process_response(uint8_t* data, uint16_t len, struct sockaddr_in6 *from);
 void coap_option_map(uint32_t val, uint8_t *map);
 
 int coapclient_stop()
@@ -264,14 +263,14 @@ static void recv_fn(void* arg)
     DPRINTF("coapclient.Socket.recvfrom - Got %u-byte response from ",len);
     osal_print_formatted_ip(&from);
 
-    process_response(data, len, &from ); 
+    coapclient_process_response(data, len, &from );
  }
 #if defined(OSAL_LINUX)
   return NULL;
 #endif
 }
 
-void process_response(uint8_t* data, uint16_t len, struct sockaddr_in6 *from)
+void coapclient_process_response(uint8_t* data, uint16_t len, struct sockaddr_in6 *from)
 {
   uint8_t* cur = data;
   coap_header_t *hdr;

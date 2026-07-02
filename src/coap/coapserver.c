@@ -33,7 +33,6 @@ static osal_basetype_t m_sockfd = 0;
 static bool m_server_opened = false;
 static recv_handler_t m_recv_handler = NULL;
 
-void process_datagram(void *data, uint16_t len, struct sockaddr_in6 *from );
 void send_internal_response(const struct sockaddr_in6 *from, uint16_t tx_id,
                             uint8_t token_length, uint8_t *token, uint16_t status);
 #if defined(OSAL_LINUX)
@@ -129,7 +128,7 @@ static void recv_thread(void* arg)
         ((uint16_t)from.sin6_addr.s6_addr[14] << 8) | from.sin6_addr.s6_addr[15],
         from.sin6_scope_id, ntohs(from.sin6_port));
 
-    process_datagram(data, len, &from );
+    coapserver_process_datagram(data, len, &from );
   }
 #if defined(OSAL_LINUX)
   return NULL;
@@ -207,7 +206,7 @@ int coapserver_response(const struct sockaddr_in6 *to,
   return 0;
 }
 
-void process_datagram(void *data, uint16_t len, struct sockaddr_in6 *from )
+void coapserver_process_datagram(uint8_t* data, uint16_t len, struct sockaddr_in6 *from )
 {
   uint8_t* cur = data;
   uint16_t buf_used = 0;
