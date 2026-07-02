@@ -247,9 +247,22 @@ osal_basetype_t osal_sem_destroy(osal_sem_t *sem);
  * @param[in] protocol specifies a particular protocol to be used with the socket
  *
  * output parameters
- * @return 0 on success; on error, -1 is returned
+ * @return socket descriptor on success; on error, -1 is returned
  *****************************************************************************/
 osal_socket_handle_t osal_socket(osal_basetype_t domain, osal_basetype_t type, osal_basetype_t protocol);
+
+/****************************************************************************
+ * @fn osal_socket_close
+ *
+ * @brief close a communication endpoint.
+ *
+ * input parameters
+ * @param[in] sockd socket descriptor
+ *
+ * output parameters
+ * @return 0 on success; on error, -1 is returned
+ *****************************************************************************/
+osal_basetype_t osal_socket_close(osal_socket_handle_t sockd);
 
 /****************************************************************************
  * @fn osal_recvfrom
