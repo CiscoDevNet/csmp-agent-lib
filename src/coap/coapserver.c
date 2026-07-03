@@ -28,23 +28,29 @@ enum {
   MAX_QUERY_ELEMENTS = 10
 };
 
+#ifndef USE_EXTERNAL_RECV_TASKS
 static osal_task_t recvt_id_task;
+#endif
 static osal_basetype_t m_sockfd = 0;
 static bool m_server_opened = false;
 static recv_handler_t m_recv_handler = NULL;
 
 void send_internal_response(const struct sockaddr_in6 *from, uint16_t tx_id,
                             uint8_t token_length, uint8_t *token, uint16_t status);
+#ifndef USE_EXTERNAL_RECV_TASKS
 #if defined(OSAL_LINUX)
 static void *recv_thread(void* arg);
 #else
 static void recv_thread(void* arg);
 #endif
+#endif
 
 int coapserver_stop()
 {
   m_server_opened = false;
+#ifndef USE_EXTERNAL_RECV_TASKS
   osal_task_cancel(recvt_id_task);
+#endif
   return osal_socket_close(m_sockfd);
 }
 
@@ -52,7 +58,9 @@ int coapserver_listen(uint16_t sport, recv_handler_t recv_handler)
 {
   osal_socket_handle_t sockfd;
   osal_sockaddr_t listen_addr;
+#ifndef USE_EXTERNAL_RECV_TASKS
   osal_basetype_t ret = OSAL_FAILURE;
+#endif
 
   if (m_server_opened) {
     DPRINTF("coapserver_listen coapserver was already opened!\n");
@@ -84,13 +92,16 @@ int coapserver_listen(uint16_t sport, recv_handler_t recv_handler)
 
   m_sockfd = sockfd;
   m_server_opened = true;
+#ifndef USE_EXTERNAL_RECV_TASKS
   ret = osal_task_create(&recvt_id_task, NULL, 0, 0, recv_thread, NULL);
   DPRINTF("coapserver - %s.\n" , (ret == OSAL_SUCCESS) ? "task created" : "task creation failed");
   assert(ret == OSAL_SUCCESS);
+#endif
 
   return 0;
 }
 
+#ifndef USE_EXTERNAL_RECV_TASKS
 #ifdef OSAL_LINUX
 static void *recv_thread(void* arg)
 #else
@@ -134,6 +145,7 @@ static void recv_thread(void* arg)
   return NULL;
 #endif
 }
+#endif
 
 int coapserver_response(const struct sockaddr_in6 *to,
     coap_transaction_type_t tx_type,
