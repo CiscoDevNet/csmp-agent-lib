@@ -1,0 +1,474 @@
+
+syntax = "proto3";
+package csmp;
+
+
+message PhyModeInfo {
+   uint32 phyMode = 1;
+   int32  txPower = 2;
+}
+
+message LowpanPhyCounters {
+   uint32 rx_frames = 1;
+   uint32 tx_frames = 2;
+   uint32 rx_bytes = 3;
+   uint32 tx_bytes = 4;
+   uint32 tx_cca_busy = 5;
+   uint32 rx_crc_errors = 6;
+   uint32 rx_fifo_errors = 7;
+   uint32 tx_fifo_errors = 8;
+}
+
+message LowpanPhyModeCounters {
+   uint32 phyMode = 1;
+   LowpanPhyCounters stats = 2;
+}
+
+message LowpanRfStats {
+   LowpanPhyCounters total = 1;
+   LowpanPhyCounters fsk150 = 2;
+}
+
+message LowpanPlcStats {
+   LowpanPhyCounters total = 1;
+   LowpanPhyCounters robo = 2;
+   LowpanPhyCounters bpsk = 3;
+   LowpanPhyCounters qpsk = 4;
+   LowpanPhyCounters opsk = 5;
+   LowpanPhyCounters psk8 = 6;
+}
+
+message HardwareInfo {
+   string hwId = 1;
+   string vendorHwId = 2;
+}
+
+message CertInfoEntry {
+   uint32 type = 1;
+   string certSubj = 2;
+   string certValidNotBefore = 3;
+   string certValidNotAfter = 4;
+   bytes certFingerprint = 5;
+}
+
+message OutageRecord { 
+   bytes addr = 1;
+   uint32 outageOffset = 2;
+}
+
+message RestoreRecord {
+   bytes addr = 1;
+   uint32 outageOffset = 2;
+   uint32 restoreOffset = 3;
+}
+
+
+//TLV ID:1
+message TlvIndex {
+   repeated string tlvid = 1;
+}
+
+//TLV ID:2
+message DeviceID {
+   uint32 type = 1;
+   string id = 2;
+}
+
+//TLV ID:7
+message SessionID {
+   bytes id = 1;
+}
+
+//TLV ID:8
+message DescriptionRequest {
+   repeated string tlvid = 1;
+}
+
+//TLV ID:11
+message HardwareDesc {
+   int32 entPhysicalIndex = 1;
+   string entPhysicalDescr = 2;
+   bytes entPhysicalVendorType = 3;
+   int32 entPhysicalContainedIn = 4;
+   int32 entPhysicalClass = 5;
+   int32 entPhysicalParentRelPos = 6;
+   string entPhysicalName = 7;
+   string entPhysicalHardwareRev = 8;  
+   string entPhysicalFirmwareRev = 9;  
+   string entPhysicalSoftwareRev = 10; 
+   string entPhysicalSerialNum = 11;
+   string entPhysicalMfgName = 12;     
+   string entPhysicalModelName = 13;
+   string entPhysicalAssetID = 14;     
+   uint32 entPhysicalMfgDate = 15;
+   string entPhysicalURIs = 16;
+   uint32 entPhysicalFunction = 17;     
+}
+
+//TLV ID:12
+message InterfaceDesc {
+   int32 ifIndex = 1;
+   string ifName = 2;
+   string ifDescr = 3;
+   int32 ifType = 4;
+   int32 ifMtu = 5;
+   bytes ifPhysAddress = 6;
+}
+
+//TLV ID:13
+message ReportSubscribe {
+   uint32 interval = 1;
+   repeated string tlvid = 2;
+}
+
+//TLV ID:16
+message IPAddress {
+   int32 ipAddressIndex = 1;        
+   uint32 ipAddressAddrType = 2;    
+   bytes ipAddressAddr = 3;         
+   int32 ipAddressIfIndex = 4;
+   uint32 ipAddressType = 5;        
+   uint32 ipAddressOrigin = 6;      
+   uint32 ipAddressStatus = 7;      
+   uint32 ipAddressCreated = 8;
+   uint32 ipAddressLastChanged = 9;
+   uint32 ipAddressPfxLen = 10;
+   uint32 ipAddressPfrLifetime = 11;
+   uint32 ipAddressValLifetime = 12;
+}
+
+//TLV ID:17
+message IPRoute {
+   int32 inetCidrRouteIndex = 1;
+   uint32 inetCidrRouteDestType = 2;
+   bytes inetCidrRouteDest = 3;
+   uint32 inetCidrRoutePfxLen = 4; 
+   uint32 inetCidrRouteNextHopType = 5;
+   bytes inetCidrRouteNextHop = 6;
+   int32 inetCidrRouteIfIndex = 7;
+   uint32 inetCidrRouteType = 8;
+   uint32 inetCidrRouteProto = 9;
+   uint32 inetCidrRouteAge = 10;
+}
+
+//TLV ID:18
+message CurrentTime {
+   uint32 posix = 1;
+   string iso8601 = 2;
+}
+
+//TLV ID:22
+message Uptime {
+   uint32 sysUpTime = 1;
+}
+
+//TLV ID:23
+message InterfaceMetrics {
+   int32 ifIndex = 1;
+   uint32 ifInSpeed = 2;
+   uint32 ifOutSpeed = 3;
+   uint32 ifAdminStatus = 4;
+   uint32 ifOperStatus = 5;
+   uint32 ifLastChange = 6;
+   uint32 ifInOctets = 7;
+   uint32 ifOutOctets = 8;
+   uint32 ifInDiscards = 9;
+   uint32 ifInErrors = 10;
+   uint32 ifOutDiscards = 11;
+   uint32 ifOutErrors = 12;
+}
+
+//TLV ID:25
+message IPRouteRPLMetrics {
+   int32 inetCidrRouteIndex = 1;
+   int32 instanceIndex = 2;
+   int32 rank = 3;
+   int32 hops = 4;
+   int32 pathEtx = 5;
+   int32 linkEtx = 6;
+   sint32 rssiForward = 7;
+   sint32 rssiReverse = 8;
+   int32 lqiForward = 9;
+   int32 lqiReverse = 10;
+   uint32 dagSize = 11;
+   uint32 dphase = 14;
+   uint32 aphase = 15;
+   int32 pathEtt = 16;
+   int32 linkEtt = 17;
+   PhyModeInfo phyModeForward = 18;
+   PhyModeInfo phyModeReverse = 19;
+}
+
+//TLV ID:32
+message RebootRequest {
+   uint32 flag = 1;
+}
+
+//TLV ID:35
+message WPANStatus {
+   int32 ifIndex = 1;
+   bytes SSID = 2;
+   uint32 panid = 3;
+   bool master = 4;
+   bool dot1xEnabled = 5;
+   uint32 securityLevel = 6;
+   uint32 rank = 7;
+   bool beaconValid = 8;
+   uint32 beaconVersion = 9;
+   uint32 beaconAge = 10;
+   int32 txPower = 11;
+   uint32 dagSize = 12;
+   uint32 metric = 13;
+   uint32 lastChanged = 14;
+   uint32 lastChangedReason = 15;
+   bool demoModeEnabled = 16;
+   bool txFec = 17;
+   uint32 phyMode = 18;
+   sint32 plcTxLevel = 19;
+   repeated PhyModeInfo phyModeList = 20;
+   uint32 networkScale = 25;
+}
+
+//TLV ID:37
+message RadioLinkStats {
+   int32 ifIndex = 1;
+   int32 devIndex = 2;
+   uint32 inBytes = 3;
+   uint32 outBytes = 4;
+   uint32 inFrames = 5;
+   uint32 outFrames = 6;
+   uint32 inCrcErrors = 7;
+   uint32 inRxFifoErrors = 8;
+   uint32 inPktLenErrors = 9;
+   uint32 inPhyHdrErrors = 10;
+   uint32 outTxFifoErrors = 11;
+   uint32 outCcaBusyDiscards = 12;
+}
+
+//TLV ID:43
+message CGMSStatus {
+   bool registered = 1;
+   bytes NMSAddr = 2;
+   uint32 NMSAddrOrigin = 3;
+   uint32 lastReg = 4;
+   uint32 lastRegReason = 5;
+   uint32 nextReg = 6;  //NA
+   bool NMSCertValid = 7;
+}
+
+//TLV ID:45
+message CGMSStats { 
+   uint32 sigOk = 1; 
+   uint32 sigBadAuth = 2; 
+   uint32 sigBadValidity = 3; 
+   uint32 sigNoSync = 4; 
+   uint32 regSucceed = 5; 
+   uint32 regAttempts = 6; 
+   uint32 regHolds = 7; 
+   uint32 regFails = 8; 
+   uint32 nmsErrors = 9; 
+} 
+
+//TLV ID:52
+message Neighbor802154G {
+   int32 nbrIndex = 1;
+   bytes physAddress = 2;
+   uint32 lastChanged = 3;
+   sint32 rssiForward = 4;
+   sint32 rssiReverse = 5;
+   uint32 lqiForward  = 9;
+   uint32 lqiReverse = 10;
+   uint32 etx    = 11;
+   uint32 sent   = 12;
+   uint32 acked  = 13;
+   uint32 pin    = 14;
+   uint32 stable = 15;
+   uint32 phymodeForward = 16;
+   uint32 phymodeReverse = 17;
+   sint32 lastRssiForward = 18;
+   sint32 lastRssiReverse = 19;
+   uint32 lastLqiForward = 20;
+   uint32 lastLqiReverse = 21;
+   uint32 phySent = 22;
+}
+
+//TLV ID:53
+message RplInstance{
+   int32 instanceIndex = 1;
+   int32 instanceId = 2;
+   bytes doDagId = 3;
+   int32 doDagVersionNumber = 4;
+   int32 rank = 5;
+   int32 parentCount = 6;
+   uint32 dagSize = 7;
+   repeated RPLParent parents = 8;
+   repeated RPLParent candidates = 9;
+}
+
+//TLV ID:54
+message RPLParent {
+   int32 parentIndex = 1;
+   int32 instanceIndex = 2;
+   int32 routeIndex = 3;
+   bytes ipv6AddressLocal = 4;
+   bytes ipv6AddressGlobal = 5;
+   uint32 doDagVersionNumber = 6;
+   int32 pathEtx = 7;
+   int32 linkEtx = 8;
+   sint32 rssiForward = 9;
+   sint32 rssiReverse = 10;
+   int32 lqiForward = 11;
+   int32 lqiReverse = 12;
+   int32 hops = 13;
+}
+
+//TLV ID:55
+message GroupAssign{
+   uint32 type = 1;
+   uint32 id = 2;
+}
+
+//TLV ID:57
+message GroupMatch{
+   uint32 type = 1;
+   uint32 id = 2;
+}
+
+//TLV ID:58
+message GroupInfo{
+   uint32 type = 1;
+   uint32 id = 2;
+}
+
+//TLV ID:61
+message LowpanPhyStats {
+   LowpanPhyCounters total = 1;
+   LowpanRfStats rf = 2;
+   LowpanPlcStats plc = 3;
+   repeated LowpanPhyModeCounters phyModeStats = 4;
+}
+
+//TLV ID:65
+message TransferRequest {
+   optional HardwareInfo hwInfo = 1;
+   optional bytes fileHash = 2 [(nanopb).max_size = 32];
+   optional string fileName = 3 [(nanopb).max_size = 128];
+   optional string version = 4 [(nanopb).max_size = 64];
+   optional uint32 fileSize = 5;
+   optional uint32 blockSize = 6;
+   optional uint32 reportIntervalMin = 7 [default = 600];
+   optional uint32 reportIntervalMax = 8 [default = 3600];
+   optional uint32 isPatch = 9;
+   optional uint32 chopSize = 10;
+   optional string runVersion = 11 [(nanopb).max_size = 12];
+}
+
+// TLV ID:67
+message ImageBlock {
+  optional bytes fileHash = 1 [(nanopb).max_size = 32];
+  optional uint32 blockNum = 2;
+  optional bytes  blockData = 4 [(nanopb).max_size = 1024];
+}
+
+// TLV ID:68
+message LoadRequest {
+  optional bytes fileHash = 1 [(nanopb).max_size = 32];
+  optional uint32 loadTime = 2;
+}
+
+// TLV ID:69
+message CancelLoadRequest {
+  optional bytes fileHash = 1 [(nanopb).max_size = 32];
+}
+
+// TLV ID:70
+message SetBackupRequest {
+  optional bytes fileHash = 1 [(nanopb).max_size = 32];
+}
+
+// TLV ID:71
+message TransferResponse {
+  optional bytes fileHash = 1 [(nanopb).max_size = 32];
+  optional uint32 response = 2;
+}
+
+// TLV ID:72
+message LoadResponse {
+  optional bytes fileHash = 1 [(nanopb).max_size = 32];
+  optional uint32 response = 2;
+  optional uint32 loadTime = 3;
+}
+
+// TLV ID:73
+message CancelLoadResponse {
+  optional bytes fileHash = 1 [(nanopb).max_size = 32];
+  optional uint32 response = 2;
+}
+
+// TLV ID:74
+message SetBackupResponse {
+  optional bytes fileHash = 1 [(nanopb).max_size = 32];
+  optional uint32 response = 2;
+}
+
+//TLV ID:75
+message FirmwareImageInfo { 
+   uint32 index = 1; 
+   bytes fileHash = 2;
+   string fileName = 3;
+   string version = 4;
+   uint32 fileSize = 5; 
+   uint32 blockSize = 6; 
+   bytes bitmap = 7;
+   bool isDefault = 8; 
+   bool isRunning = 9; 
+   uint32 loadTime = 10; 
+   HardwareInfo hwInfo = 11; 
+   uint32 bitmapOffset = 12; //used by FND. 
+   string kernelVersion = 13;
+   string subKernelVersion = 14;
+   bool isPatch = 15; 
+}
+
+//TLV ID:76
+message SignatureValidity {
+     uint32 notBefore = 1;
+     uint32 notAfter = 2;
+}
+//TLV ID:77
+message Signature {
+      bytes value = 1;
+}
+
+//TLV ID:172
+message CertBundle {
+  // Max repeat is 5.
+  repeated CertInfoEntry certInfo = 1;
+}
+
+//TLV ID:313
+message RplStats{
+   uint32 inFramesDIS = 1;
+   uint32 inFramesDIO = 2;
+   uint32 outFramesDIS = 3;
+   uint32 outFramesDIO = 4;
+   uint32 outFramesDAO = 5;
+}
+
+//TLV ID:340
+message StackModeSettings {
+   uint32 mode = 1;
+}
+
+//TLV ID:350
+message PON {
+   uint32 outageBasetime = 1; 
+   repeated OutageRecord outage = 2; 
+}
+
+//TLV ID:351
+message PRN {
+   uint32 outageBasetime = 1;
+   uint32 restoreBasetime = 2;
+   repeated RestoreRecord restore = 3;
+}
