@@ -1,474 +1,2039 @@
+// Protocol Buffer definitions for CSMP TLVs
+// Google Protobuf version: 3.0
+//
+// Note: CSMP TLV ProtoBuf definitions will be referred from one common authoritative source
+// from the OpenCSMP project in order to maintain parity across all CSMP/ProtoBuf consumers.
 
 syntax = "proto3";
 package csmp;
 
+// TLV_ID: 1
+message TlvIndex {
+  repeated string tlvid = 1 [(nanopb).max_size = 20, (nanopb).max_count = 5];
+}
+
+// TLV_ID: 2
+message DeviceID {
+  optional uint32 type = 1;
+  optional string id = 2 [(nanopb).max_size = 128];
+}
+
+// TLV_ID: 6
+message NMSRedirectRequest {
+  optional string url = 1 [(nanopb).max_size = 64];
+  optional bool immediate = 2;
+}
+
+// TLV_ID: 7
+message SessionID {
+  optional string id = 1 [(nanopb).max_size = 17];
+}
+
+// TLV_ID: 8
+message DescriptionRequest {
+  repeated string tlvid = 1 [(nanopb).max_size = 8, (nanopb).max_count = 10];
+}
+
+// TLV_ID: 10
+message HardwareSettings {
+  optional int32 entPhysicalIndex = 1;
+  optional uint32 entPhysicalFunction = 2;
+}
+
+// TLV_ID: 11
+message HardwareDesc {
+  optional int32 entPhysicalIndex = 1;
+  optional string entPhysicalDescr = 2 [(nanopb).max_size = 64];
+  optional bytes entPhysicalVendorType = 3 [(nanopb).max_size = 16];
+  optional int32 entPhysicalContainedIn = 4;
+  optional int32 entPhysicalClass = 5;
+  optional int32 entPhysicalParentRelPos = 6;
+  optional string entPhysicalName = 7 [(nanopb).max_size = 32];
+  optional string entPhysicalHardwareRev = 8 [(nanopb).max_size = 16];
+  optional string entPhysicalFirmwareRev = 9 [(nanopb).max_size = 32];
+  optional string entPhysicalSoftwareRev = 10 [(nanopb).max_size = 32];
+  optional string entPhysicalSerialNum = 11 [(nanopb).max_size = 20];
+  optional string entPhysicalMfgName = 12 [(nanopb).max_size = 32];
+  optional string entPhysicalModelName = 13 [(nanopb).max_size = 20];
+  optional string entPhysicalAssetID = 14 [(nanopb).max_size = 32];
+  optional uint32 entPhysicalMfgDate = 15;
+  optional string entPhysicalURIs = 16 [(nanopb).max_size = 64];
+  optional uint32 entPhysicalFunction = 17;
+  optional string entPhysicalOUI = 18 [(nanopb).max_size = 8];
+}
+
+// TLV_ID: 12
+message InterfaceDesc {
+  optional int32 ifIndex = 1;
+  optional string ifName = 2 [(nanopb).max_size = 20];
+  optional string ifDescr = 3 [(nanopb).max_size = 32];
+  optional int32 ifType = 4;
+  optional int32 ifMtu = 5;
+  optional bytes ifPhysAddress = 6 [(nanopb).max_size = 8];
+}
+
+// TLV_ID: 13
+message ReportSubscribe {
+  optional uint32 interval = 1;
+  repeated string tlvid = 2 [(nanopb).max_size = 8, (nanopb).max_count = 40];
+}
+
+// TLV_ID: 16
+message IPAddress {
+  optional int32 ipAddressIndex = 1;
+  optional uint32 ipAddressAddrType = 2;
+  optional bytes ipAddressAddr = 3 [(nanopb).max_size = 16];
+  optional int32 ipAddressIfIndex = 4;
+  optional uint32 ipAddressType = 5;
+  optional uint32 ipAddressOrigin = 6;
+  optional uint32 ipAddressStatus = 7;
+  optional uint32 ipAddressCreated = 8;
+  optional uint32 ipAddressLastChanged = 9;
+  optional uint32 ipAddressPfxLen = 10;
+  optional uint32 ipAddressPfrLifetime = 11;
+  optional uint32 ipAddressValLifetime = 12;
+}
+
+// TLV_ID: 17
+message IPRoute {
+  optional int32 inetCidrRouteIndex = 1;
+  optional uint32 inetCidrRouteDestType = 2;
+  optional bytes inetCidrRouteDest = 3 [(nanopb).max_size = 16];
+  optional uint32 inetCidrRoutePfxLen = 4;
+  optional uint32 inetCidrRouteNextHopType = 5;
+  optional bytes inetCidrRouteNextHop = 6 [(nanopb).max_size = 16];
+  optional int32 inetCidrRouteIfIndex = 7;
+  optional uint32 inetCidrRouteType = 8;
+  optional uint32 inetCidrRouteProto = 9;
+  optional uint32 inetCidrRouteAge = 10;
+}
+
+// TLV_ID: 18
+message CurrentTime {
+  optional uint32 posix = 1;
+  optional string iso8601 = 2 [(nanopb).max_size = 20];
+  optional uint32 source = 3;
+}
+
+// TLV_ID: 19
+message InterfaceSettings {
+  optional int32 ifIndex = 1;
+  optional uint32 status = 2;
+}
+
+message Dwell {
+  required uint32 window = 1;
+  required uint32 maxdwell = 2;
+}
+
+// TLV_ID: 20
+message WPANSettings {
+  optional int32 ifIndex = 1;
+  optional uint32 panid = 2;
+  optional uint32 shortAddress = 3;
+  optional uint32 bcastSlotsize = 4;
+  optional uint32 bcastPeriod = 5;
+  optional uint32 neighborProbeRate = 6;
+  optional uint32 backoffTimer = 7;
+  optional bytes SSID = 8 [(nanopb).max_size = 32];
+  optional uint32 mode = 9;
+  repeated Notch notchList = 10 [(nanopb).max_count = 4];
+  optional Dwell dwell = 11;
+}
+
+// TLV_ID: 21
+message RPLSettings {
+  optional int32 ifIndex = 1;
+  optional bool enabled = 2;
+  optional uint32 dioIntervalMin = 3;
+  optional uint32 dioIntervalMax = 4;
+  optional uint32 daoIntervalMin = 5;
+  optional uint32 daoIntervalMax = 6;
+  optional uint32 mopType = 7;
+  optional uint32 daoGroupAddrComp = 8;
+  optional uint32 instanceIndex = 9;
+}
+
+// TLV_ID: 22
+message Uptime {
+  optional uint32 sysUpTime = 1;
+}
+
+// TLV_ID: 23
+message InterfaceMetrics {
+  optional int32 ifIndex = 1;
+  optional uint32 ifInSpeed = 2;
+  optional uint32 ifOutSpeed = 3;
+  optional uint32 ifAdminStatus = 4;
+  optional uint32 ifOperStatus = 5;
+  optional uint32 ifLastChange = 6;
+  optional uint32 ifInOctets = 7;
+  optional uint32 ifOutOctets = 8;
+  optional uint32 ifInDiscards = 9;
+  optional uint32 ifInErrors = 10;
+  optional uint32 ifOutDiscards = 11;
+  optional uint32 ifOutErrors = 12;
+}
+
+// TLV_ID: 24
+message InterfaceDetailMetrics {
+  optional int32 ifIndex = 1;
+  optional uint32 ifInUcastPkts = 2;
+  optional uint32 ifInBroadcastPkts = 3;
+  optional uint32 ifInMulticastPkts = 4;
+  optional uint32 ifInUnknownProtos = 5;
+  optional uint32 ifOutUcastPkts = 6;
+  optional uint32 ifOutBroadcastPkts = 7;
+  optional uint32 ifOutMulticastPkts = 8;
+  optional uint32 ifOutQLen = 9;
+}
 
 message PhyModeInfo {
-   uint32 phyMode = 1;
-   int32  txPower = 2;
+  optional uint32 phyMode = 1;
+  optional int32  txPower = 2;
+}
+
+message ToneMap {
+  required uint32 modulation = 1;
+  required uint32 txres = 2;
+  required uint32 txgain = 3;
+  required bytes map = 4 [(nanopb).max_size = 1];
+  required bytes txcoeff = 5 [(nanopb).max_size = 6];
+  required bool lock = 6;
+}
+
+// TLV_ID: 25
+message IPRouteRPLMetrics {
+  optional int32 inetCidrRouteIndex = 1;
+  optional int32 instanceIndex = 2;
+  optional int32 rank = 3;
+  optional int32 hops = 4;
+  optional int32 pathEtx = 5;
+  optional int32 linkEtx = 6;
+  optional sint32 rssiForward = 7;
+  optional sint32 rssiReverse = 8;
+  optional int32 lqiForward = 9;
+  optional int32 lqiReverse = 10;
+  optional uint32 dagSize = 11;
+  optional ToneMap tmForward = 12;
+  optional ToneMap tmReverse = 13;
+  optional uint32 dphase = 14;
+  optional uint32 aphase = 15;
+  optional int32 pathEtt = 16;
+  optional int32 linkEtt = 17;
+  optional PhyModeInfo phyModeForward = 18;
+  optional PhyModeInfo phyModeReverse = 19;
+}
+
+// TLV_ID: 28
+message EchoRequest {
+  optional string data = 1 [(nanopb).max_size = 128];
+}
+
+// TLV_ID: 29
+message EchoResponse {
+  optional string data = 1 [(nanopb).max_size = 128];
+}
+
+// TLV_ID: 30
+message PingRequest {
+  optional string dest = 1 [(nanopb).max_size = 64];
+  optional uint32 count = 2 [default = 5];
+  optional uint32 delay = 3 [default = 1];
+}
+
+// TLV_ID: 31
+message PingResponse {
+  optional uint32 sent = 1;
+  optional uint32 received = 2;
+  optional uint32 minRtt = 3;
+  optional uint32 meanRtt = 4;
+  optional uint32 maxRtt = 5;
+  optional uint32 stdevRtt = 6;
+  optional string src = 7 [(nanopb).max_size = 64];
+}
+
+// TLV_ID: 32
+message RebootRequest {
+  optional uint32 flag = 1;
+}
+
+// TLV_ID: 33
+message Ieee8021xStatus {
+  optional int32 ifIndex = 1;
+  optional bool enabled = 2;
+  optional string identity = 3 [(nanopb).max_size = 32];
+  optional uint32 state = 4;
+  optional bytes pmkId = 5 [(nanopb).max_size = 16];
+  optional bool clientCertValid = 6;
+  optional bool caCertValid = 7;
+  optional bool privateKeyValid = 8;
+  optional uint32 rlyPanid = 9;
+  optional bytes rlyAddress = 10 [(nanopb).max_size = 8];
+  optional uint32 rlyLastHeard = 11;
+}
+
+// TLV_ID: 34
+message Ieee80211iStatus {
+  optional int32 ifIndex = 1;
+  optional bool enabled = 2;
+  optional bytes pmkId = 3 [(nanopb).max_size = 16];
+  optional bytes ptkId = 4 [(nanopb).max_size = 16];
+  optional int32 gtkIndex = 5;
+  optional bool gtkAllFresh = 6;
+  repeated bytes gtkList = 7 [(nanopb).max_size = 16, (nanopb).max_count = 7];
+  repeated uint32 gtkLifetimes = 8 [(nanopb).max_count = 7];
+  optional bytes authAddress = 9 [(nanopb).max_size = 8];
+  optional uint32 framecounter = 10;
+}
+
+// TLV_ID: 35
+message WPANStatus {
+  optional int32 ifIndex = 1;
+  optional bytes SSID = 2 [(nanopb).max_size = 32];
+  optional uint32 panid = 3;
+  optional bool primary = 4;
+  optional bool dot1xEnabled = 5;
+  optional uint32 securityLevel = 6;
+  optional uint32 rank = 7;
+  optional bool beaconValid = 8;
+  optional uint32 beaconVersion = 9;
+  optional uint32 beaconAge = 10;
+  optional int32 txPower = 11;
+  optional uint32 dagSize = 12;
+  optional uint32 metric = 13;
+  optional uint32 lastChanged = 14;
+  optional uint32 lastChangedReason = 15;
+  optional bool demoModeEnabled = 16 [default = false];
+  optional bool txFec = 17;
+  optional uint32 phyMode = 18;
+  repeated PhyModeInfo phyModeList = 20 [(nanopb).max_count = 10];
+  optional uint32 bandID = 21;
+  optional uint32 networkScale = 25;
+}
+
+// TLV_ID: 36
+message DHCP6ClientStatus {
+  optional int32 ifIndex = 1;
+  optional uint32 ianaIAID = 2;
+  optional uint32 ianaT1 = 3;
+  optional uint32 ianaT2 = 4;
+}
+
+// TLV_ID: 37
+message RadioLinkStats {
+  optional int32 ifIndex = 1;
+  optional int32 devIndex = 2;
+  optional uint32 inBytes = 3;
+  optional uint32 outBytes = 4;
+  optional uint32 inFrames = 5;
+  optional uint32 outFrames = 6;
+  optional uint32 inCrcErrors = 7;
+  optional uint32 inRxFifoErrors = 8;
+  optional uint32 inPktLenErrors = 9;
+  optional uint32 inPhyHdrErrors = 10;
+  optional uint32 outTxFifoErrors = 11;
+  optional uint32 outCcaBusyDiscards = 12;
+}
+
+// TLV_ID: 38
+message Ieee802154DevLinkStats {
+  optional int32 ifIndex = 1;
+  optional int32 devIndex = 2;
+  optional uint32 inNullIeErrors = 3;
+  optional uint32 outSendErrors = 4;
+  optional uint32 outOutageErrors = 5;
+  optional uint32 outNoNbrErrors = 6;
+  optional uint32 outBcastInvalidErrors = 7;
+}
+
+// TLV_ID: 39
+message Ieee802154LinkStats {
+  optional int32 ifIndex = 1;
+  optional uint32 inAddressFilterings = 2;
+  optional uint32 inPanidFilterings = 3;
+  optional uint32 inSecurityErrors = 4;
+  optional uint32 inPktLenErrors = 5;
+  optional uint32 outSendErrors = 6;
+  optional uint32 outNoNbrErrors = 7;
+  optional uint32 panChanges = 8;
+
+  optional uint32 inFrames = 10;
+
+  optional uint32 inFramesBeacon = 11;
+  optional uint32 inFramesData = 12;
+  optional uint32 inFramesAck = 13;
+  optional uint32 inFramesCmd = 14;
+
+  optional uint32 outFrames = 20;
+
+  optional uint32 outFramesAsync = 21;
+  optional uint32 outFramesBcast = 22;
+  optional uint32 outFramesUcast = 23;
+
+  optional uint32 outFramesBeacon = 24;
+  optional uint32 outFramesData = 25;
+  optional uint32 outFramesAck = 26;
+  optional uint32 outFramesCmd = 27;
+
+  optional uint32 inPktDups = 28;
+}
+
+// TLV_ID: 40
+message WPANLinkStats {
+  optional int32 ifIndex = 1;
+  optional uint32 inHdrDecompressErrors = 2;
+  optional uint32 inPktLenErrors = 3;
+  optional uint32 inBufferFullDiscards = 4;
+  optional uint32 outSendErrors = 5;
+  optional uint32 outPktLenErrors = 6;
+  optional uint32 outPktSecErrors = 7;
+  optional uint32 outHdrCompressErrors = 8;
+}
+
+// TLV_ID: 41
+message PPPLinkStats {
+  optional int32 ifIndex = 1;
+  optional uint32 inBufferFullDiscards = 2;
+  optional uint32 inPktLenErrors = 3;
+  optional uint32 inDiscards = 4;
+  optional uint32 outBufferFullDiscards = 5;
+  optional uint32 outSendErrors = 6;
+}
+
+// TLV_ID: 42
+message CGMSSettings {
+  optional uint32 regIntervalMin = 1;
+  optional uint32 regIntervalMax = 2;
+  optional uint32 dscp = 3;
+}
+
+// TLV_ID: 43
+message CGMSStatus {
+  optional bool registered = 1;
+  optional bytes NMSAddr = 2 [(nanopb).max_size = 16];
+  optional uint32 NMSAddrOrigin = 3;
+  optional uint32 lastReg = 4;
+  optional uint32 lastRegReason = 5;
+  optional uint32 nextReg = 6;
+  optional bool NMSCertValid = 7;
+}
+
+// TLV_ID: 44
+message CGMSNotification {
+  optional uint32 code = 1;
+//optional uint32 subcode = 2;
+  repeated uint32 tlvs = 3 [(nanopb).max_count = 20];
+}
+
+// TLV_ID: 45
+message CGMSStats {
+  optional uint32 sigOk = 1;
+  optional uint32 sigBadAuth = 2;
+  optional uint32 sigBadValidity = 3;
+  optional uint32 sigNoSync = 4;
+  optional uint32 regSucceed = 5;
+  optional uint32 regAttempts = 6;
+  optional uint32 regHolds = 7;
+  optional uint32 regFails = 8;
+  optional uint32 nmsErrors = 9;
+}
+
+// TLV_ID: 46
+message PPPSettings {
+  optional int32 ifIndex = 1;
+  optional bool reqEnc = 2;
+  optional bytes psk = 3 [(nanopb).max_size = 32];
+}
+
+// TLV_ID: 47
+message Ieee8021xSettings {
+  optional int32 ifIndex = 1;
+  optional uint32 secMode = 2;
+  optional uint32 authIntervalMin = 3;
+  optional uint32 authIntervalMax = 4;
+  optional bool immediate = 5;
+  optional uint32 tlsVersion = 6;
+}
+
+// TLV_ID: 48
+message Ieee802154BeaconStats {
+  optional int32 ifIndex = 1;
+
+  optional uint32 inFrames = 10;
+  optional uint32 inFramesPAS = 11;
+  optional uint32 inFramesPA = 12;
+  optional uint32 inFramesPCS = 13;
+  optional uint32 inFramesPC = 14;
+  optional uint32 inFramesLPAS = 15;
+  optional uint32 inFramesLPA = 16;
+  optional uint32 inFramesLPCS = 17;
+  optional uint32 inFramesLPC = 18;
+
+  optional uint32 outFrames = 20;
+  optional uint32 outFramesPAS = 21;
+  optional uint32 outFramesPA = 22;
+  optional uint32 outFramesPCS = 23;
+  optional uint32 outFramesPC = 24;
+  optional uint32 outFramesLPAS = 25;
+  optional uint32 outFramesLPA = 26;
+  optional uint32 outFramesLPCS = 27;
+  optional uint32 outFramesLPC = 28;
+}
+
+// TLV_ID: 49
+message SilenceRequest {
+  optional uint32 duration = 1;
+}
+
+message IeeeP19012Settings {
+  optional int32 ifIndex = 1;
+  optional uint32 bandPlan = 2;
+  optional bytes toneMask = 3 [(nanopb).max_size = 9];
+  optional uint32 refPhase = 10;
+  optional ToneMap tmOverride = 11;
+}
+
+// TLV_ID: 50
+message UDPMetrics {
+  optional uint32 inDatagrams = 1;
+  optional uint32 noPorts = 2;
+  optional uint32 inErrors = 3;
+  optional uint32 outDatagrams = 4;
+}
+
+// TLV_ID: 51
+message IeeeP19012Stats {
+  optional uint32 lmac_ver = 1;
+  optional uint32 in_req = 2;
+  optional uint32 in_resp = 3;
+  optional uint32 in_error_map = 4;
+  optional uint32 out_resp = 5;
+  optional uint32 out_no_nbr = 6;
+  optional uint32 out_error = 7;
+  optional uint32 out_error_map = 8;
+  optional uint32 in_resp_map_changes = 9;
+  optional uint32 in_resp_mcs_changes = 10;
+  repeated uint32 fwd_mcs_count = 11 [(nanopb).max_count = 4];
+  repeated uint32 fwd_tonemap_count = 12 [(nanopb).max_count = 7];
+}
+
+// TLV_ID: 52
+message Neighbor802154G {
+  optional int32 nbrIndex = 1;
+  optional bytes physAddress = 2 [(nanopb).max_size = 8];
+  optional uint32 lastChanged = 3;
+  optional sint32 rssiForward = 4;
+  optional sint32 rssiReverse = 5;
+  optional uint32 lqiForward  = 9;
+  optional uint32 lqiReverse = 10;
+  optional uint32 etx    = 11;
+  optional uint32 sent   = 12;
+  optional uint32 acked  = 13;
+  optional uint32 pin    = 14;
+  // optional uint32 stable = 15;
+  optional uint32 phymodeForward = 16;
+  optional uint32 phymodeReverse = 17;
+  optional sint32 lastRssiForward = 18;
+  optional sint32 lastRssiReverse = 19;
+  optional uint32 lastLqiForward = 20;
+  optional uint32 lastLqiReverse = 21;
+  optional uint32 phySent = 22;
+  optional ChannelControl notchChannel = 23;
+}
+
+// TLV_ID: 53
+message RPLInstance {
+  optional int32 instanceIndex = 1;
+  optional int32 instanceId = 2;
+  optional bytes doDagId = 3 [(nanopb).max_size = 16];
+  optional int32 doDagVersionNumber = 4;
+  optional int32 rank = 5;
+  optional int32 parentCount = 6;
+  optional uint32 dagSize = 7;
+  repeated RPLParent parents = 8 [(nanopb).max_count = 3];
+  repeated RPLParent candidates = 9 [(nanopb).max_count = 3];
+  optional int32 type = 10;
+}
+
+// TLV_ID: 54
+message RPLParent {
+  optional int32 parentIndex = 1;
+  optional int32 instanceIndex = 2;
+  optional int32 routeIndex = 3;
+  optional bytes ipv6AddressLocal = 4 [(nanopb).max_size = 16];
+  optional bytes ipv6AddressGlobal = 5 [(nanopb).max_size = 16];
+  optional uint32 doDagVersionNumber = 6;
+  optional int32 pathEtx = 7;
+  optional int32 linkEtx = 8;
+  optional sint32 rssiReverse = 10;
+  optional int32 lqiForward = 11;
+  optional int32 lqiReverse = 12;
+  optional int32 hops = 13;
+  optional uint32 backupPowerType = 14;
+}
+
+// TLV_ID: 55
+message GroupAssign{
+  optional uint32 type = 1;
+  optional uint32 id = 2;
+}
+
+// TLV_ID: 56
+message GroupEvict{
+  optional uint32 type = 1;
+  optional uint32 id = 2;
+}
+
+// TLV_ID: 57
+message GroupMatch{
+  optional uint32 type = 1;
+  optional uint32 id = 2;
+}
+
+// TLV_ID: 58
+message GroupInfo {
+  optional uint32 type = 1;
+  optional uint32 id = 2;
 }
 
 message LowpanPhyCounters {
-   uint32 rx_frames = 1;
-   uint32 tx_frames = 2;
-   uint32 rx_bytes = 3;
-   uint32 tx_bytes = 4;
-   uint32 tx_cca_busy = 5;
-   uint32 rx_crc_errors = 6;
-   uint32 rx_fifo_errors = 7;
-   uint32 tx_fifo_errors = 8;
+  optional uint32 rx_frames = 1;
+  optional uint32 tx_frames = 2;
+  optional uint32 rx_bytes = 3;
+  optional uint32 tx_bytes = 4;
+  optional uint32 tx_cca_busy = 5;
+  optional uint32 rx_crc_errors = 6;
+  optional uint32 rx_fifo_errors = 7;
+  optional uint32 tx_fifo_errors = 8;
 }
 
 message LowpanPhyModeCounters {
-   uint32 phyMode = 1;
-   LowpanPhyCounters stats = 2;
+  optional uint32 phyMode = 1;
+  optional LowpanPhyCounters stats = 2;
 }
 
 message LowpanRfStats {
-   LowpanPhyCounters total = 1;
-   LowpanPhyCounters fsk150 = 2;
+  optional LowpanPhyCounters total = 1;
+  optional LowpanPhyCounters fsk150 = 2;
 }
 
 message LowpanPlcStats {
-   LowpanPhyCounters total = 1;
-   LowpanPhyCounters robo = 2;
-   LowpanPhyCounters bpsk = 3;
-   LowpanPhyCounters qpsk = 4;
-   LowpanPhyCounters opsk = 5;
-   LowpanPhyCounters psk8 = 6;
+  optional LowpanPhyCounters total = 1;
+  optional LowpanPhyCounters robo = 2;
+  optional LowpanPhyCounters bpsk = 3;
+  optional LowpanPhyCounters qpsk = 4;
+  optional LowpanPhyCounters opsk = 5;
+}
+
+// TLV_ID: 61
+message LowpanPhyStats {
+  optional LowpanPhyCounters total = 1;
+  optional LowpanRfStats rf = 2;
+  optional LowpanPlcStats plc = 3;
+  repeated LowpanPhyModeCounters phyModeStats = 4 [(nanopb).max_count = 10];
+}
+
+message LowpanMacCounters {
+  optional uint32 inFrames = 1;
+  optional uint32 inFramesBeacon = 2;
+  optional uint32 inFramesData = 3;
+  optional uint32 inFramesAck = 4;
+  optional uint32 inFramesCmd = 5;
+  optional uint32 inFramesAsync = 6;
+  optional uint32 inFramesBcast = 7;
+  optional uint32 inFramesUcast = 8;
+  optional uint32 outFrames = 9;
+  optional uint32 outFramesBeacon = 10;
+  optional uint32 outFramesData = 11;
+  optional uint32 outFramesAck = 12;
+  optional uint32 outFramesCmd = 13;
+  optional uint32 outFramesAsync = 14;
+  optional uint32 outFramesBcast = 15;
+  optional uint32 outFramesUcast = 16;
+}
+
+// TLV_ID: 62
+message LowpanMacStats {
+  optional LowpanMacCounters total = 1;
+  optional LowpanMacCounters rf = 2;
+  optional LowpanMacCounters plc = 3;
+}
+
+// TLV_ID: 63
+message LowpanPhySettings {
+  optional uint32 lowpanRF = 1;
+  optional uint32 lowpanPLC = 2;
 }
 
 message HardwareInfo {
-   string hwId = 1;
-   string vendorHwId = 2;
+  optional string hwId = 1 [(nanopb).max_size = 32];
+  optional string subHwId = 2 [(nanopb).max_size = 32];
 }
 
-message CertInfoEntry {
-   uint32 type = 1;
-   string certSubj = 2;
-   string certValidNotBefore = 3;
-   string certValidNotAfter = 4;
-   bytes certFingerprint = 5;
-}
-
-message OutageRecord { 
-   bytes addr = 1;
-   uint32 outageOffset = 2;
-}
-
-message RestoreRecord {
-   bytes addr = 1;
-   uint32 outageOffset = 2;
-   uint32 restoreOffset = 3;
-}
-
-
-//TLV ID:1
-message TlvIndex {
-   repeated string tlvid = 1;
-}
-
-//TLV ID:2
-message DeviceID {
-   uint32 type = 1;
-   string id = 2;
-}
-
-//TLV ID:7
-message SessionID {
-   bytes id = 1;
-}
-
-//TLV ID:8
-message DescriptionRequest {
-   repeated string tlvid = 1;
-}
-
-//TLV ID:11
-message HardwareDesc {
-   int32 entPhysicalIndex = 1;
-   string entPhysicalDescr = 2;
-   bytes entPhysicalVendorType = 3;
-   int32 entPhysicalContainedIn = 4;
-   int32 entPhysicalClass = 5;
-   int32 entPhysicalParentRelPos = 6;
-   string entPhysicalName = 7;
-   string entPhysicalHardwareRev = 8;  
-   string entPhysicalFirmwareRev = 9;  
-   string entPhysicalSoftwareRev = 10; 
-   string entPhysicalSerialNum = 11;
-   string entPhysicalMfgName = 12;     
-   string entPhysicalModelName = 13;
-   string entPhysicalAssetID = 14;     
-   uint32 entPhysicalMfgDate = 15;
-   string entPhysicalURIs = 16;
-   uint32 entPhysicalFunction = 17;     
-}
-
-//TLV ID:12
-message InterfaceDesc {
-   int32 ifIndex = 1;
-   string ifName = 2;
-   string ifDescr = 3;
-   int32 ifType = 4;
-   int32 ifMtu = 5;
-   bytes ifPhysAddress = 6;
-}
-
-//TLV ID:13
-message ReportSubscribe {
-   uint32 interval = 1;
-   repeated string tlvid = 2;
-}
-
-//TLV ID:16
-message IPAddress {
-   int32 ipAddressIndex = 1;        
-   uint32 ipAddressAddrType = 2;    
-   bytes ipAddressAddr = 3;         
-   int32 ipAddressIfIndex = 4;
-   uint32 ipAddressType = 5;        
-   uint32 ipAddressOrigin = 6;      
-   uint32 ipAddressStatus = 7;      
-   uint32 ipAddressCreated = 8;
-   uint32 ipAddressLastChanged = 9;
-   uint32 ipAddressPfxLen = 10;
-   uint32 ipAddressPfrLifetime = 11;
-   uint32 ipAddressValLifetime = 12;
-}
-
-//TLV ID:17
-message IPRoute {
-   int32 inetCidrRouteIndex = 1;
-   uint32 inetCidrRouteDestType = 2;
-   bytes inetCidrRouteDest = 3;
-   uint32 inetCidrRoutePfxLen = 4; 
-   uint32 inetCidrRouteNextHopType = 5;
-   bytes inetCidrRouteNextHop = 6;
-   int32 inetCidrRouteIfIndex = 7;
-   uint32 inetCidrRouteType = 8;
-   uint32 inetCidrRouteProto = 9;
-   uint32 inetCidrRouteAge = 10;
-}
-
-//TLV ID:18
-message CurrentTime {
-   uint32 posix = 1;
-   string iso8601 = 2;
-}
-
-//TLV ID:22
-message Uptime {
-   uint32 sysUpTime = 1;
-}
-
-//TLV ID:23
-message InterfaceMetrics {
-   int32 ifIndex = 1;
-   uint32 ifInSpeed = 2;
-   uint32 ifOutSpeed = 3;
-   uint32 ifAdminStatus = 4;
-   uint32 ifOperStatus = 5;
-   uint32 ifLastChange = 6;
-   uint32 ifInOctets = 7;
-   uint32 ifOutOctets = 8;
-   uint32 ifInDiscards = 9;
-   uint32 ifInErrors = 10;
-   uint32 ifOutDiscards = 11;
-   uint32 ifOutErrors = 12;
-}
-
-//TLV ID:25
-message IPRouteRPLMetrics {
-   int32 inetCidrRouteIndex = 1;
-   int32 instanceIndex = 2;
-   int32 rank = 3;
-   int32 hops = 4;
-   int32 pathEtx = 5;
-   int32 linkEtx = 6;
-   sint32 rssiForward = 7;
-   sint32 rssiReverse = 8;
-   int32 lqiForward = 9;
-   int32 lqiReverse = 10;
-   uint32 dagSize = 11;
-   uint32 dphase = 14;
-   uint32 aphase = 15;
-   int32 pathEtt = 16;
-   int32 linkEtt = 17;
-   PhyModeInfo phyModeForward = 18;
-   PhyModeInfo phyModeReverse = 19;
-}
-
-//TLV ID:32
-message RebootRequest {
-   uint32 flag = 1;
-}
-
-//TLV ID:35
-message WPANStatus {
-   int32 ifIndex = 1;
-   bytes SSID = 2;
-   uint32 panid = 3;
-   bool master = 4;
-   bool dot1xEnabled = 5;
-   uint32 securityLevel = 6;
-   uint32 rank = 7;
-   bool beaconValid = 8;
-   uint32 beaconVersion = 9;
-   uint32 beaconAge = 10;
-   int32 txPower = 11;
-   uint32 dagSize = 12;
-   uint32 metric = 13;
-   uint32 lastChanged = 14;
-   uint32 lastChangedReason = 15;
-   bool demoModeEnabled = 16;
-   bool txFec = 17;
-   uint32 phyMode = 18;
-   sint32 plcTxLevel = 19;
-   repeated PhyModeInfo phyModeList = 20;
-   uint32 networkScale = 25;
-}
-
-//TLV ID:37
-message RadioLinkStats {
-   int32 ifIndex = 1;
-   int32 devIndex = 2;
-   uint32 inBytes = 3;
-   uint32 outBytes = 4;
-   uint32 inFrames = 5;
-   uint32 outFrames = 6;
-   uint32 inCrcErrors = 7;
-   uint32 inRxFifoErrors = 8;
-   uint32 inPktLenErrors = 9;
-   uint32 inPhyHdrErrors = 10;
-   uint32 outTxFifoErrors = 11;
-   uint32 outCcaBusyDiscards = 12;
-}
-
-//TLV ID:43
-message CGMSStatus {
-   bool registered = 1;
-   bytes NMSAddr = 2;
-   uint32 NMSAddrOrigin = 3;
-   uint32 lastReg = 4;
-   uint32 lastRegReason = 5;
-   uint32 nextReg = 6;  //NA
-   bool NMSCertValid = 7;
-}
-
-//TLV ID:45
-message CGMSStats { 
-   uint32 sigOk = 1; 
-   uint32 sigBadAuth = 2; 
-   uint32 sigBadValidity = 3; 
-   uint32 sigNoSync = 4; 
-   uint32 regSucceed = 5; 
-   uint32 regAttempts = 6; 
-   uint32 regHolds = 7; 
-   uint32 regFails = 8; 
-   uint32 nmsErrors = 9; 
-} 
-
-//TLV ID:52
-message Neighbor802154G {
-   int32 nbrIndex = 1;
-   bytes physAddress = 2;
-   uint32 lastChanged = 3;
-   sint32 rssiForward = 4;
-   sint32 rssiReverse = 5;
-   uint32 lqiForward  = 9;
-   uint32 lqiReverse = 10;
-   uint32 etx    = 11;
-   uint32 sent   = 12;
-   uint32 acked  = 13;
-   uint32 pin    = 14;
-   uint32 stable = 15;
-   uint32 phymodeForward = 16;
-   uint32 phymodeReverse = 17;
-   sint32 lastRssiForward = 18;
-   sint32 lastRssiReverse = 19;
-   uint32 lastLqiForward = 20;
-   uint32 lastLqiReverse = 21;
-   uint32 phySent = 22;
-}
-
-//TLV ID:53
-message RplInstance{
-   int32 instanceIndex = 1;
-   int32 instanceId = 2;
-   bytes doDagId = 3;
-   int32 doDagVersionNumber = 4;
-   int32 rank = 5;
-   int32 parentCount = 6;
-   uint32 dagSize = 7;
-   repeated RPLParent parents = 8;
-   repeated RPLParent candidates = 9;
-}
-
-//TLV ID:54
-message RPLParent {
-   int32 parentIndex = 1;
-   int32 instanceIndex = 2;
-   int32 routeIndex = 3;
-   bytes ipv6AddressLocal = 4;
-   bytes ipv6AddressGlobal = 5;
-   uint32 doDagVersionNumber = 6;
-   int32 pathEtx = 7;
-   int32 linkEtx = 8;
-   sint32 rssiForward = 9;
-   sint32 rssiReverse = 10;
-   int32 lqiForward = 11;
-   int32 lqiReverse = 12;
-   int32 hops = 13;
-}
-
-//TLV ID:55
-message GroupAssign{
-   uint32 type = 1;
-   uint32 id = 2;
-}
-
-//TLV ID:57
-message GroupMatch{
-   uint32 type = 1;
-   uint32 id = 2;
-}
-
-//TLV ID:58
-message GroupInfo{
-   uint32 type = 1;
-   uint32 id = 2;
-}
-
-//TLV ID:61
-message LowpanPhyStats {
-   LowpanPhyCounters total = 1;
-   LowpanRfStats rf = 2;
-   LowpanPlcStats plc = 3;
-   repeated LowpanPhyModeCounters phyModeStats = 4;
-}
-
-//TLV ID:65
+// TLV_ID: 65
 message TransferRequest {
-   optional HardwareInfo hwInfo = 1;
-   optional bytes fileHash = 2 [(nanopb).max_size = 32];
-   optional string fileName = 3 [(nanopb).max_size = 128];
-   optional string version = 4 [(nanopb).max_size = 64];
-   optional uint32 fileSize = 5;
-   optional uint32 blockSize = 6;
-   optional uint32 reportIntervalMin = 7 [default = 600];
-   optional uint32 reportIntervalMax = 8 [default = 3600];
-   optional uint32 isPatch = 9;
-   optional uint32 chopSize = 10;
-   optional string runVersion = 11 [(nanopb).max_size = 12];
+  optional HardwareInfo hwInfo = 1;
+  optional bytes fileHash = 2 [(nanopb).max_size = 32];
+  optional string fileName = 3 [(nanopb).max_size = 128];
+  optional string version = 4 [(nanopb).max_size = 64];
+  optional uint32 fileSize = 5;
+  optional uint32 blockSize = 6;
+  optional uint32 reportIntervalMin = 7 [default = 600];
+  optional uint32 reportIntervalMax = 8 [default = 3600];
+  optional uint32 isPatch = 9;
+  optional uint32 chopSize = 10;
+  optional string runVersion = 11 [(nanopb).max_size = 12];
 }
 
-// TLV ID:67
+// TLV_ID: 67
 message ImageBlock {
   optional bytes fileHash = 1 [(nanopb).max_size = 32];
   optional uint32 blockNum = 2;
   optional bytes  blockData = 4 [(nanopb).max_size = 1024];
 }
 
-// TLV ID:68
+// TLV_ID: 68
 message LoadRequest {
   optional bytes fileHash = 1 [(nanopb).max_size = 32];
   optional uint32 loadTime = 2;
 }
 
-// TLV ID:69
+// TLV_ID: 69
 message CancelLoadRequest {
   optional bytes fileHash = 1 [(nanopb).max_size = 32];
 }
 
-// TLV ID:70
+// TLV_ID: 70
 message SetBackupRequest {
   optional bytes fileHash = 1 [(nanopb).max_size = 32];
 }
 
-// TLV ID:71
+// TLV_ID: 71
 message TransferResponse {
   optional bytes fileHash = 1 [(nanopb).max_size = 32];
   optional uint32 response = 2;
 }
 
-// TLV ID:72
+// TLV_ID: 72
 message LoadResponse {
   optional bytes fileHash = 1 [(nanopb).max_size = 32];
   optional uint32 response = 2;
   optional uint32 loadTime = 3;
 }
 
-// TLV ID:73
+// TLV_ID: 73
 message CancelLoadResponse {
   optional bytes fileHash = 1 [(nanopb).max_size = 32];
   optional uint32 response = 2;
 }
 
-// TLV ID:74
+// TLV_ID: 74
 message SetBackupResponse {
   optional bytes fileHash = 1 [(nanopb).max_size = 32];
   optional uint32 response = 2;
 }
 
-//TLV ID:75
-message FirmwareImageInfo { 
-   uint32 index = 1; 
-   bytes fileHash = 2;
-   string fileName = 3;
-   string version = 4;
-   uint32 fileSize = 5; 
-   uint32 blockSize = 6; 
-   bytes bitmap = 7;
-   bool isDefault = 8; 
-   bool isRunning = 9; 
-   uint32 loadTime = 10; 
-   HardwareInfo hwInfo = 11; 
-   uint32 bitmapOffset = 12; //used by FND. 
-   string kernelVersion = 13;
-   string subKernelVersion = 14;
-   bool isPatch = 15; 
+// TLV_ID: 75
+message FirmwareImageInfo {
+  optional uint32 index = 1;
+  optional bytes fileHash = 2 [(nanopb).max_size = 32];
+  optional string fileName = 3 [(nanopb).max_size = 128];
+  optional string version = 4 [(nanopb).max_size = 32];
+  optional uint32 fileSize = 5;
+  optional uint32 blockSize = 6;
+  optional bytes bitmap = 7 [(nanopb).max_size = 128];
+  optional bool isDefault = 8;
+  optional bool isRunning = 9;
+  optional uint32 loadTime = 10;
+  optional HardwareInfo hwInfo = 11;
+  //optional uint32 bitmapOffset = 12;
+  optional string kernelVersion = 13 [(nanopb).max_size = 32];
+  optional string subKernelVersion = 14 [(nanopb).max_size = 32];
+  optional uint32 isPatch = 15;
+  // Add for F102760 of TBR 6.4
+  optional uint32 loadErrorCode= 16;
+  optional uint32 subLoadErrorCode = 17;
 }
 
-//TLV ID:76
+// TLV_ID: 76
 message SignatureValidity {
-     uint32 notBefore = 1;
-     uint32 notAfter = 2;
+  optional uint32 notBefore = 1;
+  optional uint32 notAfter = 2;
 }
-//TLV ID:77
+
+// TLV_ID: 77
 message Signature {
-      bytes value = 1;
+  optional bytes value = 1 [(nanopb).max_size = 88];
 }
 
-//TLV ID:172
+// TLV_ID: 78
+message SignatureCert {
+  optional string certSubj = 1 [(nanopb).max_size = 128];
+  optional string certValidNotBefore = 2 [(nanopb).max_size = 16];
+  optional string certValidNotAfter = 3 [(nanopb).max_size = 16];
+  optional bytes certFingerprint = 4 [(nanopb).max_size = 20];
+}
+
+// TLV_ID: 79
+message SignatureSettings {
+  optional bool reqSignedPost = 1;
+  optional bool reqValidCheckPost = 2;
+  optional bool reqTimeSyncPost = 3;
+  optional bool reqSecLocalPost = 4;
+  optional bool reqSignedResp = 5;
+  optional bool reqValidCheckResp = 6;
+  optional bool reqTimeSyncResp = 7;
+  optional bool reqSecLocalResp = 8;
+  optional bytes cert = 9 [(nanopb).max_size = 512];
+}
+
+// TLV_ID: 80
+message Ieee8021xAAASec {
+  optional int32 ifIndex = 1;
+  optional bytes caCert = 2 [(nanopb).max_size = 600];
+}
+
+// TLV_ID: 81
+message Ieee8021xClientSec {
+  optional int32 ifIndex = 1;
+  optional bytes cert = 2 [(nanopb).max_size = 600];
+  optional bytes key = 3 [(nanopb).max_size = 140];
+}
+
+message NetworkNeighborEntry {
+  optional uint32 nbrIndex = 1;
+  optional bytes ipaddr = 2 [(nanopb).max_size = 16];
+  optional bytes physAddress = 3 [(nanopb).max_size = 8];
+  optional uint32 lifetime = 4;
+}
+
+// TLV_ID: 84
+message NetworkNeighbors {
+  optional int32 ifIndex = 1;
+  optional uint32 startnum = 2;
+  repeated NetworkNeighborEntry nbrEntry = 3 [(nanopb).max_count = 20];
+}
+
+message HardwareResetCount {
+  optional uint32 total = 1;
+  optional uint32 externalReset =2;
+  optional uint32 powerOnReset =3;
+}
+
+message SoftwareResetCount {
+  optional uint32 total = 1;
+  optional uint32 FWLoadReset = 2;
+  optional uint32 CSMPRebootReset = 3;
+  optional uint32 vendorProgramReset = 4;
+  optional uint32 cfgLoadReset = 5;
+}
+
+message ExceptionResetCount {
+  optional uint32 total = 1;
+  optional uint32 IWDGReset= 2;
+  optional uint32 cstackOverflowReset= 3;
+  optional uint32 EPFReset = 4;
+  optional uint32 HungReset = 5;
+  optional uint32 FaultReset = 6;
+  optional uint32 EPFResetAfterPON = 7;
+}
+
+// TLV_ID: 86
+message SysResetStats {
+  optional uint32 total = 1;
+  optional HardwareResetCount hardwareReset = 2;
+  optional SoftwareResetCount softwareReset = 3;
+  optional ExceptionResetCount exceptionReset = 4;
+}
+
+message PacketsForwardingStats{
+  optional uint32 PHBPriorityLevel = 1;
+  optional uint32 packetsCnt = 2;
+}
+
+// TLV_ID: 88
+message DiffServMetrics {
+  optional uint32 queueJumpsCnt = 1;
+  repeated PacketsForwardingStats jumpsStatsList = 2 [(nanopb).max_count = 13];
+  optional uint32 queueEvictionsCnt = 3;
+  repeated PacketsForwardingStats evictionsStatsList = 4 [(nanopb).max_count = 13];
+}
+
+// TLV_ID: 91
+message OutageRecovery {
+  optional uint32 restoreTime = 1;
+  optional uint32 outageTime = 2;
+}
+
+// TLV_ID: 92
+message StartDMSession {
+  required bytes EID = 1 [(nanopb).max_size = 8];
+  required bytes pubKey = 2 [(nanopb).max_size = 128];
+  required uint32 startDate = 3;
+  required uint32 endDate = 4;
+  required string role = 5 [(nanopb).max_size = 16];
+  required string userName = 6 [(nanopb).max_size = 24];
+}
+
+// TLV_ID: 93
+message EndDMSession {
+  required bytes EID = 1 [(nanopb).max_size = 24];
+}
+
+// TLV_ID: 95
+message NeighborP19012 {
+  optional int32 nbrIndex = 1;
+  optional bytes physAddress = 2 [(nanopb).max_size = 8];
+  optional uint32 lastChanged = 3;
+  optional sint32 rssiForward = 4;
+  optional sint32 rssiReverse = 5;
+  optional uint32 lqiForward  = 6;
+  optional uint32 lqiReverse = 7;
+  optional ToneMap tmForward = 8;
+  optional ToneMap tmReverse = 9;
+  optional uint32 dphase = 10;
+  optional uint32 aphase = 11;
+  optional uint32 etx    = 12;
+}
+
+// TLV_ID: 96
+message SerialDevSettings {
+  optional int32 devIndex = 1;
+  optional uint32 devMode = 2;
+  optional uint32 devBaud = 3;
+  optional uint32 devParity = 4;
+  optional uint32 devDataBits = 5;
+  optional uint32 devStopBits = 6;
+  optional uint32 devFlowControl = 7;
+  optional uint32 devAffinity = 8 [default = 0];
+}
+
+// TLV_ID: 97
+message SerialDevMetrics {
+  optional int32 devIndex = 1;
+  optional uint32 devInBytes = 2;
+  optional uint32 devOutBytes = 3;
+  optional uint32 devInParityErrors = 4;
+  optional uint32 devInFramingErrors = 5;
+  optional uint32 devInOtherErrors = 6;
+  optional uint32 devOutOtherErrors = 7;
+}
+
+// TLV_ID: 98
+message IPMAddressSettings {
+  optional bool subscribed = 1;
+  optional bytes mcastAddr = 2 [(nanopb).max_size = 16];
+}
+
+message LedSettings {
+  optional uint32 ledRole = 1;
+  optional uint32 ledState = 2;
+}
+
+// TLV_ID: 107
+message LedsSettings {
+  repeated LedSettings ledSettingsList = 1 [(nanopb).max_count = 3];
+}
+
+message LedStatus {
+  optional uint32 ledIndex = 1;
+  optional uint32 ledRole = 2;
+  optional uint32 ledState = 3;
+}
+
+// TLV_ID: 108
+message LedsStatus {
+  repeated LedStatus ledStatusList = 1 [(nanopb).max_count = 13];
+}
+
+// TLV_ID: 111
+message MAPTStatus {
+  optional bytes ipv6Address = 1[(nanopb).max_size = 16];
+  optional bytes ipv4Address = 2[(nanopb).max_size = 4];
+  optional uint32 psid = 3;
+}
+
+// TLV_ID: 112
+message MAPTMetrics {
+  optional int32 mapIndex = 1;
+  optional uint32 map6to4Translations = 2;
+  optional uint32 map4to6Translations = 3;
+  optional uint32 bmrmap6to4Translations = 4;
+  optional uint32 bmrmap4to6Translations = 5;
+  optional uint32 dmrmap6to4Translations = 6;
+  optional uint32 dmrmap4to6Translations = 7;
+  optional uint32 fmrmap6to4Translations = 8;
+  optional uint32 fmrmap4to6Translations = 9;
+}
+
+// TLV_ID: 115
+message RawSockForwarderSettings {
+  message RawSockFwdSettings {
+    required int32 sessionIndex = 1;
+    optional int32 devIndex = 2;
+    optional bytes peerAddress = 3[(nanopb).max_size = 16];
+    optional uint32 peerPort = 4;
+    optional uint32 localPort = 5;
+    optional uint32 connectType = 6;
+    optional uint32 connectTimeout = 7;
+    optional uint32 inactiveTimeout = 8;
+    optional uint32 reset = 9;
+    optional uint32 pktTime = 10;
+    optional uint32 pktSize = 11;
+    optional uint32 specialChar = 12;
+    optional uint32 dscp  = 13;
+  }
+  repeated RawSockFwdSettings settingsList = 1 [(nanopb).max_count = 4];
+}
+
+// TLV_ID: 116
+message RawSockForwarderStatus {
+  message RawSockFwdStatus {
+    required int32 sessionIndex = 1;
+    optional int32 devIndex = 2;
+    optional uint32 state = 3;
+    optional uint32 upTime = 4;
+  }
+  repeated RawSockFwdStatus statusList = 1 [(nanopb).max_count = 4];
+}
+
+// TLV_ID: 117
+message RawSockForwarderMetrics {
+  message RawSockFwdMetrics {
+    required int32 sessionIndex = 1;
+    optional int32 devIndex = 2;
+    optional uint32 devInBytes = 3;
+    optional uint32 devOutBytes = 4;
+    optional uint32 sockInBytes = 5;
+    optional uint32 sockOutBytes = 6;
+    optional uint32 connectAttempts = 7;
+    optional uint32 inactivityTimeouts = 8;
+  }
+  repeated RawSockFwdMetrics metricsList = 1 [(nanopb).max_count = 4];
+}
+
+// TLV_ID: 120
+message NAT44StaticMap {
+  repeated Nat44Map nat44MapList = 1 [(nanopb).max_count = 15];
+}
+
+// TLV_ID: 121
+message NAT44DynamicMap {
+  repeated Nat44Map nat44MapList = 1 [(nanopb).max_count = 15];
+}
+
+// TLV_ID: 122
+message NAT44Interface {
+  optional int32 ifIndex = 1;
+}
+
+// TLV_ID: 124
+message NetStat {
+  optional int32 sessionIndex = 1;
+  optional uint32 protocol = 2;
+  optional bytes localAddress = 3[(nanopb).max_size = 16];
+  optional uint32 localPort = 4;
+  optional bytes peerAddress = 5[(nanopb).max_size = 16];
+  optional uint32 peerPort = 6;
+  optional uint32 state = 7;
+  optional uint32 role = 8;
+}
+
+// TLV_ID: 125
+message ArpCache {
+  optional int32 ethIndex = 1;
+  optional int32 arpIndex = 2;
+  optional bytes ipAddr = 3[(nanopb).max_size = 4];
+  optional bytes macAddr = 4[(nanopb).max_size = 6];
+  optional int32 arpState = 5;
+  optional uint32 arpLifeTime = 6;
+}
+
+// TLV_ID: 130
+message IeeeP19012RPLMetrics {
+  optional ToneMap tmForward = 1;
+  optional ToneMap tmReverse = 2;
+  optional uint32 dphase = 3;
+  optional uint32 aphase = 4;
+}
+
+// TLV_ID: 139
+message ConsoleSettings {
+  required bool enable = 1;
+  optional uint32 duration = 2;
+}
+
+// TLV_ID: 140
+message ZeroizeNode {
+  required bytes keymask = 1 [(nanopb).max_size = 2];
+  required uint32 resetTime = 2;
+}
+
+// TLV_ID: 141
+message NetworkRole {
+  required uint32 preference = 1 [default = 0];
+}
+
+// TLV_ID: 142
+message IOxSettings {
+  required bool enabled = 1 [default = true];
+}
+
+// TLV_ID: 143
+message IOxManagement {
+  required uint32 adminAction = 1;
+}
+
+// TLV_ID: 144
+message IOxCredentials {
+  required string username = 1 [(nanopb).max_size = 33];
+  required string password = 2 [(nanopb).max_size = 33];
+}
+
+// TLV_ID: 145
+message IOxHostExec {
+  optional string cmd = 1 [(nanopb).max_size = 1025];
+  optional uint32 resultcode = 2;
+  optional string cmdoutput = 3 [(nanopb).max_size = 1025];
+}
+
+// TLV_ID: 146
+message IOxHostStatus {
+  required uint32 status = 1;
+  optional string version = 2 [(nanopb).max_size = 33];
+  optional uint32 upTime = 3;
+}
+
+// TLV_ID: 147
+message IOxStatus {
+  required uint32 status = 1;
+  optional string version = 2 [(nanopb).max_size = 17];
+  optional string additionalStatus = 3 [(nanopb).max_size = 513];
+}
+
+message DwardRouteNexthopEntry {
+  optional bytes ipaddr = 1 [(nanopb).max_size = 16];
+  optional uint32 lifetime = 2;
+  optional uint32 priority = 3;
+}
+
+message DwardRouteEntry {
+  optional uint32 index = 1;
+  optional bytes dest = 2 [(nanopb).max_size = 16];
+  optional uint32 prefixLen = 3;
+  optional int32 ifIndex = 4;
+  repeated DwardRouteNexthopEntry nexthop = 5 [(nanopb).max_count = 3];
+}
+
+// TLV_ID: 148
+message DwardRouteQuery {
+  optional uint32 startnum = 1;
+  repeated DwardRouteEntry routeEntry = 2 [(nanopb).max_count = 6];
+}
+
+// TLV_ID: 149
+message DwardRouteNumber {
+  optional uint32 number = 1;
+}
+
+// TLV_ID: 150
+message AppHeaderInfo {
+  optional uint32 AppHeaderVer = 1;
+  optional uint32 AppHeaderLen = 2;
+  optional string ImageVersion = 3 [(nanopb).max_size = 32];
+  optional uint32 AppLen = 4;
+  optional string ImageName = 5 [(nanopb).max_size = 32];
+  optional string ImageGitBranch = 6 [(nanopb).max_size = 32];
+  optional string ImageGitCommit = 7 [(nanopb).max_size = 8];
+  optional uint32 ImageGitFlag = 8;
+  optional string ImageBuildDate = 9 [(nanopb).max_size = 16];
+  optional string hwId = 10 [(nanopb).max_size = 32];
+  optional string subHwId = 11 [(nanopb).max_size = 32];
+  optional string kernelVersion = 12 [(nanopb).max_size = 32];
+  optional string subKernelVersion = 13 [(nanopb).max_size = 32];
+}
+
+message LowpanAdaptiveRfStatusEntry {
+  optional uint32 enabled = 1;
+  optional uint32 state = 2;
+  optional float  avgLossRate = 3;
+  optional uint32 phyModeForward = 4;
+  optional uint32 phyModeReverse = 5;
+  optional uint32 modFactor = 6;
+  optional uint32 sent = 7;
+  optional uint32 acked = 8;
+  optional int32  rssiForward = 9;
+  optional int32  rssiReverse = 10;
+  optional uint32 probeBE = 11;
+  optional uint32 lastUpdate = 12;
+  optional uint32 lastProbe = 13;
+  optional uint32 nacked = 14;
+  optional float  cFactor = 15;
+  optional float  alpha = 16;
+  optional uint32 consCnt = 17;
+  repeated float  phyAvgLossRate = 18 [(nanopb).max_count = 4];
+  repeated uint32 phySent = 19 [(nanopb).max_count = 4];
+  repeated uint32 phyAcked = 20 [(nanopb).max_count = 4];
+  repeated uint32 phyProbeMask = 21 [(nanopb).max_count = 4];
+  repeated uint32 phyProbeBE = 22 [(nanopb).max_count = 4];
+  repeated uint32 phyModes = 23 [(nanopb).max_count = 4];
+}
+
+message LowpanAdaptiveStatusEntry {
+  optional bytes  eui64 = 1 [(nanopb).max_size=8];
+  optional LowpanAdaptiveRfStatusEntry rf = 2;
+}
+
+// TLV_ID: 155
+message LowpanAdaptivePhyStatusQuery {
+  optional uint32 startNum = 1;
+  repeated LowpanAdaptiveStatusEntry entry = 2 [(nanopb).max_count = 10];
+}
+
+// TLV_ID: 156
+message AdaptiveModulationSettings {
+  optional uint32 mode = 1;
+  optional uint32 fastSwSentThresh = 2;
+  optional uint32 fastSwConsThresh = 3;
+  optional float fastSwCfactorThresh = 4;
+  optional uint32 fastSwRssiOffsetThresh = 5;
+  optional float fastSwExtremeThresh = 6;
+  optional float fastSwLossThresh = 7;
+}
+
+// TLV_ID: 157
+message AdaptiveModulationStatus {
+  optional uint32 mode = 1;
+}
+
+message Notch {
+  required uint32 startChnl = 1;
+  required uint32 stopChnl = 2;
+}
+
+// TLV_ID: 163
+message ChannelControl {
+  optional uint32 func = 1 [default = 0];
+  repeated Notch range = 2 [(nanopb).max_count = 4];
+  optional bytes mask = 3 [(nanopb).max_size = 17];
+}
+
+// TLV_ID: 170
+message DtlsRelaySettings {
+  optional bool enabled = 1;
+  optional bytes ipAddr = 2 [(nanopb).max_size = 16];
+  optional uint32 port = 3 [default = 61629];
+  optional uint32 lifetime = 4;
+  optional uint32 minInterval = 5;
+  optional bytes trustAnchor = 6 [(nanopb).max_size = 1040];
+}
+
+// TLV_ID: 171
+message CertReEnrollSettings {
+  optional uint32 type = 1;
+  optional uint32 duration = 2;
+  optional uint32 state = 3;
+  optional uint32 errCode = 4;
+}
+
+message CertInfoEntry {
+  optional uint32 type = 1;
+  optional string certSubj = 2 [(nanopb).max_size = 128];
+  optional string certValidNotBefore = 3 [(nanopb).max_size = 16];
+  optional string certValidNotAfter = 4 [(nanopb).max_size = 16];
+  optional bytes certFingerprint = 5 [(nanopb).max_size = 20];
+}
+
+// TLV_ID: 172
 message CertBundle {
-  // Max repeat is 5.
-  repeated CertInfoEntry certInfo = 1;
+  repeated CertInfoEntry certInfo = 1 [(nanopb).max_count = 5];
 }
 
-//TLV ID:313
-message RplStats{
-   uint32 inFramesDIS = 1;
-   uint32 inFramesDIO = 2;
-   uint32 outFramesDIS = 3;
-   uint32 outFramesDIO = 4;
-   uint32 outFramesDAO = 5;
+// TLV_ID: 173
+message CertAutoRenewSettings {
+  optional uint32 percentage = 1; // 1 - 100%
 }
 
-//TLV ID:340
+// TLV_ID: 180
+message PatchCapabilityInfo {
+  optional uint32 capability = 1 [default = 0];
+  optional uint32 chopSize = 2;
+  optional uint32 patchVolumeSize = 3;
+}
+
+// TLV_ID: 200
+message BBUStatus {
+  optional bool isSupported = 1;
+  optional bool isPresent = 2;
+  optional bool isReady = 3;
+  optional uint32 powerSource = 4;
+  optional uint32 stateType = 5;
+  optional uint32 batteryLevel = 6;
+  optional uint32 timeToFull = 7;
+  optional uint32 timeToEmpty = 8;
+}
+
+// TLV_ID: 201
+message BBUSettings{
+  optional uint32 configBattery = 1;
+}
+
+message BBUOperatingParam {
+  optional uint32 absoluteStateofCharge = 1;
+  optional uint32 relativeStateofCharge = 2;
+  optional uint32 remainingCapacity = 3;
+  optional uint32 fullChargeCapacity = 4;
+  optional uint32 averageTimetoEmpty = 5;
+  optional uint32 averageTimetoFull = 6;
+  optional uint32 runTimetoEmpty = 7;
+  optional uint32 atRateTimetoFull = 8;
+  optional uint32 atRateTimetoEmpty = 9;
+  optional uint32 atRateOK =10;
+  optional uint32 voltage = 11;
+  optional int32 current = 12;
+  optional uint32 averageCurrent = 13;
+  optional int32 chargingCurrent = 14;
+  optional uint32 chargingVoltage = 15;
+  optional uint32 cycleCount = 16;
+  optional uint32 chargeAlarmWarning = 17;
+  optional uint32 heaterStatusControl = 18;
+  optional uint32 heaterTemperature = 19;
+  optional uint32 ambientTemperature = 20;
+  optional uint32 temperature = 21;
+  optional uint32 firmwareVersion = 22;
+  optional uint32 bootloaderStatus = 23;
+  optional uint32 batteryStatus = 24;
+  optional uint32 chargeStatus = 25;
+  optional uint32 chargeMode = 26;
+  optional uint32 interruptStatus= 27;
+  optional uint32 unitStatus= 28;
+  optional uint32 downloadStatus= 29;
+  optional uint32 controlOverride = 30;
+  optional uint32 isLocked = 31;
+  optional uint32 tbit = 32;
+}
+
+message BBUMFGInfo{
+  optional uint32 blockSignature = 1;
+  optional uint32 blockVersion = 2;
+  optional uint32 blockLength = 3;
+  optional uint32 blockChecksum = 4;
+  optional uint32 spromSize = 5;
+  optional uint32 blockCount = 6;
+  optional uint32 FRUMajorType = 7;
+  optional uint32 FRUMinorType = 8;
+  optional string OEMString  = 9[(nanopb).max_size = 32];
+  optional string productNumber = 10[(nanopb).max_size = 32];
+  optional string serialNumber = 11[(nanopb).max_size = 32];
+  optional string partNumber = 12[(nanopb).max_size = 16];
+  optional string partRevision = 13[(nanopb).max_size = 16];
+  optional string mfgDeviation = 14[(nanopb).max_size = 32];
+  optional string hwRev = 15[(nanopb).max_size = 16];
+  optional uint32 mfgBits = 16;
+  optional uint32 engineerUse = 17;
+  optional string snmpOID = 18[(nanopb).max_size = 32];
+  optional uint32 powerConsump = 19;
+  optional string rmaFailureCode = 20[(nanopb).max_size = 16];
+  optional string CLEICode = 21[(nanopb).max_size = 16];
+  optional string VID = 22[(nanopb).max_size = 16];
+  optional string vendorName = 23[(nanopb).max_size = 32];
+  optional string vendorProduceNumber = 24[(nanopb).max_size = 32];
+  optional string vendorRevisionNumber = 25[(nanopb).max_size = 16];
+  optional uint32 vendorSequenceNumber = 26;
+  optional string dateCode = 27[(nanopb).max_size = 16];
+  optional string buildVersion = 28[(nanopb).max_size = 16];
+  optional uint32 outputPowerMax = 29;
+  optional uint32 inputPowerMax = 30;
+  optional string BBUChemistry = 31[(nanopb).max_size = 32];
+  optional uint32 cellsInSeries = 32;
+  optional uint32 firmwareVersion = 33;
+  optional uint32 firmwareRevision = 34;
+  optional uint32 minDischargeTemp = 35;
+  optional uint32 maxDischargeTemp = 36;
+  optional uint32 minChargingTemp = 37;
+  optional uint32 maxChargingTemp = 38;
+  optional uint32 outputCurrentMax = 39;
+  optional uint32 outputVoltageMax = 40;
+}
+
+message BBUWarningInfo{
+  optional uint32 dischargeUnsafeEvent = 1;
+  optional uint32 chargeUnsafeEvent = 2;
+}
+
+// TLV_ID: 202
+message BBUDiagInfo {
+  optional BBUOperatingParam operatingParam = 1;
+  optional BBUMFGInfo MFGInfo = 2;
+  optional BBUWarningInfo warningInfo = 3;
+}
+
+// TLV_ID: 214
+message HeaterSettings {
+  optional int32 acOnLowThreshold = 1;
+  optional int32 acOnHighThreshold = 2;
+  optional int32 acOffLowThreshold = 3;
+  optional int32 acOffHighThreshold = 4;
+}
+
+// TLV_ID: 215
+message HeaterStatus {
+  optional bool isHeaterOn = 1;
+  optional int32 temperature = 2;
+}
+
+// TLV_ID: 217
+message ExtAlarmSetting {
+  optional uint32 extAlarmType = 1;
+}
+
+// TLV_ID: 218
+message ExtAlarmStatus {
+  optional uint32 extAlarmStatus = 1;
+}
+
+message DefRouteInfo {
+  optional bytes IpAddr = 1 [(nanopb).max_size = 16];
+  optional uint32 Hop = 2;
+}
+
+message PanInfo {
+  optional uint32 PanValid = 1;
+  optional uint32 PanId = 2;
+}
+
+message RplInstanceInfo {
+  optional uint32 RplInstanceValid = 1;
+  optional uint32 Instance = 2;
+  optional bytes Dodagid = 4 [(nanopb).max_size = 16];
+  optional DefRouteInfo DefRoute = 5;
+  optional uint32 moptype = 6;
+}
+
+message VendorInfo {
+  optional bytes VendorAddr1 = 1 [(nanopb).max_size = 16];
+  optional bytes VendorAddr2 = 2 [(nanopb).max_size = 16];
+  optional bytes VendorAddr3 = 3 [(nanopb).max_size = 16];
+}
+
+message DhcpInfo {
+  optional uint32 DhcpValid = 1;
+  optional bytes IpAddr = 2 [(nanopb).max_size = 16];
+  optional bytes IaPrefix = 3 [(nanopb).max_size = 16];
+  optional VendorInfo Vendor = 4;
+}
+
+// TLV_ID: 219
+message StoredInfo {
+  optional PanInfo PanInfo = 1;
+  optional RplInstanceInfo RplInstance = 2;
+  optional DhcpInfo Dhcp = 3;
+}
+
+message FlashUpdateCounter {
+  optional uint32 DefRouteChange = 1;
+  optional uint32 CfgChange = 2;
+  optional uint32 Timeout = 3;
+}
+
+// TLV_ID: 220
+message FastSyncStatus {
+  optional bool FastSyncEnabled = 1;
+  optional bool FastSyncFinished = 2;
+  optional uint32 FastSyncStatus = 3;
+  optional uint32 StoreIndex = 4;
+  optional FlashUpdateCounter FlashCounter = 5;
+  optional uint32 state = 6;
+}
+
+message MplTrickleConfig {
+  optional uint32 imin = 1;
+  optional uint32 imax = 2;
+  optional uint32 k = 3;
+  optional uint32 expire = 4;
+}
+
+// TLV_ID: 240
+message MplSettings {
+  optional uint32 seedLifetime = 1;
+  optional MplTrickleConfig dataTimerConfig = 2;
+  optional bool isSeed = 3;
+}
+
+// TLV_ID: 241
+message MplStats {
+  optional uint32 dataSent = 1;
+  optional uint32 dataReceived = 2;
+  optional uint32 dataError = 3;
+  optional uint32 dataSentDuplicate = 4;
+  optional uint32 dataReceivedDuplicate = 5;
+  optional uint32 controlSent = 6;
+  optional uint32 controlReceived = 7;
+  optional uint32 controlError = 8;
+}
+
+// TLV_ID: 242
+message MplReset {
+  optional bool stats = 1;
+}
+
+// TLV_ID: 243
+message MplDomainAddress {
+  optional uint32 ipAddressIndex = 1;
+  optional bytes mcastAddr = 2 [(nanopb).max_size = 16];
+  optional bool subscribed = 3;
+}
+
+// TLV_ID: 301
+message SwitchPortSettings {
+  optional int32 index = 1;
+  optional uint32 status = 2;
+}
+
+// TLV_ID: 302
+message SwitchPortMetrics {
+  optional int32 index = 1;
+  optional uint32 inSpeed = 2;
+  optional uint32 outSpeed = 3;
+  optional uint32 adminStatus = 4;
+  optional uint32 operStatus = 5;
+  optional uint32 lastChange = 6;
+  optional uint32 inOctets = 7;
+  optional uint32 outOctets = 8;
+  optional uint32 inDiscards = 9;
+  optional uint32 inFilters = 10;
+}
+
+// TLV_ID: 303
+message SwitchPortDetailMetrics {
+  optional int32 index = 1;
+  optional uint64 inGoodOctets = 2;
+  optional uint64 inBadOctets = 3;
+  optional uint64 inUnicast = 4;
+  optional uint64 inBroadcasts = 5;
+  optional uint64 inMulticasts = 6;
+  optional uint64 inPause = 7;
+  optional uint64 inUndersize = 8;
+  optional uint64 inFragments = 9;
+  optional uint64 inOversize = 10;
+  optional uint64 inJabber = 11;
+  optional uint64 inRxErr = 12;
+  optional uint64 inFCSErr = 13;
+  optional uint64 outOctets = 14;
+  optional uint64 outUnicast = 15;
+  optional uint64 outBroadcasts = 16;
+  optional uint64 outMulticasts = 17;
+  optional uint64 outPause = 18;
+  optional uint64 deferred = 19;
+  optional uint64 collisions = 20;
+  optional uint64 single = 21;
+  optional uint64 multiple = 22;
+  optional uint64 excessive = 23;
+  optional uint64 late = 24;
+  optional uint64 outFCSErr = 25;
+  optional uint64 hist64Octets = 26;
+  optional uint64 hist65to127Octets = 27;
+  optional uint64 hist128to255Octets = 28;
+  optional uint64 hist256to511Octets = 29;
+  optional uint64 hist512to1023Octets = 30;
+  optional uint64 hist1024toMaxOctets = 31;
+  optional uint64 rxFrames = 32;
+  optional uint64 txFrames = 33;
+  optional uint64 inDiscards = 34;
+  optional uint64 inFiltered = 35;
+}
+
+// TLV_ID: 307
+message AclDenyEventMsg {
+  optional uint32 InterfaceIndex = 1;
+  optional uint32 DroppedCounter = 2;
+  optional bytes DroppedSrcIp = 3 [(nanopb).max_size = 16];  // len = 4 ipv4, len = 16 ipv6
+  optional bytes DroppedDstIp = 4 [(nanopb).max_size = 16];
+  optional uint32 Protocol = 5;
+  optional bool Direction = 6;
+  optional uint32 SrcPort = 7;  // Source port number
+  optional uint32 DstPort = 8;  // Destinartion port number
+}
+
+// TLV_ID: 308
+message MACSecSettings {
+  optional bool enabled = 1; // 0 by default.
+  optional bytes ckn = 2 [(nanopb).max_size = 16]; // Connectivity Association Key Name
+  optional bytes cak = 3 [(nanopb).max_size = 16]; // Connectivity Association Key
+}
+
+// TLV_ID: 309
+message MACsecStatus {
+  optional uint32 peerPriority = 1;
+  optional bool sakGenerated = 2;
+  optional uint32 sakReceived = 3;
+  optional uint32 sakRekeyed = 4; // when PN overflow
+
+  // Transmit SC
+  optional bytes txSci = 5 [(nanopb).max_size = 8]; // Secure Channel Identifier
+
+  // Transmit SA info
+  optional uint32 txAN = 6;
+  optional uint32 txPN = 7;
+  optional uint32 txPkts = 8;
+  optional uint32 txEncryptError = 9;
+
+  // Receive SC
+  optional bytes rxSci = 10[(nanopb).max_size = 8]; // Secure Channel Identifier
+
+  // Receive SA info
+  optional uint32 rxAN = 11;
+  optional uint32 rxPN = 12;
+  optional uint32 rxPkts = 13;
+  optional uint32 rxDecryptError = 14;
+
+  optional uint32 mkaRecvFailed = 15;
+  optional uint32 mkaSendFailed = 16;
+
+  optional uint32 mkaFlags = 17;
+  optional uint32 mkaState = 18;
+}
+
+// TLV_ID: 310
+message LoggingCapability {
+  optional string compList = 1 [(nanopb).max_size = 512];
+}
+
+message CompSet {
+  optional uint32 componentIndex = 1;
+  optional bool enable = 2;
+  optional uint32 loggingLevel = 3;
+}
+
+// TLV_ID: 311
+message LoggingStatus {
+  optional bool autoReport = 1;
+  optional bool startupEnable = 2;
+  optional bool csmpoutputEnable = 3;
+  optional uint32 sniffMaskSet = 4;
+  repeated CompSet compSetList = 5 [(nanopb).max_count = 32];
+}
+
+// TLV_ID: 312
+message LoggingReport {
+  required bool hasNext = 1;
+  required uint32 seqIndex = 2;
+  optional string loggingVer = 3 [(nanopb).max_size = 64];
+  optional bytes loggingContent = 4 [(nanopb).max_size = 1024];
+}
+
+// TLV_ID: 313
+message RPLStats {
+  optional uint32 inFramesDIS= 1;
+  optional uint32 inFramesDIO = 2;
+  optional uint32 inFramesDAO = 3;
+  optional uint32 outFramesDIS = 4;
+  optional uint32 outFramesDIO = 5;
+  optional uint32 outFramesDAO = 6;
+  optional uint32 outFramesNoPathDAO = 7;
+  optional uint32 outFramesNS = 8;
+}
+
+// TLV_ID: 314
+message DHCP6Stats {
+  optional uint32 clientFramesSolicit= 1;
+  optional uint32 clientFramesAdvertise = 2;
+  optional uint32 clientFramesRequest = 3;
+  optional uint32 clientFramesReply = 4;
+  optional uint32 relayFramesForward = 5;
+  optional uint32 relayFramesReply = 6;
+}
+
+// TLV_ID: 315
+message Neighbor802154GSettings {
+  optional uint32 rfReportLevel = 1 [default = 0]; //0 - detailed and sorted info, 1 - simplified and unsorted info
+  optional uint32 rfNbrCount = 2;
+}
+
+// TLV_ID: 316
+message NeighborP19012Settings {
+  optional uint32 plcReportLevel = 1 [default = 0]; //0 - detailed and sorted info, 1 - simplified and unsorted info
+  optional uint32 plcNbrCount = 2;
+}
+
+// TLV_ID: 320
+message FMROperateTry {
+  optional uint32 operation = 1;
+  optional uint32 address = 2;
+  optional uint32 lenValue = 3;
+}
+
+// TLV_ID: 321
+message FMROperateCatch {
+  optional uint32 catchAddress = 1;
+  optional bytes catchContent = 2 [(nanopb).max_size = 32];
+}
+
+// TLV_ID: 325
+message ScanChannelRssiSettings {
+  optional uint32 channel = 1;  // 254 means scan all channels
+}
+
+message ChannelRssiStatsEntry {
+  optional uint32 channel = 1;
+  optional int32 avgRssi = 2;
+  optional int32 minRssi = 3;
+  optional int32 maxRssi = 4;
+}
+
+// TLV_ID: 326
+message ChannelRssiStats {
+  optional uint32 channelRssiStatsIndex = 1;
+  optional uint32 channelRssiStatsNum = 2;
+  repeated ChannelRssiStatsEntry channelRssiStatsList = 3 [(nanopb).max_count = 10];
+}
+
+// TLV_ID: 327
+message ChannelRssi {
+  optional uint32 channel = 1;
+  optional uint32 interval = 2;
+  optional bytes rssi = 3 [(nanopb).max_size = 500];
+}
+
+message ChannelPacketStatsEntry {
+  optional uint32 channel = 1;
+  optional uint32 sent = 2;
+  optional uint32 acked = 3;
+}
+
+// TLV_ID: 328
+message LinkTestSettings {
+  optional bytes nbrAddr = 1 [(nanopb).max_size = 8];
+  optional uint32 channel = 2;
+  optional uint32 mode = 3;
+}
+
+// TLV_ID: 329
+message LinkTestStats {
+  optional uint32 state = 1;
+  optional uint32 error = 2;
+  optional bytes nbrAddr = 3 [(nanopb).max_size = 8];
+  optional string time = 4 [(nanopb).max_size = 32];
+  optional uint32 channel = 5;
+  optional uint32 interval = 6;
+  optional uint32 length = 7;
+  optional uint32 sent = 8;
+  optional uint32 received = 9;
+  optional int32 avgRssi = 10;
+  optional int32 minRssi = 11;
+  optional int32 maxRssi = 12;
+}
+
+// TLV_ID: 330
+message ChannelPacketStatsClr {
+  optional uint32 channel = 1;
+}
+
+// TLV_ID: 331
+message ChannelPacketStats {
+  optional uint32 channelStatsIndex = 1;
+  optional uint32 numStats = 2;
+  repeated ChannelPacketStatsEntry channelPacketStatsList = 3
+           [(nanopb).max_count = 65];
+}
+
+// TLV_ID: 332
+message RadioNeighborStatsClr {
+  optional bytes nbrAddr = 1 [(nanopb).max_size = 8];
+}
+
+// TLV_ID: 333
+message RadioNeighborStats {
+  optional bytes nbrAddr = 1 [(nanopb).max_size = 8];
+  optional uint32 sent_ucast_num = 2;
+  optional uint32 recv_ack_num = 3;
+  optional uint32 recv_ucast_num = 4;
+  optional uint32 sent_ack_num = 5;
+}
+
+// TLV_ID: 334
+message ChannelFunctionSettings {
+  required uint32 function = 1;
+  optional uint32 fixedChannel = 2;
+}
+
+// TLV_ID: 335
+message EDFEmodeSettings {
+  optional bool enabled = 1;
+}
+
+// TLV_ID: 336
+message LowpanMtuSettings {
+  optional uint32 mtu = 1;
+}
+
+// TLV_ID: 337
+message DwellIntervalSettings {
+  optional uint32 bcastInterval = 1;
+  optional uint32 bcastDwellInterval = 2;
+  optional uint32 ucastDwellInterval = 3;
+}
+
+// TLV_ID: 340
 message StackModeSettings {
-   uint32 mode = 1;
+  optional uint32 mode = 1;
+  optional uint32 newMode = 2;
 }
 
-//TLV ID:350
+// TLV_ID: 341
+message WirelessConsoleSetting {
+  optional uint32 op = 1;
+  optional uint32 state = 2;
+  optional bytes eui64 = 3 [(nanopb).max_size = 8];
+  optional uint32 lifetime = 4 [default = 600];
+  optional uint32 status = 5;
+}
+
+message TlvPermission {
+  optional uint32 tlvid = 1;
+  optional bool getEnable = 2;
+  optional bool postEnable = 3;
+}
+
+message EUI64Entry {
+  required bytes eui64 = 1 [(nanopb).max_size = 8];
+}
+
+// TLV_ID: 342
+message WirelessConsoleAuthorize {
+  optional string CN = 1 [(nanopb).max_size = 128];
+  repeated EUI64Entry eui64List = 2 [(nanopb).max_count = 10];
+  optional uint32 lifetime = 3 [default = 86400];
+  optional uint32 token = 4;
+  repeated TlvPermission tlvs = 5 [(nanopb).max_count = 30];
+}
+
+// TLV_ID: 343
+message StackModeTime {
+  optional uint32 newModeTime = 1;
+}
+
+// TLV_ID: 344
+message StackModeResponse {
+  optional uint32 response = 1;
+  optional uint32 mode = 2;
+  optional uint32 newMode = 3;
+  optional uint32 newModeTime = 4;
+}
+
+message OutageRecord {
+  required bytes addr = 1 [(nanopb).max_size = 8];
+  required uint32 outageOffset = 2;
+}
+
+// TLV_ID: 350
 message PON {
-   uint32 outageBasetime = 1; 
-   repeated OutageRecord outage = 2; 
+  required uint32 outageBasetime = 1;
+  repeated OutageRecord outage = 2 [(nanopb).max_count = 32];
 }
 
-//TLV ID:351
+message RestoreRecord {
+  required bytes addr = 1 [(nanopb).max_size = 8];
+  required uint32 outageOffset = 2;
+  required uint32 restoreOffset = 3;
+}
+
+// TLV_ID: 351
 message PRN {
-   uint32 outageBasetime = 1;
-   uint32 restoreBasetime = 2;
-   repeated RestoreRecord restore = 3;
+  required uint32 outageBasetime = 1;
+  required uint32 restoreBasetime = 2;
+  repeated RestoreRecord restore = 3 [(nanopb).max_count = 32];
+}
+
+// TLV_ID: 352
+message BackupPowerSetting {
+  optional uint32 type = 1;
+}
+
+// TLV_ID: 353
+message OutageStats {
+  optional uint32 ponTriggerTime = 1;
+  optional uint32 ponReceived    = 2;
+  optional uint32 ponBcastSent   = 3;
+  optional uint32 ponUcastSent   = 4;
+  optional uint32 ponUcastAcked  = 5;
+  optional uint32 prnTriggerTime = 6;
+  optional uint32 prnBcastSent   = 7;
+};
+
+message P2pParentInfo {
+  required uint32 pathRank = 1;
+  required uint32 linkEtx = 2;
+  required bytes addr = 3 [(nanopb).max_size = 16];
+}
+
+// TLV_ID: 360
+message P2pInstanceInfo {
+  required uint32 instanceId = 1;
+  required uint32 rank = 2;
+  required uint32 instanceLifetime = 3;
+  required uint32 pendingTime = 4;
+  required bytes dodagId = 5 [(nanopb).max_size = 16];
+  required bytes dstAddr = 6 [(nanopb).max_size = 16];
+  required bool mode = 7;
+  required P2pParentInfo parent = 8;
+}
+
+message P2pRouteAddr {
+  required bytes addr = 1 [(nanopb).max_size = 16];
+}
+
+// TLV_ID: 361
+message P2pRouteInfo {
+  required uint32 routelifetime = 1;
+  repeated P2pRouteAddr route = 2 [(nanopb).max_count = 8];
+}
+
+// TLV_ID: 362
+message P2pStats {
+  required uint32 inRreq = 1;
+  required uint32 inRrep = 2;
+  required uint32 outRreq = 3;
+  required uint32 outRrep = 4;
+  required uint32 outMaintainRrep = 5;
+  required uint32 instanceNum = 6;
+  required uint32 routeNum = 7;
+}
+
+// TLV_ID: 363
+message P2pDeleteRoute {
+  required bytes dstAddr = 1 [(nanopb).max_size = 16];
+}
+
+// TLV_ID: 364
+message P2pStartDiscover {
+  required bytes dstAddr = 1 [(nanopb).max_size = 16];
+  required uint32 instanceLifetimeIndex = 2;
+  required uint32 routelifetime = 3;
+  required uint32 maxRank = 4;
+}
+
+
+
+message EventIdType {
+  optional uint32 ianaen = 1;
+  required uint32 code = 2;
+}
+
+message EventTester {
+  required EventIdType id = 1;
+  optional uint32 priority = 2;
+  message ETlvId {
+    optional uint32 ianaen = 1;
+    required uint32 type = 2;
+  };
+  repeated ETlvId tlvs = 3 [(nanopb).max_count = 10];
+}
+
+// TLV_ID: 500
+message EventReport {
+  required uint32 seqIndex = 1;
+  required uint32 timestamp = 2;
+  required EventIdType id = 3;
+  repeated string relatedTlvIds = 4 [(nanopb).max_size = 20, (nanopb).max_count = 5];
+}
+
+// TLV_ID: 501
+message EventIndex {
+  repeated EventIdType id = 1 [(nanopb).max_count = 1];
+}
+
+// TLV_ID: 502
+message EventSubscribe {
+  repeated EventIdType id = 1 [(nanopb).max_count = 10];
+}
+
+// TLV_ID: 510
+message EventStats {
+  optional uint32 cntLow = 1;
+  optional uint32 cntMed = 2;
+  optional uint32 cntHigh = 3;
+  optional uint32 sent = 4;
+}
+
+// TLV_ID: 525
+message DbgCurrentNodeStatus {
+  optional uint32 node_status = 1;
+// beacon
+  optional uint32 pan_id = 2;
+  optional bytes slaac_addr = 3 [(nanopb).max_size = 16];
+  optional uint32 out_pa_cnt = 4;
+  optional uint32 out_pc_cnt = 5;
+  optional uint32 in_pa_cnt = 6;
+  optional uint32 in_pc_cnt = 7;
+// RPL
+  optional uint32 out_dao_cnt = 8;
+  optional uint32 out_dis_cnt = 9;
+  optional uint32 out_dio_cnt = 10;
+  optional uint32 in_dao_cnt = 11;
+  optional uint32 in_dis_cnt = 12;
+  optional uint32 in_dio_cnt = 13;
+  optional uint32 out_dao_ack_cnt = 14;
+  optional uint32 in_dao_ack_cnt = 15;
+  optional uint32 core_instance = 16;
+  optional bytes core_dodagid = 17 [(nanopb).max_size = 16];
+  optional bytes def_route_prefix = 18 [(nanopb).max_size = 16];
+  optional uint32 def_route_instance_id = 19;
+  optional bytes def_route_dodagid = 20 [(nanopb).max_size = 16];
+//DHCP Client
+  optional uint32 out_dhcp_solicit_cnt = 21;
+  optional uint32 out_dhcp_request_cnt = 22;
+  optional uint32 in_dhcp_advertise_cnt = 23;
+  optional uint32 in_dhcp_reply_cnt = 24;
+  optional bytes global_addr = 25 [(nanopb).max_size = 16];
+  optional uint32 pan_leave_reason = 26;
+  optional uint32 pan_leave_time = 27;
+//LFN beacons
+  optional uint32 out_lpa_cnt = 28;
+  optional uint32 out_lpc_cnt = 29;
+  optional uint32 in_lpa_cnt = 30;
+  optional uint32 in_lpc_cnt = 31;
+}
+
+// TLV_ID: 540
+message ETXAlgorithmSettings {
+  required uint32 etxAlgorithm = 1 [default = 7];
+}
+
+// TLV_ID: 550
+message SnifferSettings {
+  optional bool startupEnable = 1;
+  optional bytes EID = 2 [(nanopb).max_size = 8];
+  optional bool reportEnable = 3;
+  optional uint32 reportInterval = 4;
+  optional uint32 lifeTime = 5;
+  optional uint32 captureNum = 6;
+  optional uint32 sniffMaskSet = 7;
+}
+
+// TLV_ID: 551
+message SnifferFramecount {
+  optional bool logcountclear = 1;
+  optional int32 nbrIndex = 2;
+  optional bytes physAddress = 3 [(nanopb).max_size = 8];
+  optional uint32 syncbeaconNum = 4;
+  optional uint32 discoverbeaconNum = 5;
+  optional uint32 maccmdNum = 6;
+  optional uint32 ucastdataNum = 7;
+  optional uint32 bcastdataNum = 8;
+  optional uint32 ackNum = 9;
+}
+
+// TLV_ID: 600
+message FFNGatewaySettings {
+  optional bool enable = 1;
+}
+
+// TLV_ID: 601
+message FFNChildStats {
+  optional bytes eui64 = 1 [(nanopb).max_size = 8];
+  optional uint32 lifetime = 2;
+  optional bytes ipAddress = 3 [(nanopb).max_size = 16];
+  optional uint32 FrameBuffered = 4;
 }
