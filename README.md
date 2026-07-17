@@ -64,13 +64,25 @@ NOTE: a valid FND IPv6 address must be supplied.
 2. Once "csmpsagent" is started, it will begin registration attempts with the FND server.
 
 ## Decoding CSMP Agent Messaging with Wireshark
-Wireshark network analyzer may be used to observe CSMP messaging exchanged between the CSMP Agent and the FND instance. Note that this is a partial decode of the CoAP messaging and does not yet include decode of the TLV message payloads.
+Wireshark network analyzer may be used to observe fully decoded CSMP messaging exchanged between the CSMP Agent and the FND instance.
 
 ### Install Wireshark
-Follow the instructions here ... https://itsfoss.com/install-wireshark-ubuntu/.  As of this writting, version 3.6.2 is used.
+Acquire and install Wireshark for your desired platform from https://www.wireshark.org/. As of this writting, version 4.6.7 is used.
 
 ### Configure Wireshark for CSMP decoding.
-Wireshark `Menu` -> `Analyze` -> `Decode As...` `+` -> `Field : UDP port` -> `value : 61628` -> `Current : CoAP` -> `OK`
+Copy the OpenCSMP dissector .lua and .proto file from 'tools/wireshark-csmp-dissector' into your Wireshark 
+Personal Lua Plugins folder.
+
+Confirm Protobuf configuration
+Wireshark menu 'Edit' -> 'Preferences' -> 'Protocols' -> 'ProtoBuf'.  
+'Load .proto file on startup' must be checked.
+Protobuf search path must contain the folder in which the .proto file was placed (the Personal Lua Plugins folder).
+
+Reload Lua Plugins
+Wireshark menu 'Analyze' -> 'Reload Lua Plugins'
+
+You may also need to override CoAP port conflict with 
+Wireshark menu -> Analyze -> Decode As...` `+` -> `Field : UDP port` -> `value : 61628` -> `Current : CoAP` -> `OK`
 
 ### Sample CSMP PCAP files.
 Test your Wireshark install by opening and observing the contents of the sample PCAPs provided in the folder `test/*.pcap`.
