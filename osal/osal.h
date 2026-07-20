@@ -39,10 +39,16 @@
 #define CSMP_FWMGMT_ACTIVE_SLOTS      3          // 0-RUN, 1-UPLOAD, 2-BACKUP
 #if defined(OSAL_EFR32_WISUN)
 #define CSMP_FWMGMT_SLOTIMG_SIZE      (512*1024) // 512 Kb
+#elif defined(OSAL_TI_SIMPLELINK_WISUN)
+#define CSMP_FWMGMT_SLOTIMG_SIZE      0x000A8000UL   
 #else
 #define CSMP_FWMGMT_SLOTIMG_SIZE      (30*1024)  // 30 Kb
 #endif
+#if defined(OSAL_TI_SIMPLELINK_WISUN)
+#define CSMP_FWMGMT_BLKMAP_CNT        (34)
+#else
 #define CSMP_FWMGMT_BLKMAP_CNT        (32)
+#endif
 
 #define CSMP_IMAGE_HDR_SIZE           256
 
@@ -688,4 +694,5 @@ osal_basetype_t osal_write_slothdr(uint8_t slotid, Csmp_Slothdr* slot);
  * @return returns 0 on success and -1 on error
  *****************************************************************************/
 osal_basetype_t osal_copy_firmware(uint8_t source_slotid, uint8_t dest_slotid, Csmp_Slothdr *slots);
+
 #endif

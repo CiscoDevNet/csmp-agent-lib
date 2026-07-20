@@ -1,0 +1,97 @@
+####################################################################
+# TI Wi-SUN FAN — root library build target                        #
+# Builds csmp_agent_lib_ti_simplelink_wisun.a                      #
+#                                                                  #
+# SETUP (two steps):                                               #
+#   1. Set SIMPLELINK_SDK_LINUX below to your SDK path.            #
+#   2. Edit $(SDK)/imports.mak to set TICLANG_ARMCOMPILER.         #
+#      Default: /home/username/ti/ccs1270/ccs/tools/compiler/...   #
+# Environment variables take precedence if already set.            #
+####################################################################
+.SUFFIXES:
+.PHONY: all debug release clean
+
+all: debug
+
+PROJECTNAME = csmp_agent_lib_ti_simplelink_wisun
+
+# -----------------------------------------------------------------------
+# TI SimpleLink CC13xx/CC26xx SDK — set the path for your OS.
+# TICLANG_ARMCOMPILER is read from the SDK's imports.mak below.
+# -----------------------------------------------------------------------
+SIMPLELINK_SDK_WIN   =
+SIMPLELINK_SDK_OSX   =
+SIMPLELINK_SDK_LINUX = /home/labuser/ti/simplelink_cc13xx_cc26xx_sdk_8_32_00_07
+
+ifeq ($(OS),Windows_NT)
+  SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR ?= $(SIMPLELINK_SDK_WIN)
+else
+  UNAME_S := $(shell uname -s)
+  ifeq ($(UNAME_S),Darwin)
+    SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR ?= $(SIMPLELINK_SDK_OSX)
+  else
+    SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR ?= $(SIMPLELINK_SDK_LINUX)
+  endif
+endif
+
+# Pull TICLANG_ARMCOMPILER from the SDK's imports.mak (edit that file once).
+-include $(SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR)/imports.mak
+
+ifeq ($(VERBOSE),)
+  ECHO = @
+endif
+
+BUILD_DIR  = build
+OUTPUT_DIR = $(BUILD_DIR)/debug
+
+CSMP_AGENT_DIRs += $(shell find ./src -maxdepth 3 -type d)
+
+C_DEFS    = -DOSAL_TI_SIMPLELINK_WISUN
+C_DEFS   += -DCSMP_USE_MBED_TRACE
+INCLUDES += $(foreach dir, $(CSMP_AGENT_DIRs), -I $(dir))
+INCLUDES += -Iinclude -Iosal -Iosal/ti_simplelink_wisun -Isample
+# mbed_tracef is forward-declared in osal_platform_types.h — no header needed
+C_FLAGS  += -Wno-missing-braces
+C_FLAGS  += -Oz
+C_FLAGS  += -flto
+
+C_SOURCE_FILES  = $(foreach dir, $(CSMP_AGENT_DIRs), $(wildcard $(dir)/*.c))
+# Sample files — platform-independent, compile into library
+# main() in CsmpAgentLib_sample.c is guarded by #ifndef OSAL_TI_SIMPLELINK_WISUN
+C_SOURCE_FILES += sample/CsmpAgentLib_sample.c
+C_SOURCE_FILES += sample/CsmpAgentLib_sample_tlvs.c
+C_SOURCE_FILES += sample/signature_verify.c
+# osal_ti_simplelink_wisun.c requires full SDK context — compiled in app build
+#C_SOURCE_FILES += osal/ti_simplelink_wisun/osal_ti_simplelink_wisun.c
+
+-include osal/ti_simplelink_wisun/ti_simplelink_wisun.mak
+
+AR = "$(TICLANG_ARMCOMPILER)/bin/tiarmar"
+CC = "$(TICLANG_ARMCOMPILER)/bin/tiarmclang"
+
+DEPFLAGS = -MMD -MP -MF $(@:.o=.d)
+CSOURCES = $(notdir $(C_SOURCE_FILES))
+COBJS    = $(addprefix $(OUTPUT_DIR)/,$(CSOURCES:.c=.o))
+CDEPS   += $(addprefix $(OUTPUT_DIR)/,$(CSOURCES:.c=.d))
+C_PATHS  = $(subst \,/,$(sort $(dir $(C_SOURCE_FILES))))
+
+vpath %.c $(C_PATHS)
+override CFLAGS = $(C_FLAGS) $(C_DEFS) $(INCLUDES) $(DEPFLAGS)
+
+debug: | $(OUTPUT_DIR)/$(PROJECTNAME).a
+
+ifneq (clean,$(findstring clean, $(MAKECMDGOALS)))
+-include $(CDEPS)
+endif
+
+$(OUTPUT_DIR)/$(PROJECTNAME).a: $(COBJS)
+	@echo 'Archiving $@'
+	$(ECHO)$(AR) rc $@ $^
+	@echo 'Done.'
+
+$(OUTPUT_DIR)/%.o: %.c
+	@echo 'Building $<'
+	@mkdir -p $(@D)
+	$(ECHO)$(CC) $(CFLAGS) -c -o $@ $<
+
+clean: ; $(RM) -rf $(BUILD_DIR)

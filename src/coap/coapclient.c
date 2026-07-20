@@ -99,12 +99,13 @@ int coapclient_request (const osal_sockaddr_t *to,
     const void *body, uint16_t body_len )
 {
   coap_header_t coap_hdr;
-  uint8_t opt_buf[MAX_OPTION_LEN], payload_marker = COAP_PAYLOAD_MARKER;
+  static uint8_t opt_buf[MAX_OPTION_LEN];
+  uint8_t payload_marker = COAP_PAYLOAD_MARKER;
   uint8_t* opt_cur = opt_buf;
   uint32_t opt_buf_used = 0;
   uint32_t version = 1;
   uint32_t option_count = 0;
-  uint8_t outbuf[OUTBUF_SIZE];
+  static uint8_t outbuf[OUTBUF_SIZE];
   uint8_t *outbufp = outbuf;
   int outbuf_len = 0;
   int rv;
