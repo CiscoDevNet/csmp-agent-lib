@@ -21,6 +21,7 @@
 #include "csmpservice.h"
 #include "cgmsagent.h"
 #include "csmpserver.h"
+#include "csmpagent.h"
 
 uint8_t g_csmplib_status = SERVICE_NOT_START;
 
@@ -46,6 +47,8 @@ int csmp_service_start(dev_config_t *devconfig, csmp_handle_t *csmp_handle) {
 
   if((devconfig == NULL) || (csmp_handle == NULL))
     return -2;
+
+  initGroups();
 
   memset(g_csmplib_eui64, 0, sizeof(g_csmplib_eui64));
   memcpy(g_csmplib_eui64, devconfig->ieee_eui64.data, sizeof(g_csmplib_eui64));

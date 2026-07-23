@@ -641,3 +641,19 @@ osal_basetype_t osal_copy_firmware(uint8_t source_slotid, uint8_t dest_slotid, C
   DPRINTF("osal_copy_firmware: Copied Slothdr Successfully\n");
   return OSAL_SUCCESS;
 }
+
+osal_basetype_t osal_read_groups(uint32_t *groups, uint8_t num_groups)
+{
+  /* Silence compiler warnings about unused parameters. */
+  (void) groups;
+  (void) num_groups;
+  return OSAL_SUCCESS;
+}
+
+osal_basetype_t osal_write_groups(uint32_t *groups, uint8_t num_groups)
+{
+  /* Silence compiler warnings about unused parameters. */
+  (void) groups;
+  (void) num_groups;
+  return OSAL_SUCCESS;
+}
