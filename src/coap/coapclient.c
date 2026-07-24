@@ -31,28 +31,37 @@ static response_handler_t m_response_handler = NULL;
 static osal_basetype_t m_sock = 0;
 static bool m_client_opened = false;
 static uint16_t m_transaction_id = 0;
+#ifndef USE_EXTERNAL_RECV_TASKS
 static osal_task_t recvt_id_task;
+#endif
+
+#ifndef USE_EXTERNAL_RECV_TASKS
 #if defined(OSAL_LINUX)
 static void *recv_fn(void*);
 #else
 static void recv_fn(void*);
 #endif
+#endif
+
 int write_option( uint8_t *buf, uint16_t buf_len, coap_option_t this_option, coap_option_t *last_option,
     const uint8_t* option_buf, uint32_t option_len, uint32_t *written_len );
-void process_response(uint8_t* data, uint16_t len, struct sockaddr_in6 *from);
 void coap_option_map(uint32_t val, uint8_t *map);
 
 int coapclient_stop()
 {
   m_client_opened = false;
+#ifndef USE_EXTERNAL_RECV_TASKS
   osal_task_cancel(recvt_id_task);
-  return close(m_sock);
+#endif
+  return osal_socket_close(m_sock);
 }
 
 int coapclient_open(response_handler_t response_handler)
 {
   osal_socket_handle_t sockfd;
+#ifndef USE_EXTERNAL_RECV_TASKS
   osal_basetype_t ret = OSAL_FAILURE;
+#endif
 
   if (m_client_opened) {
     DPRINTF("coaplient was already opened!\n");
@@ -72,9 +81,11 @@ int coapclient_open(response_handler_t response_handler)
 
   m_sock = sockfd;
   m_client_opened = true;
+#ifndef USE_EXTERNAL_RECV_TASKS
   ret = osal_task_create(&recvt_id_task, NULL, 0, 0, recv_fn, NULL);
   DPRINTF("CoapClient.open - %s.\n" , (ret == OSAL_SUCCESS) ? "task created" : "task creation failed");
   assert(ret == OSAL_SUCCESS);
+#endif
   
   return 0;
 }
@@ -236,6 +247,8 @@ void coap_option_map(uint32_t val, uint8_t *map)
   else if (val <= 0xffff + 269)
     *map = 14;
 }
+
+#ifndef USE_EXTERNAL_RECV_TASKS
 #if defined(OSAL_LINUX)
 static void *recv_fn(void* arg)
 #else
@@ -264,14 +277,15 @@ static void recv_fn(void* arg)
     DPRINTF("coapclient.Socket.recvfrom - Got %u-byte response from ",len);
     osal_print_formatted_ip(&from);
 
-    process_response(data, len, &from ); 
+    coapclient_process_response(data, len, &from );
  }
 #if defined(OSAL_LINUX)
   return NULL;
 #endif
 }
+#endif
 
-void process_response(uint8_t* data, uint16_t len, struct sockaddr_in6 *from)
+void coapclient_process_response(uint8_t* data, uint16_t len, struct sockaddr_in6 *from)
 {
   uint8_t* cur = data;
   coap_header_t *hdr;

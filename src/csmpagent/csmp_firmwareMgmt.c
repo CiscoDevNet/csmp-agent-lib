@@ -49,7 +49,7 @@ int csmp_get_transferRequest(tlvid_t tlvid, uint8_t *buf, size_t len,
 
     if(xfer_req) {
         // Firmware status check
-        if (!xfer_req->has_status || xfer_req->status != FWHDR_STATUS_DOWNLOAD) {
+        if (!xfer_req->has_status || xfer_req->status != (uint32_t) FWHDR_STATUS_DOWNLOAD) {
           DPRINTF("csmpagent_firmwaremgmt: Transfer request status error! (%x)\n", 
                   xfer_req->status);  
           return CSMP_OP_TLV_RD_EMPTY;
@@ -747,6 +747,10 @@ int csmp_get_firmwareImageInfo(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t 
 
   fii = g_csmptlvs_get(tlvid, &num);
 
+  if (tlvindex > 0 && (uint32_t)idx >= num) {
+    return CSMP_OP_TLV_RD_EMPTY;
+  }
+
   if (fii == NULL) {
     DPRINTF("csmpagent_firmwaremgmt: csmptlv %d GET failed!\n", tlvid.type);
     return CSMP_OP_TLV_RD_EMPTY;
@@ -857,8 +861,8 @@ int csmp_get_firmwareImageInfo(tlvid_t tlvid, uint8_t *buf, size_t len, int32_t 
       DPRINTF("csmpagent_firmwaremgmt: Firmware Image Info tlvindex > 0\n");
       break;
     }
-    if (idx >= CSMP_FWMGMT_ACTIVE_SLOTS) {
-      DPRINTF("csmpagent_firmwaremgmt: Firmware Image Info slotid >= max active slots\n");
+    if ((uint32_t)idx >= num) {
+      DPRINTF("csmpagent_firmwaremgmt: Firmware Image Info slotid >= max reported slots\n");
       break;
     }
   }

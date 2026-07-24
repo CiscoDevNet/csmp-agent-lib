@@ -30,6 +30,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "osal.h"
+#if defined(OSAL_RENESAS_WISUN)
+#include "csmp.h"
+#endif
 
 /** maximum CSMP cert length */
 #define MAX_SIGNATURE_CERT_LENGTH 512
@@ -100,6 +103,7 @@ typedef struct _dev_config {
   csmp_cfg_t csmp_sig_settings;/**< the csmp signature settings data*/
 } dev_config_t;
 
+#if !defined(OSAL_RENESAS_WISUN)
 /**
  * @brief tlvid
  *
@@ -108,6 +112,7 @@ typedef struct _tlvid {
   uint32_t vendor; /**< vendor identification */
   uint32_t type;   /**< type identification */
 } tlvid_t;
+#endif
 
 /**
  * @brief GET function definition

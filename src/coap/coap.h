@@ -21,6 +21,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "debug.h"
+#if OSAL_RENESAS_WISUN
+#include "osal_platform_types.h"
+#endif
 
 /*! \file
  *
@@ -51,7 +54,13 @@ typedef struct {
   uint8_t control;  /**< control identification */
   uint8_t code;     /**< code */
   uint16_t message_id; /**< message id */
-}__attribute__((packed)) coap_header_t;
+}
+#if !OSAL_RENESAS_WISUN
+__attribute__((packed))
+#else
+OSAL_ATTR_PACKED
+#endif
+coap_header_t;
 
 /**
   * coap_methods_t

@@ -42,7 +42,7 @@ enum {
   REASON_OUTAGE_RECOVERY = 8
 };
 
-extern uint8_t g_csmplib_status;
+extern csmp_service_status_t g_csmplib_status;
 extern uint32_t g_csmplib_reginterval_min;
 extern uint32_t g_csmplib_reginterval_max;
 extern csmp_subscription_list_t g_csmplib_report_list;
@@ -286,6 +286,8 @@ void response_handler(struct sockaddr_in6 *from, uint16_t status, const void *bo
       g_csmplib_stats.reg_fails++;
       g_csmplib_stats.reg_fails_stats.error_process++;
     }
+    break;
+  default:
     break;
   }
   return;

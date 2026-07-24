@@ -16,6 +16,7 @@
 
 #include "CsmpAgentLib_sample_tlvs.h"
 #include <inttypes.h>
+#include <stdio.h>
 
 /**
  * @brief csmp get TLV request

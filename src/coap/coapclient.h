@@ -78,4 +78,12 @@ int coapclient_request(const osal_sockaddr_t *to,
 		const coap_uri_seg_t *query, uint32_t query_cnt,
 		const void *body, uint16_t body_len);
 
+/**
+ * @brief process a response for the CoAP client
+ *
+ * @param data response data
+ * @param len response data length
+ * @param from response sender
+ */
+void coapclient_process_response(uint8_t* data, uint16_t len, struct sockaddr_in6 *from);
 #endif

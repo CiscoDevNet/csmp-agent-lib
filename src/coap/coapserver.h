@@ -105,4 +105,12 @@ int coapserver_response(const struct sockaddr_in6 *to,
     uint16_t status,
     const void* body, uint16_t body_len);
 
+/**
+ * @brief process a datagram for the CoAP server
+ *
+ * @param data datagram data
+ * @param len datagram data length
+ * @param from datagram sender
+ */
+void coapserver_process_datagram(uint8_t* data, uint16_t len, struct sockaddr_in6 *from);
 #endif

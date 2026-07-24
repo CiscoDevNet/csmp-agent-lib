@@ -3,7 +3,7 @@
 ## Overview
 CoAP Simple Management Protocol (CSMP) is a device lifecycle management protocol optimized for resource constrained devices deployed within large-scale, bandwidth constrained IoT networks.
 
-There are multiple target platforms supported by using OSAL (Operating System Abstraction Layer). The repository provides Linux, FreeRTOS and Silicon Labs EFR32 Wi-SUN device support. FreeRTOS initialised as a submodule and it is built with POSIX port. You can find details about Silicon Labs EFR32 Wi-SUN technology and products on [silabs.com](https://www.silabs.com/wireless/wi-sun).
+There are multiple target platforms supported by using OSAL (Operating System Abstraction Layer). The repository provides Linux, FreeRTOS, Silicon Labs EFR32 Wi-SUN and Renesas Wi-SUN FAN device support. FreeRTOS initialised as a submodule and it is built with POSIX port. You can find details about Silicon Labs EFR32 Wi-SUN technology and products on [silabs.com](https://www.silabs.com/wireless/wi-sun). You can find details about the Renesas Wi-SUN FAN integration in the corresponding [Readme](Vendors/Renesas/Readme.md).
 
 These instructions describe the build/run process for a C implementation of a sample CSMP Agent which incorporates the Cisco CSMP library `csmp-agent-lib`.
 
@@ -43,7 +43,9 @@ The demonstration requires using a Silicon Labs Wi-SUN Linux Border Router plus 
 
 Demonstration setup and detailed configuration can be found under the [/Vendors/Silabs/](/Vendors/Silabs/Readme.md) folder.
 
+#### Renesas - Wi-SUN FAN Platforms
 
+For Renesas Wi-SUN FAN platforms, general information about the integration, supported platforms, requirements, dependencies and configurations can be found under the [/Vendors/Renesas/](Vendors/Renesas/Readme.md) folder.
 
 ### Clean
 If you want to clean the build files prior to a subsequent build ...

@@ -23,7 +23,7 @@
 #include "csmpserver.h"
 #include "csmpagent.h"
 
-uint8_t g_csmplib_status = SERVICE_NOT_START;
+csmp_service_status_t g_csmplib_status = SERVICE_NOT_START;
 
 uint8_t g_csmplib_eui64[8];
 uint32_t g_csmplib_reginterval_min = 0;

@@ -118,6 +118,11 @@ osal_socket_handle_t osal_socket(osal_basetype_t domain, osal_basetype_t type, o
     return(socket(domain, type, protocol));
 }
 
+osal_basetype_t osal_socket_close(osal_socket_handle_t sockd)
+{
+     return close(sockd);
+}
+
 osal_basetype_t osal_bind(osal_socket_handle_t sockd, osal_sockaddr_t *addr, osal_socklen_t addrlen)
 {
     return (bind(sockd, (const struct sockaddr *)(addr), addrlen));
