@@ -1,213 +1,40 @@
 ---------------------------------------------------------------------------------------------------
--- CoAP CSMP Wireshark dissector
 --
--- Wireshark Lua dissector : coap_csmp_dissector.lua
--- ProtoBuf definition file: csmp.proto
+-- CoAP CSMP Wireshark Dissector v1.7.0
 --
--- Enables Wireshark to dissect CSMP packet payloads into TLVs and fields based on the
--- TLV Protobuf definitions in csmp.proto file
--- This is a CSMP Lua dissector is built on Wireshark's ProtoBuf dissector
--- Refer Readme for install and usage instructions
+-- Wireshark Lua dissector: coap_csmp_dissector.lua
+-- TLV ProtoBuf definition: csmp.proto
 --
--- Author: Manojna CSL (mcsl@cisco.com, manojnacsl@gmail.com)
+-- * Enables Wireshark to dissect CSMP packet payloads into TLVs and fields based on
+--   the TLV Protobuf definitions in csmp.proto file
+-- * This CSMP Lua dissector leverages Wireshark's ProtoBuf dissector to implement a
+--   extensible, lightweight, easy to upgrade and maintainable dissector model
+-- * Refer Readme for install and usage instructions
+--
+--
+-- Author: Manojna CSL (Engineering Tehcnical Lead, Cisco) <mcsl@cisco.com>, <manojnacsl@gmail.com>
+--
+-- Version history:
+-- 1.0.0  Support CoAP RFC (UDP61628), Protobuf decoding
+-- 1.1.0  Add selected TLV support, Update csmp.proto
+-- 1.2.0  Support CoAP Draft (UDP61624)
+-- 1.3.0  Add custom CoAP header decoding
+-- 1.4.0  Add CoAP mode differentiation and CoAP header field parsing
+-- 1.5.0  Add more TLV support, Update csmp.proto
+-- 1.6.0  Use common protobufMessageMap for both TLV names and protobuf names
+-- 1.7.0  VarInt overflow handling, CoAP version validation, Option parsing, Token/URI extraction
+--
 ---------------------------------------------------------------------------------------------------
 
--- Load required fields, ports
-local CSMP_PORT_RFC = '61628'
-local CSMP_PORT_CLC = '61624'
-fUdpDstPort = Field.new("udp.dstport")
-fUdpSrcPort = Field.new("udp.srcport")
+-- Set version and metadata
+set_plugin_info({
+    version     = "1.7.0",
+    author      = "Manojna CSL <mcsl@cisco.com>, <manojnacsl@gmail.com>",
+    description = "Wireshark dissector for CSMP: CoAP Simple Management Protocol",
+    repository  = "https://github.com/CiscoDevNet/csmp-agent-lib/tree/main/tools/wireshark-csmp-dissector"
+})
 
--- Create the CSMP Proto, add TLV fields
-local oProtoCsmp = Proto('csmp', 'CSMP')
-local pfTlvId     = ProtoField.uint32('csmp.tlvid',  'ID',     base.DEC)
-local pfTlvLength = ProtoField.uint32('csmp.tlvlen', 'Length', base.DEC)
-local pfTlvData   = ProtoField.bytes('csmp.tlvdata', 'Raw Data')
-oProtoCsmp.fields = {pfTlvId, pfTlvLength, pfTlvData}
-
--- Lookup table for TLV names
-local tTlvIdStr = {
-      [1] = 'TLV Index',
-      [2] = 'Device ID',
-      [6] = 'NMS Redirect Request',
-      [7] = 'Session ID',
-      [8] = 'Description Request',
-     [10] = 'Hardware Settings',
-     [11] = 'Hardware Description',
-     [12] = 'Interface Description',
-     [13] = 'Report Subscribe',
-     [16] = 'IP Address',
-     [17] = 'IP Route',
-     [18] = 'Current Time',
-     [19] = 'Interface Settings',
-     [20] = 'WPAN Settings',
-     [21] = 'RPL Settings',
-     [22] = 'Uptime',
-     [23] = 'Interface Metrics',
-     [24] = 'Interface Detail Metrics',
-     [25] = 'IP Route RPL Metrics',
-     [28] = 'Echo Request',
-     [29] = 'Echo Response',
-     [30] = 'Ping Request',
-     [31] = 'Ping Response',
-     [32] = 'Reboot Request',
-     [33] = 'IEEE-802.1x Status',
-     [34] = 'IEEE-802.11i Status',
-     [35] = 'WPAN Status',
-     [36] = 'DHCPv6 Client Status',
-     [37] = 'Radio Link Stats',
-     [38] = 'IEEE-802.15.4 DevLink Stats',
-     [39] = 'IEEE-802.15.4 Link Stats',
-     [40] = 'WPAN Link Stats',
-     [41] = 'PPP Link Stats',
-     [42] = 'CGMS Settings',
-     [43] = 'CGMS Status',
-     [44] = 'CGMS Notification',
-     [45] = 'CGMS Stats',
-     [46] = 'PPP Settings',
-     [47] = 'IEEE-802,1x Settings',
-     [48] = 'IEEE-802.15.4 Beacon Stats',
-     [49] = 'Silence Request',
-     [50] = 'UDP Metric',
-     [51] = 'IEEE-P19012 Stats',
-     [52] = 'IEEE-802.15.4 Neighbors',
-     [53] = 'RPL Instance',
-     [54] = 'RPL Parent',
-     [55] = 'Group Assign',
-     [56] = 'Group Evict',
-     [57] = 'Group Match',
-     [58] = 'Group Info',
-     [61] = 'LoWPAN PHY Stats',
-     [62] = 'LoWPAN MAC Status',
-     [63] = 'LoWPAN PHY Settings',
-     [65] = 'Transfer Request',
-     [67] = 'ImageBlock',
-     [68] = 'Load Request',
-     [69] = 'Cancel Load Request',
-     [70] = 'Set Backup Request',
-     [71] = 'Transfer Response',
-     [72] = 'Load Response',
-     [73] = 'Cancel Load Response',
-     [74] = 'Set Backup Response',
-     [75] = 'Firmware Image Info',
-     [76] = 'Signature Validity',
-     [77] = 'Signature',
-     [78] = 'Signature Certificate',
-     [79] = 'Signature Settings',
-     [80] = 'IEEE-802.1x AAA Security',
-     [81] = 'IEEE-802.1x Client Security',
-     [84] = 'Network Neighbours',
-     [86] = 'System Reset Stats',
-     [88] = 'DiffServ Metrics',
-     [91] = 'Outage Recovery',
-     [92] = 'Start DM Session',
-     [93] = 'End DM Session',
-     [95] = 'IEEE-P19012 Neighbour',
-     [96] = 'SerialDev Settings',
-     [97] = 'SerialDev Metrics',
-     [98] = 'IPM Address Settings',
-    [107] = 'Leds Settings',
-    [108] = 'Leds Status',
-    [111] = 'MAPT Status',
-    [112] = 'MAPT Metrics',
-    [115] = 'RawSocket Forwarder Settings',
-    [116] = 'RawSocket Forwarder Status',
-    [117] = 'RawSocket Forwarder Metrics',
-    [120] = 'NAT44 Static Map',
-    [121] = 'NAT44 DynamicMap',
-    [122] = 'NAT44 Interface',
-    [124] = 'NetStat',
-    [125] = 'ARP Cache',
-    [130] = 'IEEE-P19012 RPL Metrics',
-    [139] = 'Console Settings',
-    [140] = 'Zeroise Node',
-    [141] = 'Network Role',
-    [142] = 'IOx Settings',
-    [143] = 'IOx Management',
-    [144] = 'IOx Credentials',
-    [145] = 'IOx Host Exec',
-    [146] = 'IOx Host Status',
-    [147] = 'IOx Status',
-    [148] = 'Downward Route Query',
-    [149] = 'Downward Route Number',
-    [150] = 'App Header Info',
-    [155] = 'LoWPAN Adaptive PHY Status Query',
-    [156] = 'Adaptive Modulation Settings',
-    [157] = 'Adaptive Modulation Status',
-    [163] = 'Channel Control',
-    [170] = 'DTLS Relay Settings',
-    [171] = 'Certificate Re-Enroll Settings',
-    [172] = 'Certificate Bundle',
-    [173] = 'Certificate Auto-Renew Settings',
-    [180] = 'Patch Capability Info',
-    [200] = 'BBU Status',
-    [201] = 'BBU Settings',
-    [202] = 'BBU Diagnostic Info',
-    [214] = 'Heater Settings',
-    [215] = 'Heater Status',
-    [217] = 'External Alarm Setting',
-    [218] = 'External Alarm Status',
-    [219] = 'StoredInfo',
-    [220] = 'FastSync Status',
-    [240] = 'MPL Settings',
-    [241] = 'MPL Stats',
-    [242] = 'MPL Reset',
-    [243] = 'MPL Domain Address',
-    [301] = 'SwitchPort Settings',
-    [302] = 'SwitchPort Metrics',
-    [303] = 'SwitchPort Detail Metrics',
-    [307] = 'ACL Deny Event Message',
-    [308] = 'MacSec Settings',
-    [309] = 'MacSec Status',
-    [310] = 'Logging Capability',
-    [311] = 'Logging Status',
-    [312] = 'Logging Report',
-    [313] = 'RPL Stats',
-    [314] = 'DHCPv6 Stats',
-    [315] = 'IEEE-802.15.4g Neighbor Settings',
-    [316] = 'IEEE-P19012 Neighbor Settings',
-    [320] = 'FMR Operate Try',
-    [321] = 'FMR Operate Catch',
-    [325] = 'Scan Channel RSSI Settings',
-    [326] = 'Channel RSSI Stats',
-    [327] = 'Channel RSSI',
-    [328] = 'Link Test Settings',
-    [329] = 'Link Test Stats',
-    [330] = 'Channel Packet Stats Clear',
-    [331] = 'Channel Packet Stats',
-    [332] = 'Radio Neighbor Stats Clear',
-    [333] = 'Radio Neighbor Stats',
-    [334] = 'Channel Function Settings',
-    [335] = 'EDFE Mode Settings',
-    [336] = 'LoWPAN MTU Settings',
-    [337] = 'Dwell Interval Settings',
-    [340] = 'StackMode Settings',
-    [341] = 'Wireless Console Setting',
-    [342] = 'Wireless Console Authorise',
-    [343] = 'StackMode Time',
-    [344] = 'StackMode Response',
-    [350] = 'Power Outage Notification (PON)',
-    [351] = 'Power Restoration Notification (PRN)',
-    [352] = 'Backup Power Setting',
-    [353] = 'Outage Stats',
-    [360] = 'P2P Instance Info',
-    [361] = 'P2P Route Info',
-    [362] = 'P2P Stats',
-    [363] = 'P2P Delete Route',
-    [364] = 'P2P Start Discover',
-    [500] = 'Event Report',
-    [501] = 'Event Index',
-    [502] = 'Event Subscribe',
-    [510] = 'Event Stats',
-    [525] = 'Debug Current Node Status',
-    [540] = 'ETX Algorithm Settings',
-    [550] = 'Sniffer Settings',
-    [551] = 'Sniffer Framecount',
-    [600] = 'FFN Gateway Settings',
-    [601] = 'FFN Child Stats',
-    }
-
--- Add Protobuf message dissector
+-- Lookup table for TLV names and Protobuf message dissector
 -- Note: TLV message names in protobufMessageMap must match (case-sensitive) as in
 -- csmp.proto file and have the package name (csmp) as their common prefix
 local oProtoProtobuf = Dissector.get("protobuf")
@@ -392,53 +219,765 @@ local protobufMessageMap = {
     [601] = "csmp.FFNChildStats",
     }
 
--- VarInt parser
-local function getVarInt(buf)
-   local i = 0
-   local value = 0
-   while( buf(i,1):uint() > 128 ) do
-      value = value + ((buf(i, 1):uint()-128) << (7*i))
-      i = i + 1
-   end
-   value = value + (buf(i, 1):uint() << (7*i))
-   i = i + 1
-   return i, value
+-- Load required ports, modes
+local COAP_PORT_RFC       = 61628
+local COAP_PORT_DRAFT     = 61624
+local COAP_MODE_RFC       = "rfc"
+local COAP_MODE_DRAFT     = "draft"
+local COAP_MODE_AMBIGUOUS = "unknown"
+
+-- Option metadata
+  local coapOptionInfo = {
+    [1]  = { name = "If-Match",       format = "opaque" },
+    [3]  = { name = "Uri-Host",       format = "string" },
+    [4]  = { name = "ETag",           format = "opaque" },
+    [5]  = { name = "If-None-Match",  format = "empty"  },
+    [6]  = { name = "Observe",        format = "uint"   },
+    [7]  = { name = "Uri-Port",       format = "uint"   },
+    [8]  = { name = "Location-Path",  format = "string" },
+    [11] = { name = "Uri-Path",       format = "string" },
+    [12] = { name = "Content-Format", format = "uint"   },
+    [14] = { name = "Max-Age",        format = "uint"   },
+    [15] = { name = "Uri-Query",      format = "string" },
+    [16] = { name = "Accept",         format = "uint",  mode = COAP_MODE_DRAFT },
+    [17] = { name = "Accept",         format = "uint",  mode = COAP_MODE_RFC   },
+    [19] = { name = "Token",          format = "opaque",mode = COAP_MODE_DRAFT },
+    [20] = { name = "Location-Query", format = "string" },
+    [23] = { name = "Block2",         format = "uint"   },
+    [27] = { name = "Block1",         format = "uint"   },
+    [28] = { name = "Size2",          format = "uint"   },
+    [35] = { name = "Proxy-Uri",      format = "string" },
+    [39] = { name = "Proxy-Scheme",   format = "string" },
+    [60] = { name = "Size1",          format = "uint"   }
+  }
+
+-- Create the CSMP Proto, add CoAP and CSMP TLV fields
+local coapTypeNames = {
+    [0]="CON",
+    [1]="NON",
+    [2]="ACK",
+    [3]="RST"
+  }
+
+local coapCodeNames = {
+    [0x00] = "Empty",
+    [0x01] = "GET",
+    [0x02] = "POST",
+    [0x03] = "PUT",
+    [0x04] = "DELETE",
+    [0x41] = "2.01 Created",
+    [0x43] = "2.03 Valid",
+    [0x45] = "2.05 Content"
+  }
+
+local pfVer       = ProtoField.uint8('csmp.ver', 'Version', base.DEC, nil, 0xC0)
+local pfType      = ProtoField.uint8('csmp.type', 'Type', base.DEC,coapTypeNames, 0x30)
+local pfTkl       = ProtoField.uint8('csmp.tkl', 'Token Length', base.DEC, nil, 0x0F)
+local pfOc        = ProtoField.uint8('csmp.oc', 'Option Count', base.DEC, nil, 0x0F)
+local pfCode      = ProtoField.uint8('csmp.code', 'Code', base.DEC, coapCodeNames)
+local pfMid       = ProtoField.uint16('csmp.mid', 'Message ID', base.DEC)
+local pfTok       = ProtoField.bytes('csmp.token', 'Token')
+local pfOptNumber = ProtoField.uint32("csmp.option.number", "Option Number", base.DEC)
+local pfOptDelta  = ProtoField.uint32("csmp.option.delta", "Option Delta", base.DEC)
+local pfOptDeltaNibble = ProtoField.uint8("csmp.option.delta_nibble", "Option Delta", base.DEC, nil, 0xF0)
+local pfOptLength = ProtoField.uint32("csmp.option.length", "Option Length", base.DEC)
+local pfOptLengthNibble = ProtoField.uint8("csmp.option.length_nibble", "Option Length", base.DEC, nil, 0x0F)
+local pfOptName   = ProtoField.string("csmp.option.name", "Option Name")
+local pfOptDescription = ProtoField.string("csmp.option.description",  "Option Desc")
+local pfUriPath   = ProtoField.string("csmp.uri_path", "Uri-Path")
+local pfOptValue  = ProtoField.bytes("csmp.option.value", "Option Value")
+local pfPayloadMarker = ProtoField.uint8("csmp.payload_marker", "Payload Marker", base.HEX)
+local pfPayload   = ProtoField.bytes("csmp.payload", "Payload")
+local pfTlvId     = ProtoField.uint32('csmp.tlvid', 'ID', base.DEC)
+local pfTlvLength = ProtoField.uint32('csmp.tlvlen', 'Length', base.DEC)
+local pfTlvData   = ProtoField.bytes('csmp.tlvdata', 'Raw Data')
+
+local oProtoCsmp  = Proto('csmp', 'CSMP: CoAP Simple Management Protocol')
+
+-- Load required fields
+oProtoCsmp.fields = {pfVer, pfType, pfTkl, pfOc, pfCode, pfMid, pfTok,
+                     pfOptNumber, pfOptDelta, pfOptDeltaNibble, pfOptLength, pfOptLengthNibble,
+                     pfOptName, pfOptDescription, pfUriPath, pfOptValue,
+                     pfPayloadMarker, pfPayload,
+                     pfTlvId, pfTlvLength, pfTlvData}
+
+-- Decode TLV name from Protobuf
+local function getTlvName(typeValue)
+    local protobufName =
+        protobufMessageMap[typeValue]
+
+    if protobufName == nil then
+        return "Unknown"
+    end
+
+    return protobufName:match("([^%.]+)$")
+        or protobufName
 end
 
-function oProtoCsmp.dissector(oTvbData, oPinfo, oTreeItemRoot)
-   
-   -- Do not parse this CoAP payload if not on CSMP port
-   if tostring(fUdpDstPort()) ~= CSMP_PORT_RFC and tostring(fUdpSrcPort()) ~= CSMP_PORT_RFC then return end
+-- Decode Option field
+local function decodeOptionField(tvb, offset, nibble)
+    if nibble <= 12 then
+        return nibble, offset
+    elseif nibble == 13 then
+        if offset + 1 > tvb:len() then
+            return nil, offset, "Truncated 8-bit extension"
+        end
 
-   --oPinfo.cols.protocol = 'CSMP' -- Comment out and leave column protocol as CoAP/PB
-   local oSubtree = oTreeItemRoot:add(oProtoCsmp, oTvbData(), 'CSMP TLV Data')
-   local uiIndex = 0
+        return 13 + tvb(offset, 1):uint(), offset + 1
+    elseif nibble == 14 then
+        if offset + 2 > tvb:len() then
+            return nil, offset, "Truncated 16-bit extension"
+        end
+
+        return 269 + tvb(offset, 2):uint(), offset + 2
+    end
+
+    return nil, offset, "Reserved nibble value 15"
+end
+
+local function getOptionMetadata(optionNumber, coapMode)
+  local metadata = coapOptionInfo[optionNumber]
+
+  if metadata ~= nil
+        and (metadata.mode == nil or metadata.mode == coapMode) then
+        return metadata
+    end
+
+    return {
+      name = string.format("Unknown Option %d", optionNumber),
+      format = "opaque"
+    }
+end
+
+-- Decode RFC CoAP Header Options
+local function dissectRfcOptions(tvb, offset, subtree, coapMode)
+    local tvbLen = tvb:len()
+    local previousOptionNumber = 0
+    local optionIndex = 0
+    local uriPathParts = {}
+
+    while offset < tvbLen do
+        local optionStart = offset
+        local optionHeader = tvb(offset, 1):uint()
+
+        -- Payload marker is valid only at an option boundary.
+        if optionHeader == 0xFF then
+            local markerItem = subtree:add(pfPayloadMarker, tvb(offset, 1))
+
+            markerItem:set_text("End of options marker: 255")
+            offset = offset + 1
+
+            if #uriPathParts > 0 then
+                local uriPath = "/" .. table.concat(uriPathParts, "/")
+
+                subtree:add(pfUriPath, tvb(optionStart, 0), uriPath):set_text(
+                        "[Uri-Path: " .. uriPath .. "]")
+            end
+
+            if offset >= tvbLen then
+                subtree:add_expert_info(PI_MALFORMED, PI_ERROR,
+                        "Payload marker is not followed by payload data")
+                return nil, false
+            end
+
+            local payloadRange = tvb(offset, tvbLen - offset)
+            local payloadItem = subtree:add(pfPayload, payloadRange)
+
+            payloadItem:set_text(string.format("Payload, Length: %d", payloadRange:len()))
+
+            return payloadRange, true
+        end
+
+        offset = offset + 1
+
+        local deltaNibble = bit.rshift(bit.band(optionHeader, 0xF0), 4)
+        local lengthNibble = bit.band(optionHeader, 0x0F)
+
+        local optionDelta, decodeError
+        optionDelta, offset, decodeError = decodeOptionField(tvb, offset, deltaNibble)
+
+        if optionDelta == nil then
+            subtree:add_expert_info(PI_MALFORMED, PI_ERROR, "Invalid option delta: " .. decodeError)
+            return nil, false
+        end
+
+        local optionLength
+        optionLength, offset, decodeError = decodeOptionField(tvb, offset, lengthNibble)
+
+        if optionLength == nil then
+            subtree:add_expert_info(PI_MALFORMED, PI_ERROR, "Invalid option length: " .. decodeError)
+            return nil, false
+        end
+
+        if offset + optionLength > tvbLen then
+            subtree:add_expert_info(PI_MALFORMED, PI_ERROR, "Option value extends beyond packet")
+            return nil, false
+        end
+
+        optionIndex = optionIndex + 1
+
+        local optionNumber = previousOptionNumber + optionDelta
+
+        previousOptionNumber = optionNumber
+
+        -- local metadata = coapOptionInfo[optionNumber] or {name = "Unknown", format = "opaque"}
+        local metadata = getOptionMetadata(optionNumber, coapMode)
+        local optionValueRange = tvb(offset, optionLength)
+        local displayValue = ""
+
+        if metadata.format == "string" then
+            displayValue = optionValueRange:string()
+        elseif metadata.format == "uint" then
+            if optionLength == 0 then
+              displayValue = "0"
+            elseif optionLength <= 4 then
+              displayValue = tostring(optionValueRange:uint())
+            else
+              displayValue = tostring(optionValueRange:bytes())
+            end
+        elseif metadata.format == "empty" then
+            displayValue = ""
+        else
+            displayValue = tostring(optionValueRange:bytes())
+        end
+
+        local optionEnd = offset + optionLength
+        local optionRange = tvb(optionStart, optionEnd - optionStart)
+        local title = string.format("Opt Name: #%d: %s", optionIndex, metadata.name)
+
+        if displayValue ~= "" then
+            title = title .. ": " .. displayValue
+        end
+
+        --local optionTree = subtree:add(optionRange, title)
+        -- Create a filterable option subtree.
+        local optionTree = subtree:add(pfOptName, optionRange, metadata.name)
+
+        -- Preserve the Wireshark-style display text.
+        optionTree:set_text(title)
+
+        local critical = bit.band(optionNumber, 1) ~= 0 and "Critical" or "Elective"
+        local safety = bit.band(optionNumber, 2) ~= 0 and "Unsafe" or "Safe"
+
+        optionTree:add(pfOptDescription, optionRange, string.format(
+                   "Type %d, %s, %s", optionNumber, critical, safety))
+        optionTree:add(pfOptDeltaNibble, tvb(optionStart, 1))
+        optionTree:add(pfOptLengthNibble, tvb(optionStart, 1))
+        optionTree:add(pfOptNumber, optionRange, optionNumber)
+        optionTree:add(pfOptDelta, optionRange, optionDelta)
+        optionTree:add(pfOptLength, optionRange, optionLength)
+
+        if optionLength > 0 then
+            optionTree:add(pfOptValue, optionValueRange):set_text(metadata.name .. ": " .. displayValue)
+        end
+
+        if optionNumber == 11 then
+            uriPathParts[#uriPathParts + 1] = displayValue
+        end
+
+        offset = optionEnd
+    end
+
+    -- Add URI summary when no payload marker exists.
+    if #uriPathParts > 0 then
+        local uriPath = "/" .. table.concat(uriPathParts, "/")
+
+        subtree:add(pfUriPath, tvb(tvbLen, 0), uriPath):set_text("[Uri-Path: " .. uriPath .. "]")
+    end
+
+    -- Valid message without a payload marker or payload.
+    return nil, true
+end
+
+-- Decode Draft CoAP Header Options
+local function dissectDraftOptions(tvb, offset, subtree, optionCount)
+    local tvbLen = tvb:len()
+    local previousOptionNumber = 0
+    local parsedOptions = 0
+    local optionIndex = 0
+    local markerMode = optionCount == 15
+    local jumpPending = false
+    local uriPathParts = {}
+
+    local function fail(message)
+        subtree:add_expert_info(
+            PI_MALFORMED,
+            PI_ERROR,
+            message
+        )
+        return nil, false
+    end
+
+    -- Draft length nibble 15 uses repeated extension bytes.
+    local function readLength(currentOffset, nibble)
+        if nibble < 15 then
+            return nibble, currentOffset
+        end
+
+        local length = 15
+
+        while true do
+            if currentOffset >= tvbLen then
+                return nil, currentOffset,
+                    "Truncated draft option length"
+            end
+
+            local extension =
+                tvb(currentOffset, 1):uint()
+
+            currentOffset = currentOffset + 1
+            length = length + extension
+
+            if length > 1034 then
+                return nil, currentOffset,
+                    "Draft option length exceeds 1034 bytes"
+            end
+
+            if extension < 255 then
+                return length, currentOffset
+            end
+        end
+    end
+
+    -- Delta nibble 15 introduces an option jump.
+    local function readJump(currentOffset, jumpType)
+        if jumpType == 1 then
+            return 15, currentOffset
+
+        elseif jumpType == 2 then
+            if currentOffset >= tvbLen then
+                return nil, currentOffset,
+                    "Truncated one-byte option jump"
+            end
+
+            local value =
+                tvb(currentOffset, 1):uint()
+
+            return (value + 2) * 8, currentOffset + 1
+
+        elseif jumpType == 3 then
+            if currentOffset + 2 > tvbLen then
+                return nil, currentOffset,
+                    "Truncated two-byte option jump"
+            end
+
+            local value =
+                tvb(currentOffset, 2):uint()
+
+            return (value + 258) * 8, currentOffset + 2
+        end
+
+        return nil, currentOffset,
+            "Reserved draft option-jump encoding"
+    end
+
+    local function finishPayload(payloadOffset)
+        if #uriPathParts > 0 then
+            local uriPath = "/" .. table.concat(uriPathParts, "/")
+
+            subtree:add(pfUriPath, tvb(payloadOffset, 0), uriPath):set_text(
+                    "[Uri-Path: " .. uriPath .. "]")
+        end
+
+        if payloadOffset >= tvbLen then
+            return nil, true
+        end
+
+        local payloadRange = tvb(payloadOffset, tvbLen - payloadOffset)
+
+        subtree:add(pfPayload, payloadRange):set_text(string.format(
+                "Payload, Length: %d", payloadRange:len()))
+
+        return payloadRange, true
+    end
+
+    -- OC 0: payload starts immediately after the fixed header.
+    if optionCount == 0 then
+        return finishPayload(offset)
+    end
+
+    while offset < tvbLen do
+        local optionStart = offset
+        local header = tvb(offset, 1):uint()
+
+        offset = offset + 1
+
+        -- Marker is legal only when OC is 15.
+        if header == 0xF0 then
+            if not markerMode then
+                return fail(
+                    "Draft option marker encountered when OC is not 15"
+                )
+            end
+
+            if jumpPending then
+                return fail(
+                    "End-of-options marker cannot follow an option jump"
+                )
+            end
+
+            subtree:add(pfPayloadMarker, tvb(optionStart, 1))
+                   :set_text("End of options marker: 240 (0xF0)")
+
+            return finishPayload(offset)
+        end
+
+        local deltaNibble = bit.rshift(bit.band(header, 0xF0), 4)
+        local lengthNibble = bit.band(header, 0x0F)
+
+        if deltaNibble == 15 then
+            if jumpPending then
+                return fail(
+                    "An option jump cannot follow another option jump"
+                )
+            end
+
+            local jumpDelta, newOffset, jumpError = readJump(offset, lengthNibble)
+
+            if jumpDelta == nil then
+                return fail(jumpError)
+            end
+
+            local jumpRange = tvb(optionStart, newOffset - optionStart)
+            local jumpTree = subtree:add(jumpRange, string.format(
+                             "Option Jump: +%d", jumpDelta))
+
+            jumpTree:add(pfOptDeltaNibble, tvb(optionStart, 1))
+
+            previousOptionNumber = previousOptionNumber + jumpDelta
+
+            offset = newOffset
+            jumpPending = true
+        else
+            local optionLength, valueOffset, lengthError = readLength(offset, lengthNibble)
+
+            if optionLength == nil then
+                return fail(lengthError)
+            end
+
+            if valueOffset + optionLength > tvbLen then
+                return fail(
+                    "Draft option value extends beyond packet"
+                )
+            end
+
+            local optionNumber = previousOptionNumber + deltaNibble
+
+            previousOptionNumber = optionNumber
+            jumpPending = false
+            parsedOptions = parsedOptions + 1
+            optionIndex = optionIndex + 1
+
+            local metadata = getOptionMetadata(optionNumber, COAP_MODE_DRAFT)
+
+            local optionValueRange = tvb(valueOffset, optionLength)
+
+            local displayValue = ""
+
+            if metadata.format == "string" then
+                displayValue = optionValueRange:string()
+
+            elseif metadata.format == "uint" then
+                if optionLength == 0 then
+                    displayValue = "0"
+                elseif optionLength <= 4 then
+                    displayValue = tostring(optionValueRange:uint())
+                else
+                    displayValue = tostring(optionValueRange:bytes())
+                end
+
+            elseif metadata.format ~= "empty"
+                and optionLength > 0 then
+                displayValue = tostring(optionValueRange:bytes())
+            end
+
+            local optionEnd = valueOffset + optionLength
+            local optionRange = tvb(optionStart, optionEnd - optionStart)
+            local title = string.format("Opt Name: #%d: %s", optionIndex, metadata.name)
+
+            if displayValue ~= "" then
+                title = title .. ": " .. displayValue
+            end
+
+            local optionTree = subtree:add(pfOptName, optionRange, metadata.name)
+
+            optionTree:set_text(title)
+
+            local critical = bit.band(optionNumber, 1) ~= 0 and "Critical" or "Elective"
+            local safety = bit.band(optionNumber, 2) ~= 0 and "Unsafe" or "Safe"
+
+            optionTree:add(pfOptDescription, optionRange, string.format(
+                    "Type %d, %s, %s", optionNumber, critical, safety))
+            optionTree:add(pfOptDeltaNibble, tvb(optionStart, 1))
+            optionTree:add(pfOptLengthNibble, tvb(optionStart, 1))
+            optionTree:add(pfOptNumber, optionRange, optionNumber)
+            optionTree:add(pfOptDelta, optionRange, deltaNibble)
+            optionTree:add(pfOptLength, optionRange, optionLength)
+
+            if optionLength > 0 then
+                optionTree:add(pfOptValue, optionValueRange):set_text(
+                    metadata.name .. ": " .. displayValue)
+            end
+
+            -- Draft token is carried as option 19
+            if optionNumber == 19 then
+              if optionLength < 1 or optionLength > 8 then
+                  optionTree:add_expert_info(PI_MALFORMED, PI_ERROR, string.format(
+                  "Invalid draft token length: %d", optionLength))
+              else
+                optionTree:add(pfTok, optionValueRange)
+              end
+            end
+
+            if optionNumber == 11 then
+                uriPathParts[#uriPathParts + 1] =
+                    displayValue
+            end
+
+            offset = optionEnd
+
+            -- OC 0–14 terminates after exactly OC options.
+            if not markerMode
+                and parsedOptions == optionCount then
+                return finishPayload(offset)
+            end
+        end
+    end
+
+    if jumpPending then
+        return fail(
+            "Draft packet ended immediately after an option jump"
+        )
+    end
+
+    if markerMode then
+        return fail(
+            "Draft packet ended before the 0xF0 marker"
+        )
+    end
+
+    return fail(
+        string.format("Expected %d draft options, decoded %d", optionCount, parsedOptions)
+    )
+end
+
+-- Assess CoAP mode
+local function getCoapMode(tvb, pinfo)
+   -- Check by CoAP wellknown ports
+   local is_rfcPort   = (pinfo.src_port == COAP_PORT_RFC or pinfo.dst_port == COAP_PORT_RFC)
+   local is_draftPort = (pinfo.src_port == COAP_PORT_DRAFT or pinfo.dst_port == COAP_PORT_DRAFT)
+
+   if is_rfcPort and is_draftPort then
+     return COAP_MODE_AMBIGUOUS
+   elseif is_rfcPort then
+     return COAP_MODE_RFC
+   elseif is_draftPort then
+     return COAP_MODE_DRAFT
+   end
+
+   -- Check by CoAP header
+   -- Fallback for Decode As or non-wellknown ports
+   local bits_4_7 = bit.band(tvb(0, 1):uint(), 0x0F)
+   -- If bits 4-7 are > 8, it cannot be a valid RFC Token Length (max 8)
+   -- It must be a Draft Option Count (OC)
+   if bits_4_7 > 8 then
+     return COAP_MODE_DRAFT
+   end
+
+   -- Fallback for unusual/malformed packets
+   return COAP_MODE_AMBIGUOUS
+end
+
+-- Decode VarInt
+local function decodeVarInt(buf)
+   local i = 0
+   local value = 0
+
+   while (i < buf:len()) do
+     local byteValue = buf(i, 1):uint()
+     -- A uint32 VarInt may use only four bits in byte 5.
+     if i == 4 and byteValue > 0x0F then
+       return nil, nil, "VarInt exceeds uint32 range"
+     end
+
+     value = value + (byteValue % 128) * (2 ^ (7 * i))
+     i = i + 1
+
+     -- High bit is clear: this is the final byte
+     if byteValue < 128 then
+       return i, value
+     end
+     if i >= 5 then
+       return nil, nil, "VarInt exceeds 5 bytes"
+     end
+   end
+
+   return nil, nil, "Truncated VarInt"
+end
+
+-- Dissect CoAP header and CSMP payload
+function oProtoCsmp.dissector(oTvbData, oPinfo, oTreeItemRoot)
+
+   local oTvbLen = oTvbData:len()
+   oPinfo.cols.protocol = "CoAP/CSMP"
+
+   -- Fixed header must be 4 bytes
+   if oTvbLen < 4 then
+     local truncatedTree = oTreeItemRoot:add(oProtoCsmp, oTvbData(0, oTvbLen),
+                                         "Truncated Constrained Application Protocol")
+     truncatedTree:add_expert_info(PI_MALFORMED, PI_ERROR, string.format(
+                                   "CoAP header requires 4 bytes; only %d available", oTvbLen))
+     return
+   end
+
+   local coapMode = getCoapMode(oTvbData, oPinfo)
+
+   local subtree = oTreeItemRoot:add(oProtoCsmp, oTvbData(0, oTvbLen), "Constrained Application Protocol")                                       :append_text(string.format(" (%s)", coapMode))
+
+   subtree:add(pfVer,  oTvbData(0, 1))
+   local firstByte = oTvbData(0, 1):uint()
+   local version = bit.rshift(bit.band(firstByte, 0xC0), 6)
+   if version ~= 1 then
+     subtree:add_expert_info(PI_MALFORMED, PI_ERROR, string.format("Unsupported CoAP version: %d", version))
+     return
+   end
+
+   subtree:add(pfType, oTvbData(0, 1))
+
+   local hdrBits_4_7 = bit.band(firstByte, 0x0F)
+
+   if coapMode == COAP_MODE_DRAFT then
+
+     subtree:add(pfOc, oTvbData(0, 1)):append_text(" (draft)")
+     --oPinfo.cols.info = string.format("OC:%d ", hdrBits_4_7)
+
+   elseif coapMode == COAP_MODE_RFC then
+     subtree:add(pfTkl, oTvbData(0, 1)):append_text(" (rfc)")
+     --oPinfo.cols.info = string.format("TL:%d ", hdrBits_4_7)
+   end
+   -- Add remaining fixed header fields
+   subtree:add(pfCode, oTvbData(1, 1))
+   subtree:add(pfMid,  oTvbData(2, 2))
+   local codeVal = oTvbData(1, 1):uint()
+   local codeName = coapCodeNames[codeVal]
+
+   local typeValue = bit.rshift(bit.band(firstByte, 0x30), 4)
+   local typeName = coapTypeNames[typeValue] or string.format("(%d)", typeValue)
+   local codeDisplay = codeName or string.format("%d.%02d",
+                                                 math.floor(codeVal / 32), codeVal % 32)
+   subtree:append_text(string.format(", %s %s", typeName, codeDisplay))
+
+   if codeName ~= nil then
+    oPinfo.cols.info:append(string.format("  %s %s ", typeName, codeName))
+   else
+    oPinfo.cols.info:append(string.format("  %s %d.%02d ", typeName,
+                     math.floor(codeVal / 32), codeVal % 32))
+   end
+
+   local payloadRange
+   local optionsValid = true
+   if coapMode == COAP_MODE_RFC then
+      local tokenLength = hdrBits_4_7
+      local optionOffset = 4
+
+    if tokenLength > 8 then
+        subtree:add_expert_info(PI_MALFORMED, PI_ERROR, string.format("Invalid RFC token length: %d",
+        tokenLength))
+        return
+    end
+
+    if optionOffset + tokenLength > oTvbLen then
+        subtree:add_expert_info(PI_MALFORMED, PI_ERROR, "Token extends beyond the packet")
+        return
+    end
+
+    if tokenLength > 0 then
+        subtree:add(pfTok, oTvbData(optionOffset, tokenLength))
+        optionOffset = optionOffset + tokenLength
+    end
+
+    payloadRange, optionsValid = dissectRfcOptions(oTvbData, optionOffset, subtree, coapMode)
+
+    elseif coapMode == COAP_MODE_DRAFT then
+    payloadRange, optionsValid = dissectDraftOptions(oTvbData, 4, subtree, hdrBits_4_7)
+    end
+
+    if not optionsValid then
+        return
+    end
+
+   -- payloadRange now contains only the CSMP payload.
+   -- Save Info column
+   local colInfo = tostring(oPinfo.cols.info)
+   local tlvIds = {}
+
+   if payloadRange ~= nil then
+      local oSubtree = oTreeItemRoot:add(oProtoCsmp, payloadRange, 'CoAP Simple Management Protocol')
+      local payloadTvb = payloadRange:tvb("CSMP payload")
+      local uiIndex = 0
 
    -- Loop through data and add the TLVs
-   while( uiIndex < oTvbData:len()-2 ) do
-      local typeLen, typeValue = getVarInt( oTvbData(uiIndex) ) -- Get TLV ID
-      local lengthLen, lengthValue = getVarInt( oTvbData(uiIndex+typeLen) ) -- Get TLV Length
+   while (uiIndex < payloadTvb:len()) do
+      local typeLen, typeValue, typeError = decodeVarInt(payloadTvb(uiIndex))  -- Get TLV ID
+      if typeLen == nil then
+        oSubtree:add_expert_info(PI_MALFORMED, PI_ERROR, "Invalid TLV type: " .. typeError)
+        break
+      end
+
+      local lengthLen, lengthValue, lengthError = decodeVarInt(payloadTvb(uiIndex + typeLen)) -- Get TLV Length
+      if lengthLen == nil then
+        oSubtree:add_expert_info(PI_MALFORMED, PI_ERROR, "Invalid TLV length: " .. lengthError)
+        break
+      end
+
       local dataOffset = uiIndex + typeLen + lengthLen
-      local dataBuf = oTvbData(dataOffset, lengthValue) -- Get TLV Data
+      if dataOffset + lengthValue > payloadTvb:len() then
+        oSubtree:add_expert_info(PI_MALFORMED, PI_ERROR,
+                 string.format("TLV %d length %d extends beyond payload", typeValue, lengthValue))
+        break
+      end
 
+      local dataBuf = payloadTvb(dataOffset, lengthValue)                        -- Get TLV Data
+      tlvIds[#tlvIds + 1] = string.format("%d", typeValue)
       -- Add the TLV subtree
-      local oTlvTree = oSubtree:add(oProtoCsmp, oTvbData(uiIndex, typeLen + lengthLen + lengthValue), 
-         string.format("TLV: %d %s", typeValue, tTlvIdStr[typeValue] or "TLV: Unknown"))
+      local tlvName = getTlvName(typeValue)
+      local oTlvTree = oSubtree:add(oProtoCsmp, payloadTvb(uiIndex, typeLen + lengthLen + lengthValue),
+           string.format("TLV:%d %s", typeValue, tlvName))
 
-      oTlvTree:add(pfTlvId, oTvbData(uiIndex, typeLen), typeValue)
-      oTlvTree:add(pfTlvLength, oTvbData(uiIndex + typeLen, lengthLen), lengthValue)
+      oTlvTree:add(pfTlvId, payloadTvb(uiIndex, typeLen), typeValue)
+      oTlvTree:add(pfTlvLength, payloadTvb(uiIndex + typeLen, lengthLen), lengthValue)
       oTlvTree:add(pfTlvData, dataBuf)
 
       -- Attempt to decode with ProtoBuf
-      if protobufMessageMap[typeValue] then
-         oPinfo.private["pb_msg_type"] = "message," .. protobufMessageMap[typeValue]
-         oProtoProtobuf:call(dataBuf:tvb(), oPinfo, oTlvTree)
+      local protobufMessage = protobufMessageMap[typeValue]
+      if protobufMessage then
+        if oProtoProtobuf then
+          oPinfo.private["pb_msg_type"] = "message," .. protobufMessage
+          oProtoProtobuf:call(dataBuf:tvb(), oPinfo, oTlvTree)
+        else
+          oTlvTree:add_expert_info(PI_UNDECODED, PI_WARN, "Protobuf dissector is unavailable")
+        end
       end
 
       uiIndex = dataOffset + lengthValue
    end
+   if #tlvIds > 0 then
+    local ids = table.concat(tlvIds, " ")
+    colInfo = colInfo .. " TLV:" .. ids .. " "
+    oSubtree:append_text(", TLV:" .. ids)
+  end
+ end
+   -- Update Protocol/Info columns
+   oPinfo.cols.protocol:set("CoAP/CSMP")
+   oPinfo.cols.protocol:fence()
+   oPinfo.cols.info:clear()
+   oPinfo.cols.info:set(colInfo)
+   oPinfo.cols.info:fence()
+
 end
 
 -- Add dissector to CoAP Data Media Type Dissector Table
-DissectorTable.get("media_type"):add("application/octet-stream", oProtoCsmp)
-
+-- DissectorTable.get("media_type"):add("application/octet-stream", oProtoCsmp)
+local udp_table = DissectorTable.get("udp.port")
+udp_table:add(COAP_PORT_RFC, oProtoCsmp)
+udp_table:add(COAP_PORT_DRAFT, oProtoCsmp)
