@@ -1,34 +1,35 @@
----------------------------------------------------------------------------------------------------
---
--- CoAP CSMP Wireshark Dissector v1.7.0
+----------------------------------------------------------------------------------------------------
+-- CoAP CSMP Wireshark Dissector v1.9.0
 --
 -- Wireshark Lua dissector: coap_csmp_dissector.lua
 -- TLV ProtoBuf definition: csmp.proto
 --
--- * Enables Wireshark to dissect CSMP packet payloads into TLVs and fields based on
---   the TLV Protobuf definitions in csmp.proto file
--- * This CSMP Lua dissector leverages Wireshark's ProtoBuf dissector to implement a
---   extensible, lightweight, easy to upgrade and maintainable dissector model
--- * Refer Readme for install and usage instructions
---
---
--- Author: Manojna CSL (Engineering Tehcnical Lead, Cisco) <mcsl@cisco.com>, <manojnacsl@gmail.com>
+--  * Enables Wireshark to dissect CoAP CSMP packet payloads into TLV fields based on
+--    the TLV Protobuf definitions specified in csmp.proto file
+--  * The dissector leverages Wireshark's ProtoBuf dissector to decode the Value fields in an
+--    extensible, lightweight, easy to upgrade and maintainable dissector model.
+--  * New TLV decoding support can be added by merely updating the csmp.proto file and an
+--    entry into protobufMessageMap in the dissector
+--  * Refer Readme for install and usage instructions
 --
 -- Version history:
--- 1.0.0  Support CoAP RFC (UDP61628), Protobuf decoding
--- 1.1.0  Add selected TLV support, Update csmp.proto
--- 1.2.0  Support CoAP Draft (UDP61624)
--- 1.3.0  Add custom CoAP header decoding
--- 1.4.0  Add CoAP mode differentiation and CoAP header field parsing
--- 1.5.0  Add more TLV support, Update csmp.proto
--- 1.6.0  Use common protobufMessageMap for both TLV names and protobuf names
--- 1.7.0  VarInt overflow handling, CoAP version validation, Option parsing, Token/URI extraction
+--  1.0.0  Support CoAP RFC (UDP61628), Protobuf decoding
+--  1.1.0  Add selected TLV support, Update csmp.proto
+--  1.2.0  Support CoAP Draft (UDP61624)l
+--  1.3.0  Add custom CoAP header decoding
+--  1.4.0  Add CoAP mode differentiation and CoAP header field parsing
+--  1.5.0  Add more TLV support, Update csmp.proto
+--  1.6.0  Use common protobufMessageMap for both TLV names and protobuf names
+--  1.7.0  VarInt overflow handling, CoAP version validation, Option parsing, Token/URI extraction
+--  1.8.0  Add protocol preferences for CoAP wire format selection, Harden CoAP mode detection
+--  1.9.0  Add helper scripts to install and add new TLV/Protobuf to dissector plugin
 --
----------------------------------------------------------------------------------------------------
+-- Author: Manojna CSL (Engineering Technical Lead, Cisco) <mcsl@cisco.com>, <manojnacsl@gmail.com>
+----------------------------------------------------------------------------------------------------
 
 -- Set version and metadata
 set_plugin_info({
-    version     = "1.7.0",
+    version     = "1.9.0",
     author      = "Manojna CSL <mcsl@cisco.com>, <manojnacsl@gmail.com>",
     description = "Wireshark dissector for CSMP: CoAP Simple Management Protocol",
     repository  = "https://github.com/CiscoDevNet/csmp-agent-lib/tree/main/tools/wireshark-csmp-dissector"
@@ -198,6 +199,7 @@ local protobufMessageMap = {
     [342] = "csmp.WirelessConsoleAuthorize",
     [343] = "csmp.StackModeTime",
     [344] = "csmp.StackModeResponse",
+    [345] = "csmp.StackModeStatus",
     [350] = "csmp.PON",
     [351] = "csmp.PRN",
     [352] = "csmp.BackupPowerSetting",
@@ -220,11 +222,20 @@ local protobufMessageMap = {
     }
 
 -- Load required ports, modes
-local COAP_PORT_RFC       = 61628
-local COAP_PORT_DRAFT     = 61624
-local COAP_MODE_RFC       = "rfc"
-local COAP_MODE_DRAFT     = "draft"
-local COAP_MODE_AMBIGUOUS = "unknown"
+local COAP_PORT_RFC        = 61628
+local COAP_PORT_DRAFT      = 61624
+local COAP_MODE_RFC        = "rfc"
+local COAP_MODE_DRAFT      = "draft"
+
+local COAP_PREF_MODE_AUTO  = 0
+local COAP_PREF_MODE_RFC   = 1
+local COAP_PREF_MODE_DRAFT = 2
+
+local coapModePreferenceValues = {
+    { 1, "Auto",           COAP_PREF_MODE_AUTO  },
+    { 2, "Force RFC",      COAP_PREF_MODE_RFC   },
+    { 3, "Force Draft",    COAP_PREF_MODE_DRAFT }
+}
 
 -- Option metadata
   local coapOptionInfo = {
@@ -293,6 +304,27 @@ local pfTlvLength = ProtoField.uint32('csmp.tlvlen', 'Length', base.DEC)
 local pfTlvData   = ProtoField.bytes('csmp.tlvdata', 'Raw Data')
 
 local oProtoCsmp  = Proto('csmp', 'CSMP: CoAP Simple Management Protocol')
+
+oProtoCsmp.prefs.github = Pref.statictext(
+    "GitHub: github.com/CiscoDevNet/csmp-agent-lib/"
+        .. "tree/main/tools/wireshark-csmp-dissector",
+    "CSMP Wireshark dissector"
+)
+oProtoCsmp.prefs.blank1 = Pref.statictext("", "")
+
+oProtoCsmp.prefs.coap_mode = Pref.enum(
+    "CoAP mode",
+    COAP_PREF_MODE_AUTO,
+    "Select CoAP wire format detection: Auto uses UDP ports and falls back to the header; "
+    .. "RFC and Draft force the selected format",
+    coapModePreferenceValues,
+    false
+)
+
+oProtoCsmp.prefs.default_ports = Pref.statictext(
+    "CSMP ports:  UDP 61628, UDP 61624",
+    "Default CSMP ports for CoAP RFC/Draft formats"
+)
 
 -- Load required fields
 oProtoCsmp.fields = {pfVer, pfType, pfTkl, pfOc, pfCode, pfMid, pfTok,
@@ -763,29 +795,37 @@ end
 
 -- Assess CoAP mode
 local function getCoapMode(tvb, pinfo)
-   -- Check by CoAP wellknown ports
-   local is_rfcPort   = (pinfo.src_port == COAP_PORT_RFC or pinfo.dst_port == COAP_PORT_RFC)
-   local is_draftPort = (pinfo.src_port == COAP_PORT_DRAFT or pinfo.dst_port == COAP_PORT_DRAFT)
+   local preferredMode = oProtoCsmp.prefs.coap_mode
+    -- CoAP mode: RFC / Draft
+    if preferredMode == COAP_PREF_MODE_RFC then
+        return COAP_MODE_RFC
+    elseif preferredMode == COAP_PREF_MODE_DRAFT then
+        return COAP_MODE_DRAFT
+    end
 
-   if is_rfcPort and is_draftPort then
-     return COAP_MODE_AMBIGUOUS
-   elseif is_rfcPort then
-     return COAP_MODE_RFC
-   elseif is_draftPort then
-     return COAP_MODE_DRAFT
-   end
+    -- CoAP mode: Auto
+    -- Destination identifies the receiving protocol endpoint.
+    if pinfo.dst_port == COAP_PORT_RFC then
+        return COAP_MODE_RFC
+    elseif pinfo.dst_port == COAP_PORT_DRAFT then
+        return COAP_MODE_DRAFT
+    end
+    -- Responses may target an ephemeral destination port.
+    if pinfo.src_port == COAP_PORT_RFC then
+        return COAP_MODE_RFC
+    elseif pinfo.src_port == COAP_PORT_DRAFT then
+        return COAP_MODE_DRAFT
+    end
+    -- Check by CoAP header, Fallback for Decode As or non-wellknown ports
+    local bits_4_7 = bit.band(tvb(0, 1):uint(), 0x0F)
+    -- If bits 4-7 are > 8, it cannot be a valid RFC Token Length (max 8)
+    -- It must be a Draft Option Count (OC)
+    if bits_4_7 > 8 then
+      return COAP_MODE_DRAFT
+    end
 
-   -- Check by CoAP header
-   -- Fallback for Decode As or non-wellknown ports
-   local bits_4_7 = bit.band(tvb(0, 1):uint(), 0x0F)
-   -- If bits 4-7 are > 8, it cannot be a valid RFC Token Length (max 8)
-   -- It must be a Draft Option Count (OC)
-   if bits_4_7 > 8 then
-     return COAP_MODE_DRAFT
-   end
-
-   -- Fallback for unusual/malformed packets
-   return COAP_MODE_AMBIGUOUS
+    -- Ambiguous 0–8: prefer RFC unless a preference overrides it.
+    return COAP_MODE_RFC
 end
 
 -- Decode VarInt
@@ -874,6 +914,25 @@ function oProtoCsmp.dissector(oTvbData, oPinfo, oTreeItemRoot)
                      math.floor(codeVal / 32), codeVal % 32))
    end
 
+   -- Empty messages contain no token, options, or CSMP payload.
+   if codeVal == 0 then
+      local trailingLength = oTvbLen - 4
+
+      if coapMode == COAP_MODE_RFC then
+         -- RFC 7252 requires TKL 0 and exactly the fixed header.
+         if hdrBits_4_7 ~= 0 or trailingLength ~= 0 then
+            subtree:add_expert_info(PI_MALFORMED, PI_ERROR, string.format(
+                    "Invalid RFC Empty message: TKL=%d, trailing bytes=%d", hdrBits_4_7, trailingLength))
+         end
+      elseif hdrBits_4_7 ~= 0 or trailingLength ~= 0 then
+         -- Draft-12 requires recipients to ignore these fields.
+         subtree:add_expert_info(PI_PROTOCOL, PI_WARN, string.format(
+                 "Draft Empty message has OC=%d and %d trailing bytes; ignored", hdrBits_4_7, trailingLength))
+      end
+
+      return
+   end
+
    local payloadRange
    local optionsValid = true
    if coapMode == COAP_MODE_RFC then
@@ -942,7 +1001,7 @@ function oProtoCsmp.dissector(oTvbData, oPinfo, oTreeItemRoot)
       -- Add the TLV subtree
       local tlvName = getTlvName(typeValue)
       local oTlvTree = oSubtree:add(oProtoCsmp, payloadTvb(uiIndex, typeLen + lengthLen + lengthValue),
-           string.format("TLV:%d %s", typeValue, tlvName))
+                       string.format("TLV:%d %s", typeValue, tlvName))
 
       oTlvTree:add(pfTlvId, payloadTvb(uiIndex, typeLen), typeValue)
       oTlvTree:add(pfTlvLength, payloadTvb(uiIndex + typeLen, lengthLen), lengthValue)
@@ -952,8 +1011,17 @@ function oProtoCsmp.dissector(oTvbData, oPinfo, oTreeItemRoot)
       local protobufMessage = protobufMessageMap[typeValue]
       if protobufMessage then
         if oProtoProtobuf then
+          local previousPbMsgType = oPinfo.private["pb_msg_type"]
           oPinfo.private["pb_msg_type"] = "message," .. protobufMessage
-          oProtoProtobuf:call(dataBuf:tvb(), oPinfo, oTlvTree)
+          local ok, callError = pcall(
+            function()
+              oProtoProtobuf:call(dataBuf:tvb(), oPinfo, oTlvTree)
+            end
+          )
+          oPinfo.private["pb_msg_type"] = previousPbMsgType
+          if not ok then
+            oTlvTree:add_expert_info(PI_MALFORMED, PI_ERROR, "Protobuf dissection failed: " .. tostring(callError))
+          end
         else
           oTlvTree:add_expert_info(PI_UNDECODED, PI_WARN, "Protobuf dissector is unavailable")
         end
@@ -977,7 +1045,6 @@ function oProtoCsmp.dissector(oTvbData, oPinfo, oTreeItemRoot)
 end
 
 -- Add dissector to CoAP Data Media Type Dissector Table
--- DissectorTable.get("media_type"):add("application/octet-stream", oProtoCsmp)
 local udp_table = DissectorTable.get("udp.port")
 udp_table:add(COAP_PORT_RFC, oProtoCsmp)
 udp_table:add(COAP_PORT_DRAFT, oProtoCsmp)

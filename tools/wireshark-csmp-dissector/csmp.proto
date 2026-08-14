@@ -1,7 +1,7 @@
 // Protocol Buffer definitions for CSMP TLVs
 // Google Protobuf version: 3.0
 //
-// Author: Manojna CSL (Engineering Tehcnical Lead, Cisco) <mcsl@cisco.com>, <manojnacsl@gmail.com>
+// Author: Manojna CSL (Engineering Technical Lead, Cisco) <mcsl@cisco.com>, <manojnacsl@gmail.com>
 //
 // Note: CSMP TLV ProtoBuf definitions will be referred to from one common authoritative source
 // from the OpenCSMP project in order to keep parity across all CSMP/ProtoBuf consumers
