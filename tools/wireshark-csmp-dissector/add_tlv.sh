@@ -3,7 +3,7 @@
 # -------------------------------------------------------------------------------------
 # Add a Protobuf-backed TLV to the Wireshark CSMP dissector
 #
-# Usage : ./add_tlv.sh TLV_ID TLV_PROTO_FILE [--dry-run]
+# Usage : ./add_tlv.sh [--dry-run] TLV_ID TLV_PROTO_FILE
 # Author: Manojna CSL <mcsl@cisco.com>, <manojnacsl@gmail.com>
 # -------------------------------------------------------------------------------------
 

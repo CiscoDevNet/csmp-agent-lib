@@ -3,8 +3,10 @@
 //
 // Author: Manojna CSL (Engineering Technical Lead, Cisco) <mcsl@cisco.com>, <manojnacsl@gmail.com>
 //
-// Note: CSMP TLV ProtoBuf definitions will be referred to from one common authoritative source
-// from the OpenCSMP project in order to keep parity across all CSMP/ProtoBuf consumers
+// Note:
+// - Use add_tlv.sh helper script to add dissector support for new TLVs
+// - CSMP TLV ProtoBuf definitions will be referred to from one common authoritative source
+//   from the OpenCSMP project in order to keep parity across all CSMP/ProtoBuf consumers
 
 syntax = "proto3";
 package csmp;
