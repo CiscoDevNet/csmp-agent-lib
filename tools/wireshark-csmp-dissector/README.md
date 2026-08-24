@@ -1,4 +1,6 @@
-# CoAP CSMP Wireshark Dissector
+<img align="right" width="135" alt="csmp-wireshark-dissector" src="images/wireshark-csmp-dissector-logo.jpg" />
+
+# CoAP/CSMP Wireshark Dissector
 
 **Author:**  Manojna CSL, Engineering Technical Lead, Cisco — 
 [mcsl@cisco.com](mailto:mcsl@cisco.com) · [manojnacsl@gmail.com](mailto:manojnacsl@gmail.com)  
@@ -67,16 +69,17 @@ makes the dissector lightweight, extensible and easy to upgrade and maintain.
 ## Quick start
 
 1. Install `coap_csmp_dissector.lua` and `csmp.proto` into Wireshark's
-   **Personal Lua Plugins** directory.
+   **Personal Lua Plugins** directory  
+   (**macOS / Linux**: `~/.local/lib/wireshark/plugins/` **Windows**: `%APPDATA%\Wireshark\plugins`)
 
-   On macOS or Linux:
-
+   **On macOS or Linux**:  
+	
    ```sh
    ./install.sh --dry-run
    ./install.sh
    ```
 
-   On Windows Command Prompt:
+   **On Windows Command Prompt**:  
 
    ```bat
    install.bat --dry-run
@@ -119,7 +122,8 @@ decoded fields without needing to manually extract or convert payload bytes.
 
 - **RFC and Draft compatibility:** Decodes CoAP RFC 7252 on UDP `61628` and
   CoAP draft-12 on UDP `61624`, with automatic or explicitly forced mode
-  selection.
+  selection. Supports CSMP packets from different mesh stackmodes viz., Wi-SUN,
+  Cisco Connected Grid Mesh(CGMESH).
 - **Layered protocol visibility:** Displays the CoAP header, message metadata,
   token, options, URI path, payload, CSMP TLVs, raw Value bytes, and known
   Protobuf fields in one packet tree.
@@ -175,13 +179,15 @@ Protobuf configuration, and checks needed to make the dissector operational.
   directory
 
 The scripts use `tshark -G folders` when possible to locate Wireshark's
-**Personal Lua Plugins** directory.
+**Personal Lua Plugins** directory.  
+**macOS / Linux**: `~/.local/lib/wireshark/plugins/`  
+**Windows**: `%APPDATA%\Wireshark\plugins`
 
 ### Package contents
 
 | File | Purpose |
 |---|---|
-| `coap_csmp_dissector.lua` | CoAP CSMP Wireshark Lua dissector |
+| `coap_csmp_dissector.lua` | CoAP/CSMP Wireshark Lua dissector |
 | `csmp.proto` | Combined Protobuf schema for known CSMP TLVs |
 | `install.sh` | Installer for macOS, Linux, and compatible Unix shells |
 | `install.ps1` | PowerShell installer for Windows |
@@ -229,7 +235,8 @@ dry-run option, and a custom target directory; see the script header for usage.
 #### Manual installation
 
 1. In Wireshark, open **Help > About Wireshark > Folders** and locate
-   **Personal Lua Plugins**.
+   **Personal Lua Plugins** directory.  
+   (**macOS / Linux**: `~/.local/lib/wireshark/plugins/` **Windows**: `%APPDATA%\Wireshark\plugins`)
 2. Copy `coap_csmp_dissector.lua` and `csmp.proto` into that directory.
 3. Restart Wireshark or choose **Analyze > Reload Lua Plugins**.
 
@@ -810,7 +817,7 @@ to older or compatibility traffic.
 
 ## Version history
 
-Current dissector version: **2.0.0**
+Latest dissector version: [**2.0.0**](https://github.com/CiscoDevNet/csmp-agent-lib/releases/tag/v1.1.0)
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed release notes.
 
