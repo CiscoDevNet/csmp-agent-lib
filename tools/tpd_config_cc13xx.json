@@ -1,0 +1,12 @@
+{
+    "major": "1",
+    "minor": "0",
+    "build": "0",
+    "name": "ti-node-1.0.0",
+    "hwid": "CC13XX",
+    "sub_hwid": "0",
+    "branch": "main",
+    "commit": "0000000",
+    "date": "Jun 06 2026",
+    "kernelrev": "WISUN_1.0"
+}

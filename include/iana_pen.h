@@ -35,6 +35,7 @@
 enum {
   RESERVED = 0,
   CISCO = 5771,
+  TI = 294,
   SILABS = 39873,
   ITRON = 1233,
   DUKE_ENERGY = 2981,

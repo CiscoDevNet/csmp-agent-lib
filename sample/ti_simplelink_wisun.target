@@ -1,0 +1,97 @@
+####################################################################
+# TI Wi-SUN FAN — board example build target                       #
+#                                                                   #
+# Loops over all boards in Vendors/TI/ and builds each board's     #
+# csmp_example_tirf firmware using the pre-built library.           #
+#                                                                   #
+# SETUP (two steps before running build.sh):                        #
+#                                                                   #
+#   1. Set SIMPLELINK_SDK_LINUX below to your SimpleLink SDK path.  #
+#                                                                   #
+#   2. Edit $(SDK)/imports.mak to set:                              #
+#        SYSCONFIG_TOOL  — path to sysconfig_cli.sh                #
+#        TICLANG_ARMCOMPILER — path to ti-cgt-armllvm_x.x.x        #
+#      (TI recommends editing imports.mak once per machine.)        #
+#                                                                   #
+# No other repositories are required.                               #
+####################################################################
+.PHONY: all ti_simplelink_wisun clean
+
+TOPDIR := $(abspath ..)
+
+# -----------------------------------------------------------------------
+# TI SimpleLink CC13xx/CC26xx SDK — edit the path for your installation.
+# All Wi-SUN stack sources, NV driver, RF driver, and device headers
+# are taken from this single SDK. No other SDKs are needed.
+# -----------------------------------------------------------------------
+SIMPLELINK_SDK_WIN   =
+SIMPLELINK_SDK_OSX   =
+SIMPLELINK_SDK_LINUX = /home/labuser/ti/simplelink_cc13xx_cc26xx_sdk_8_32_00_07
+
+ifeq ($(OS),Windows_NT)
+  SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR ?= $(SIMPLELINK_SDK_WIN)
+else
+  UNAME_S := $(shell uname -s)
+  ifeq ($(UNAME_S),Darwin)
+    SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR ?= $(SIMPLELINK_SDK_OSX)
+  else
+    SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR ?= $(SIMPLELINK_SDK_LINUX)
+  endif
+endif
+
+# -----------------------------------------------------------------------
+# Pull SYSCONFIG_TOOL and TICLANG_ARMCOMPILER from the SDK's imports.mak.
+# Edit that file once to point to your local SysConfig and compiler.
+# Standalone install paths on this machine (set in the SDK's imports.mak):
+#   SYSCONFIG_TOOL      ?= /home/labuser/ti/sysconfig_1.21.1/sysconfig_cli.sh
+#   TICLANG_ARMCOMPILER ?= /home/labuser/ti/ti_cgt_tiarmclang_3.2.2.LTS/ti-cgt-armllvm_3.2.2.LTS
+# -----------------------------------------------------------------------
+-include $(SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR)/imports.mak
+
+# -----------------------------------------------------------------------
+# Build configuration — override on the command line if needed
+#   RELEASE    (default) produces .hex only
+#   SECUREBOOT produces .hex + MCUBoot-signed .bin
+# Usage: ./build.sh ti_simplelink_wisun CONFIG=SECUREBOOT
+# -----------------------------------------------------------------------
+CONFIG ?= RELEASE
+
+# -----------------------------------------------------------------------
+# Board discovery — no changes needed below this line
+# -----------------------------------------------------------------------
+BOARD_DIRS := $(wildcard $(TOPDIR)/Vendors/TI/*/csmp_example_tirf/freertos/ticlang/)
+
+all: ti_simplelink_wisun
+
+ti_simplelink_wisun:
+ifeq ($(strip $(BOARD_DIRS)),)
+	@echo ""
+	@echo "TI Wi-SUN FAN — no boards found in Vendors/TI/"
+	@echo ""
+	@echo "Library csmp_agent_lib_ti_simplelink_wisun.a was built successfully."
+else
+	@echo "Building TI Wi-SUN FAN board examples..."
+	@$(foreach dir, $(BOARD_DIRS), \
+		echo "--- Building: $(dir) ---"; \
+		$(MAKE) -C $(dir) \
+			SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR="$(SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR)" \
+			CSMP_AGENT_LIB_INSTALL_DIR="$(TOPDIR)" \
+			SYSCONFIG_TOOL="$(SYSCONFIG_TOOL)" \
+			CC="$(TICLANG_ARMCOMPILER)/bin/tiarmclang" \
+			LNK="$(TICLANG_ARMCOMPILER)/bin/tiarmclang" \
+			HEX="$(TICLANG_ARMCOMPILER)/bin/tiarmobjcopy" \
+			CONFIG="$(CONFIG)" || exit 1; \
+	)
+	@echo ""
+	@echo "All boards built. Output .hex files:"
+	@$(foreach dir, $(BOARD_DIRS), \
+		ls $(dir)*.hex 2>/dev/null; \
+	)
+endif
+
+clean:
+	@$(foreach dir, $(BOARD_DIRS), \
+		$(MAKE) -C $(dir) clean \
+			SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR="$(SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR)" \
+			2>/dev/null; \
+	)

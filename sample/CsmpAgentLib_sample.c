@@ -478,6 +478,7 @@ static void csmp_sample_app_thr_fnc(void *arg)
           [-max reginterval_max]
           [-eid ieee_eui64]
 ***************************************************************/
+#ifndef OSAL_TI_SIMPLELINK_WISUN
 int main(int argc, char **argv)
 {
   static osal_task_t app_task = { 0 };
@@ -560,3 +561,4 @@ int str2addr(char *str, uint8_t *addr) {
 
   return 0;
 }
+#endif /* OSAL_TI_SIMPLELINK_WISUN */
