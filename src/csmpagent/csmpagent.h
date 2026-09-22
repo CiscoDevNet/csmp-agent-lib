@@ -63,6 +63,13 @@ int csmpagent_post(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t *out_b
 int checkSignature(const uint8_t *buf, uint32_t len, bool agent);
 
 /**
+ * @brief init group information
+ *
+ * @return int 0 is success
+ */
+int initGroups();
+
+/**
  * @brief check group
  *
  * @param buf request buffer

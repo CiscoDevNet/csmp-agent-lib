@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "csmp.h"
+#include "osal.h"
 #include "csmptlv.h"
 #include "csmpagent.h"
 #include "csmpfunction.h"
@@ -24,6 +25,11 @@
 
 static uint32_t m_GroupIds[CSMP_GROUP_NUM_TYPES] = {0};
 static bool m_bLastMatchValid;
+
+int initGroups()
+{
+  return osal_read_groups(m_GroupIds, CSMP_GROUP_NUM_TYPES);
+}
 
 bool checkGroup(const uint8_t *buf, uint32_t len) {
   uint32_t msglen;
@@ -115,7 +121,10 @@ int csmp_put_groupAssign(tlvid_t tlvid, const uint8_t *buf, size_t len, uint8_t 
     case CSMP_GROUP_TYPE_CONF:
     case CSMP_GROUP_TYPE_FW:
       if (m_GroupIds[GroupAssignMsg->type] != GroupAssignMsg->id)
+      {
         m_GroupIds[GroupAssignMsg->type] = GroupAssignMsg->id;
+        osal_write_groups(m_GroupIds, CSMP_GROUP_NUM_TYPES);
+      }
       break;
     default:
       break;
