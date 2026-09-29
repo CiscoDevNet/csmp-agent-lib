@@ -128,7 +128,7 @@ bool ncp_enabled = true;
 extern void *mainThread(void *arg0);
 
 /* Stack size in bytes */
-#define WISUNTHREADSTACKSIZE    4096
+#define WISUNTHREADSTACKSIZE    6656
 #endif
 
 #ifdef WISUN_RCP_HOST
