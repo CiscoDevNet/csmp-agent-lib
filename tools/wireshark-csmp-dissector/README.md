@@ -1,4 +1,4 @@
-<img align="right" width="135" alt="csmp-wireshark-dissector" src="images/wireshark-csmp-dissector-logo.jpg" />
+<img align="right" width="120" alt="csmp-wireshark-dissector" src="images/wireshark-csmp-dissector-logo.jpg" />
 
 # CoAP/CSMP Wireshark Dissector
 
