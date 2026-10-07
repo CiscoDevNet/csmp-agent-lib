@@ -8,9 +8,10 @@
 # linux    - POSIX Linux
 # freertos - FreeRTOS
 # efr32_wisun - EFR32 with Wi-SUN stack and FreeRTOS
+# ti_simplelink_wisun - TI CC13xx Wi-SUN FAN + FreeRTOS
 # clean    - clean binaries
 #
-.PHONY : linux freertos efr32_wisun clean
+.PHONY : linux freertos efr32_wisun ti_simplelink_wisun clean
 
 linux:
 	make -f linux.target
@@ -20,6 +21,9 @@ freertos:
 
 efr32_wisun:
 	make -f efr32_wisun.target
+
+ti_simplelink_wisun:
+	make clean && make CONFIG=SECUREBOOT -f ti_simplelink_wisun.target
 
 clean:
 	-rm -rf build/
