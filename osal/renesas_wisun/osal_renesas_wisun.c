@@ -71,60 +71,78 @@ static r_boolean_t csmpIsInitialized = R_FALSE;
 
 osal_ssize_t osal_sendmsg(osal_socket_handle_t sockd, const struct msghdr msg, osal_basetype_t flags)
 {
-    if (msg.msg_iov == NULL)
+    if (msg.msg_iov == NULL || msg.msg_name == NULL ||
+        sockd < 0 || sockd >= CSMP_MAX_SOCKETS ||
+        msg.msg_namelen != sizeof(osal_sockaddr_t) ||
+        ((osal_sockaddr_t *)msg.msg_name)->sin6_family != AF_INET6)
     {
-        R_LOG_ERR("r_sendmsg failed: data vector is null");
-        return R_RESULT_INVALID_PARAMETER;
-    }
-
-    if (msg.msg_name == NULL)
-    {
-        R_LOG_ERR("r_sendmsg failed: address is null");
-        return R_RESULT_INVALID_PARAMETER;
+        R_LOG_ERR("osal_sendmsg failed: invalid message or socket");
+        return OSAL_FAILURE;
     }
 
     const osal_sockaddr_t *addr = msg.msg_name;
-    osal_socklen_t addrlen = msg.msg_namelen;
-
-    osal_ssize_t total_sent = 0;
+    /* The UDP length field includes its eight-byte header. */
+    const size_t max_payload_len = UINT16_MAX - 8U;
+    size_t total_len = 0;
 
     for (size_t i = 0; i < msg.msg_iovlen; ++i)
     {
         const struct iovec *iov = &msg.msg_iov[i];
-        const uint8_t *buf = (const uint8_t *)iov->iov_base;
-        size_t len = iov->iov_len;
-
-        while (len > 0)
+        if ((iov->iov_len != 0 && iov->iov_base == NULL) ||
+            iov->iov_len > max_payload_len - total_len)
         {
-            osal_ssize_t n = osal_sendto(sockd, buf, len, flags, addr, addrlen);
+            R_LOG_ERR("osal_sendmsg failed: null data buffer or UDP payload too large");
+            return OSAL_FAILURE;
+        }
+        total_len += iov->iov_len;
+    }
 
-            if (n <= 0)
-            {
-                return OSAL_FAILURE;
-            }
+    if (total_len == 0)
+    {
+        return osal_sendto(sockd, "", 0, flags, addr, msg.msg_namelen);
+    }
 
-            buf        += (size_t)n;
-            len        -= (size_t)n;
-            total_sent += n;
+    /* All vectors form one datagram; UDP must not be sent in pieces; FND will reject responses split into multiple
+     * datagrams. */
+    uint8_t *payload = osal_malloc(total_len);
+    if (payload == NULL)
+    {
+        R_LOG_ERR("osal_sendmsg failed: could not allocate payload buffer");
+        return OSAL_FAILURE;
+    }
+
+    size_t offset = 0;
+    for (size_t i = 0; i < msg.msg_iovlen; ++i)
+    {
+        const struct iovec *iov = &msg.msg_iov[i];
+        if (iov->iov_len != 0)
+        {
+            memcpy(payload + offset, iov->iov_base, iov->iov_len);
+            offset += iov->iov_len;
         }
     }
 
-    return total_sent;
+    osal_ssize_t sent = osal_sendto(sockd, payload, total_len, flags, addr, msg.msg_namelen);
+    osal_free(payload);
+    if (sent < 0 || (size_t)sent != total_len)
+    {
+        R_LOG_ERR("osal_sendmsg failed: datagram transmission failed or was incomplete");
+        return OSAL_FAILURE;
+    }
+    return sent;
 }
 
 osal_ssize_t osal_sendto(osal_socket_handle_t sockd, const void *buf, size_t len, osal_basetype_t flags,
                          const osal_sockaddr_t *dest_addr, osal_socklen_t addrlen)
 {
-    if (sockd < 0 || sockd >= CSMP_MAX_SOCKETS || addrlen != sizeof(struct sockaddr_in6))
+    if (sockd < 0 || sockd >= CSMP_MAX_SOCKETS || addrlen != sizeof(struct sockaddr_in6) ||
+        ((struct sockaddr_in6*)dest_addr)->sin6_family != AF_INET6)
     {
-        return R_RESULT_INVALID_PARAMETER;
+        R_LOG_ERR("osal_sendto failed: invalid address or socket");
+        return OSAL_FAILURE;
     }
 
     struct sockaddr_in6* dest = (struct sockaddr_in6*)dest_addr;
-    if (dest->sin6_family != AF_INET6)
-    {
-        return R_RESULT_INVALID_PARAMETER;
-    }
 
     uint16_t dstPort = ntohs(dest->sin6_port);  // port in socket struct is network byte order but R_UDP_DataRequest expects host byte order
     uint16_t srcPort = ntohs(socket_ports[sockd]); // port in socket struct is network byte order but R_UDP_DataRequest expects host byte order
@@ -146,6 +164,12 @@ void osal_print_formatted_ip(const osal_sockaddr_t *sockadd)
 static void R_TrickleTimer_HandleExpired(void* timer)
 {
     r_trickle_timer_t* trickleTimer = timer;
+
+    if (!trickleTimer->is_running)
+    {
+        return;
+    }
+
     if (trickleTimer->id == reg_timer)
     {
         R_LOG_DBG("Register trickle timer fired");
@@ -171,17 +195,19 @@ static void R_TrickleTimer_HandleExpired(void* timer)
     trickleTimer->t0 += trickleTimer->icur;  // update t0 to next interval
 
     /* Double interval size */
-    trickleTimer->icur <<= 1;
-    if (trickleTimer->icur > trickleTimer->imax)
-    {
-        trickleTimer->icur = trickleTimer->imax;
-    }
+    trickleTimer->icur = (trickleTimer->icur > trickleTimer->imax / 2u) ? trickleTimer->imax : trickleTimer->icur * 2u;
 
     uint32_t min = trickleTimer->icur >> 1;
     trickleTimer->tfire = trickleTimer->t0 + min + (random32() % (trickleTimer->icur - min));
-    r_result_t res = R_Timer_StartSecs(&trickleTimer->cb_timer, trickleTimer->icur, R_TrickleTimer_HandleExpired, trickleTimer);
+    uint32_t delay = trickleTimer->tfire - clock_seconds();
+    if (delay == 0 || delay > INT32_MAX)
+    {
+        delay = 1; // An overdue deadline must not wrap into a long delay.
+    }
+    r_result_t res = R_Timer_StartSecs(&trickleTimer->cb_timer, delay, R_TrickleTimer_HandleExpired, trickleTimer);
     if (res != R_RESULT_SUCCESS)
     {
+        trickleTimer->is_running = R_FALSE;
         R_LOG_ERR("Fatal error: Trickle timer could not be restarted");
     }
 
@@ -191,10 +217,17 @@ static void R_TrickleTimer_HandleExpired(void* timer)
 
 void osal_trickle_timer_start(osal_timerid_t timerid, uint32_t imin, uint32_t imax, trickle_timer_fired_t trickle_timer_fired)
 {
-    if (timerid >= timer_num)
+    if ((unsigned int)timerid >= timer_num)
     {
         R_LOG_ERR("Invalid trickle timer id");
         return;  // Invalid timer ID
+    }
+
+    if (imin == 0 || imax < imin || imax > INT32_MAX / 2u || trickle_timer_fired == NULL)
+    {
+        R_LOG_ERR("Invalid trickle timer interval or callback");
+        osal_trickle_timer_stop(timerid);
+        return;
     }
 
     if (timerid == reg_timer)
@@ -214,7 +247,8 @@ void osal_trickle_timer_start(osal_timerid_t timerid, uint32_t imin, uint32_t im
         R_LOG_DBG("Async CSMP Reponse timer start");
     }
 
-    timers[timerid].t0 = clock_seconds() + (random32() % imin);
+    uint32_t now = clock_seconds();
+    timers[timerid].t0 = now + (random32() % imin);
     timers[timerid].icur = imin;
     timers[timerid].imin = imin;
     timers[timerid].imax = imax;
@@ -223,20 +257,26 @@ void osal_trickle_timer_start(osal_timerid_t timerid, uint32_t imin, uint32_t im
     timers[timerid].id = timerid;
     timers[timerid].csmp_cb = trickle_timer_fired;
 
-    r_result_t timerRes = R_Timer_StartSecs(&timers[timerid].cb_timer, timers[timerid].icur, R_TrickleTimer_HandleExpired, &timers[timerid]);
+    uint32_t delay = timers[timerid].tfire - now;
+    if (delay == 0)
+    {
+        delay = 1;
+    }
+    r_result_t timerRes = R_Timer_StartSecs(&timers[timerid].cb_timer, delay, R_TrickleTimer_HandleExpired, &timers[timerid]);
     if (timerRes != R_RESULT_SUCCESS)
     {
+        timers[timerid].is_running = R_FALSE;
         R_LOG_ERR("Fatal error: Timer %{u8} could not be started: 0x%{hex8}", (uint8_t)timerid, timerRes);
         return;
     }
 
-    R_LOG_DBG("Start timer %{u8} (expires in %{u32}s)", timerid, timers[timerid].icur);
+    R_LOG_DBG("Start timer %{u8} (expires in %{u32}s)", timerid, delay);
     timers[timerid].is_running = R_TRUE;
 }
 
 void osal_trickle_timer_stop(osal_timerid_t timerid)
 {
-    if (timerid >= timer_num)
+    if ((unsigned int)timerid >= timer_num)
     {
         R_LOG_ERR("Invalid trickle timer id");
         return;  // Invalid timer ID
@@ -269,6 +309,7 @@ void osal_trickle_timer_stop(osal_timerid_t timerid)
         break;
 
     case R_RESULT_NOTHING_TO_DO:
+        timers[timerid].is_running = R_FALSE;
         break;  // Do nothing (timer was not started)
 
     default:
@@ -291,6 +332,7 @@ osal_basetype_t osal_gettime(struct timeval *tv, struct timezone *tz)
 {
     if (tv == NULL)
     {
+        R_LOG_ERR("osal_gettime failed: time value is null");
         return OSAL_FAILURE;
     }
 
@@ -310,6 +352,7 @@ osal_basetype_t osal_settime(struct timeval *tv, struct timezone *tz)
 {
     if (tv == NULL)
     {
+        R_LOG_ERR("osal_settime failed: time value is null");
         return OSAL_FAILURE;
     }
     uint64_t currentUnixTime = tv->tv_sec + tv->tv_usec / 1000000;
@@ -395,6 +438,7 @@ osal_socket_handle_t osal_socket(osal_basetype_t domain,
         port = ntohs(socket_ports[sockd]) + 1;
         sockd++;
     }
+    R_LOG_ERR("osal_socket failed: no free sockets available");
     return OSAL_FAILURE;
 }
 
@@ -402,6 +446,7 @@ osal_basetype_t osal_socket_close(osal_socket_handle_t sockd)
 {
     if (sockd < 0 || sockd >= CSMP_MAX_SOCKETS)
     {
+        R_LOG_ERR("osal_socket_close failed: invalid socket");
         return OSAL_FAILURE;
     }
     socket_ports[sockd] = 0;
@@ -412,6 +457,7 @@ osal_basetype_t osal_bind(osal_socket_handle_t sockd, osal_sockaddr_t *addr, osa
 {
     if (sockd >= CSMP_MAX_SOCKETS || sockd < 0)
     {
+        R_LOG_ERR("osal_bind failed: invalid socket");
         return OSAL_FAILURE;
     }
     socket_ports[sockd] = addr->sin6_port;

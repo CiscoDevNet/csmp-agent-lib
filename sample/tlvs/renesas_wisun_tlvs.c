@@ -597,7 +597,11 @@ void currenttime_post(Current_Time* tlv)
     else if (tlv->has_iso8601)
     {
         uint32_t posix_seconds = 0;
-        iso8601_to_unix(tlv->iso8601, &posix_seconds);
+        if (iso8601_to_unix(tlv->iso8601, &posix_seconds) != R_RESULT_SUCCESS)
+        {
+            R_LOG_ERR("Current time update rejected: invalid ISO 8601 timestamp");
+            return;
+        }
         tv.tv_sec = posix_seconds;
         osal_settime(&tv, NULL);
     }
@@ -799,7 +803,7 @@ void* wpanstatus_get(uint32_t* num)
     g_tlv_wpanStatus.has_metric = true;
     g_tlv_wpanStatus.has_lastchanged = true;
     g_tlv_wpanStatus.has_lastchangedreason = true;
-    g_tlv_wpanStatus.has_demomodeenabled = false;
+    g_tlv_wpanStatus.has_demomodeenabled = true;
 
     g_tlv_wpanStatus.ifindex = 1;
     const char* netName = R_APP_GetNetworkName();
@@ -875,7 +879,8 @@ void* wpanstatus_get(uint32_t* num)
         g_tlv_wpanStatus.has_txpower = false;
     }
     uint16_t panSize = 0;
-    if (R_NWK_GetRequest(R_NWK_panSize, &panSize, sizeof(panSize)))
+    if (R_NWK_GetRequest(R_NWK_panSize, &panSize, sizeof(panSize)) == R_RESULT_SUCCESS &&
+        panSize != 0)
     {
         g_tlv_wpanStatus.dagsize = panSize;
     }
@@ -949,6 +954,7 @@ void* wpanstatus_get(uint32_t* num)
 
     g_tlv_wpanStatus.lastchanged = 0;
     g_tlv_wpanStatus.lastchangedreason = 0;
+    g_tlv_wpanStatus.demomodeenabled = false;
 
     return &g_tlv_wpanStatus;
 }
